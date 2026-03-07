@@ -2301,6 +2301,7 @@ def educator_assessments(course_id):
 def take_assessment(course_id, assessment_id):
     return render_template('take_assessment.html', course_id=course_id, assessment_id=assessment_id)
 
-if __name__=='__main__':
-    init_db()
-    app.run(debug=True,port=5000)
+init_db()  # ← runs on every startup, Gunicorn or otherwise
+
+if __name__ == '__main__':
+    app.run(debug=True, port=5000)
