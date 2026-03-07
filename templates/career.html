@@ -1,0 +1,390 @@
+{% extends "base.html" %}
+{% block title %}Career Growth Tracker — LearnSphere{% endblock %}
+{% block content %}
+<style>
+.cr-wrap         { max-width:1100px; margin:0 auto; padding:1.75rem 2rem 4rem; }
+.cr-hero         { text-align:center; padding:1.5rem 1rem 1.4rem; margin-bottom:1.6rem; }
+.cr-hero h1      { font-family:var(--ff-serif); font-size:1.9rem; font-weight:700; color:var(--text); margin-bottom:.4rem; }
+.cr-hero p       { font-size:.88rem; color:var(--text2); max-width:560px; margin:0 auto; line-height:1.65; }
+.cr-badge        { display:inline-block; background:rgba(124,58,237,.1); border:1px solid rgba(124,58,237,.3);
+                   color:#7c3aed; font-size:.7rem; font-weight:700; padding:.2rem .65rem;
+                   border-radius:20px; letter-spacing:.05em; text-transform:uppercase; margin-bottom:.65rem; }
+
+.cr-grid         { display:grid; grid-template-columns:1fr 320px; gap:1.4rem; align-items:start; }
+
+/* ── Stat strip ── */
+.stat-strip      { display:grid; grid-template-columns:repeat(4,1fr); gap:.75rem; margin-bottom:1.4rem; }
+.stat-box        { background:var(--bg3); border:1px solid var(--border); border-radius:var(--r2);
+                   padding:.9rem 1rem; text-align:center; }
+.stat-icon       { font-size:1.5rem; margin-bottom:.3rem; }
+.stat-val        { font-family:var(--ff-serif); font-size:1.5rem; font-weight:700; color:var(--text); }
+.stat-lbl        { font-size:.65rem; color:var(--text2); text-transform:uppercase; letter-spacing:.04em; }
+
+/* ── Add entry form ── */
+.add-card        { background:var(--bg3); border:1px solid var(--border); border-radius:var(--r2); overflow:hidden; margin-bottom:1.2rem; }
+.add-card-head   { padding:.75rem 1.1rem; border-bottom:1px solid var(--border); cursor:pointer;
+                   display:flex; align-items:center; justify-content:space-between; }
+.add-card-head h3 { font-family:var(--ff-serif); font-size:.95rem; font-weight:700; color:var(--text); }
+.add-card-body   { padding:1.1rem; display:none; }
+.add-card-body.open { display:block; }
+.form-row        { display:grid; grid-template-columns:1fr 1fr; gap:.75rem; margin-bottom:.75rem; }
+.form-row.full   { grid-template-columns:1fr; }
+.fi              { display:flex; flex-direction:column; gap:.3rem; }
+.fi label        { font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--text2); }
+.fi input,
+.fi select,
+.fi textarea     { padding:.55rem .85rem; border-radius:8px; background:var(--bg2);
+                   border:1px solid var(--border); color:var(--text); font-family:var(--ff-sans);
+                   font-size:.85rem; outline:none; transition:border-color .15s; resize:vertical; }
+.fi input:focus,
+.fi select:focus,
+.fi textarea:focus { border-color:#7c3aed; }
+.add-btn         { padding:.55rem 1.3rem; border-radius:8px; background:#7c3aed; border:none;
+                   color:#fff; font-family:var(--ff-serif); font-size:.9rem; font-weight:700;
+                   cursor:pointer; transition:filter .15s; }
+.add-btn:hover   { filter:brightness(1.1); }
+
+/* ── Timeline ── */
+.timeline        { position:relative; padding-left:1.8rem; }
+.timeline::before { content:''; position:absolute; left:.55rem; top:0; bottom:0; width:2px;
+                    background:linear-gradient(to bottom,#7c3aed,var(--accent),var(--success)); opacity:.3; border-radius:2px; }
+.tl-item         { position:relative; margin-bottom:1.1rem; }
+.tl-dot          { position:absolute; left:-1.8rem; top:.4rem; width:12px; height:12px;
+                   border-radius:50%; border:2px solid var(--bg3); }
+.type-skill .tl-dot      { background:var(--accent); }
+.type-competition .tl-dot { background:var(--warn); }
+.type-certificate .tl-dot { background:#7c3aed; }
+.type-project .tl-dot     { background:var(--success); }
+.type-course .tl-dot      { background:#ec4899; }
+
+.tl-card         { background:var(--bg3); border:1px solid var(--border); border-radius:var(--r2);
+                   padding:.9rem 1.1rem; transition:border-color .15s; }
+.tl-card:hover   { border-color:var(--border2); }
+.tl-top          { display:flex; align-items:flex-start; justify-content:space-between; gap:.5rem; margin-bottom:.3rem; }
+.tl-title        { font-family:var(--ff-serif); font-size:.95rem; font-weight:700; color:var(--text); }
+.tl-type-badge   { font-size:.62rem; font-weight:700; text-transform:uppercase; padding:.1rem .42rem;
+                   border-radius:4px; white-space:nowrap; flex-shrink:0; }
+.tb-skill        { background:rgba(0,212,255,.1); color:var(--accent); }
+.tb-competition  { background:rgba(245,158,11,.1); color:var(--warn); }
+.tb-certificate  { background:rgba(124,58,237,.1); color:#7c3aed; }
+.tb-project      { background:rgba(16,185,129,.1); color:var(--success); }
+.tb-course       { background:rgba(236,72,153,.1); color:#ec4899; }
+.tl-desc         { font-size:.8rem; color:var(--text2); line-height:1.5; margin-bottom:.45rem; }
+.tl-meta         { display:flex; align-items:center; gap:.65rem; font-size:.72rem; color:var(--text2); }
+.tl-del          { background:none; border:none; color:var(--text2); cursor:pointer; font-size:.72rem;
+                   padding:.15rem .4rem; border-radius:4px; transition:all .13s; margin-left:auto; }
+.tl-del:hover    { background:rgba(239,68,68,.1); color:var(--danger); }
+
+.tl-empty        { text-align:center; padding:2.5rem 1rem; color:var(--text2); }
+.tl-empty h3     { font-family:var(--ff-serif); font-size:1rem; color:var(--text); margin:.5rem 0 .3rem; }
+
+/* ── Right side ── */
+.cr-right        { display:flex; flex-direction:column; gap:1.1rem; }
+.side-card       { background:var(--bg3); border:1px solid var(--border); border-radius:var(--r2); overflow:hidden; }
+.side-head       { display:flex; align-items:center; gap:.45rem; padding:.75rem 1.1rem; border-bottom:1px solid var(--border); }
+.side-head h3    { font-family:var(--ff-serif); font-size:.92rem; font-weight:700; color:var(--text); }
+.side-body       { padding:1rem 1.1rem; }
+
+/* Skills from AI learn */
+.skill-chip      { display:inline-block; padding:.18rem .55rem; border-radius:20px; font-size:.72rem;
+                   font-weight:600; margin:.2rem; border:1px solid; }
+.sc-beginner     { background:rgba(16,185,129,.08); color:var(--success); border-color:rgba(16,185,129,.25); }
+.sc-intermediate { background:rgba(245,158,11,.08); color:var(--warn); border-color:rgba(245,158,11,.25); }
+.sc-advanced     { background:rgba(239,68,68,.08); color:var(--danger); border-color:rgba(239,68,68,.25); }
+
+/* AI Summary */
+.ai-summary-text { font-size:.83rem; color:var(--text2); line-height:1.75; white-space:pre-wrap; }
+.ai-sum-btn      { width:100%; padding:.5rem; border-radius:8px; background:rgba(124,58,237,.12);
+                   border:1px solid rgba(124,58,237,.25); color:#7c3aed; font-size:.82rem;
+                   font-weight:700; cursor:pointer; font-family:var(--ff-sans); transition:all .15s; }
+.ai-sum-btn:hover { background:rgba(124,58,237,.2); }
+.ai-sum-btn:disabled { opacity:.5; cursor:not-allowed; }
+
+/* Ranking bar */
+.rank-section    { margin-bottom:.75rem; }
+.rank-lbl        { font-size:.72rem; color:var(--text2); margin-bottom:.3rem; display:flex; justify-content:space-between; }
+.rank-bar        { height:7px; border-radius:4px; background:var(--bg2); overflow:hidden; }
+.rank-fill       { height:100%; border-radius:4px; background:linear-gradient(90deg,#7c3aed,var(--accent)); transition:width .8s ease; }
+
+@media(max-width:960px){ .cr-grid{ grid-template-columns:1fr; } }
+@media(max-width:700px){ .cr-wrap{ padding:1rem 1rem 3rem; } .stat-strip{ grid-template-columns:1fr 1fr; } .form-row{ grid-template-columns:1fr; } }
+</style>
+
+<div class="cr-wrap animate-in">
+  <div class="cr-hero">
+    <span class="cr-badge">📈 Career Growth</span>
+    <h1>🚀 Career Growth Tracker</h1>
+    <p>Track your skills learned, competitions attended, certificates earned, and watch your ranking grow. AI generates your personalised career summary.</p>
+  </div>
+
+  <!-- Stat strip -->
+  <div class="stat-strip">
+    <div class="stat-box"><div class="stat-icon">💡</div><div class="stat-val" id="skillCount">—</div><div class="stat-lbl">Skills</div></div>
+    <div class="stat-box"><div class="stat-icon">🏆</div><div class="stat-val" id="compCount">—</div><div class="stat-lbl">Competitions</div></div>
+    <div class="stat-box"><div class="stat-icon">🎓</div><div class="stat-val" id="certCount">—</div><div class="stat-lbl">Certificates</div></div>
+    <div class="stat-box"><div class="stat-icon">🚀</div><div class="stat-val" id="projCount">—</div><div class="stat-lbl">Projects</div></div>
+  </div>
+
+  <div class="cr-grid">
+    <!-- Left: Timeline -->
+    <div>
+      <!-- Add entry form -->
+      <div class="add-card">
+        <div class="add-card-head" onclick="toggleAddForm()">
+          <h3>➕ Add Career Entry</h3>
+          <span id="addToggleIcon" style="color:var(--text2);font-size:.85rem">▼</span>
+        </div>
+        <div class="add-card-body" id="addForm">
+          <div class="form-row">
+            <div class="fi">
+              <label>Entry Type</label>
+              <select id="entryType">
+                <option value="skill">💡 Skill Learned</option>
+                <option value="competition">🏆 Competition / Hackathon</option>
+                <option value="certificate">🎓 Certificate</option>
+                <option value="project">🚀 Project</option>
+                <option value="course">📚 Course Completed</option>
+              </select>
+            </div>
+            <div class="fi">
+              <label>Date</label>
+              <input type="date" id="entryDate">
+            </div>
+          </div>
+          <div class="form-row full">
+            <div class="fi">
+              <label>Title *</label>
+              <input type="text" id="entryTitle" placeholder="e.g. Completed Kaggle ML Course, Won HackathonX, Python Certificate…">
+            </div>
+          </div>
+          <div class="form-row full">
+            <div class="fi">
+              <label>Description</label>
+              <textarea id="entryDesc" rows="2" placeholder="Brief description, outcome, or what you learned…"></textarea>
+            </div>
+          </div>
+          <button class="add-btn" onclick="addEntry()">Add Entry</button>
+        </div>
+      </div>
+
+      <!-- Timeline -->
+      <div class="timeline" id="timeline">
+        <div class="tl-empty">
+          <div style="font-size:3rem">🗺️</div>
+          <h3>Your career journey starts here</h3>
+          <p style="font-size:.8rem">Add skills, competitions, certificates and projects to build your career timeline.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Stats & AI -->
+    <div class="cr-right">
+
+      <!-- Ranking card -->
+      <div class="side-card">
+        <div class="side-head"><span>📊</span><h3>Your Ranking</h3></div>
+        <div class="side-body" id="rankingBody">
+          <div class="rank-section">
+            <div class="rank-lbl"><span>Overall Progress</span><span id="rankPct">0%</span></div>
+            <div class="rank-bar"><div class="rank-fill" id="rankFill" style="width:0%"></div></div>
+          </div>
+          <div class="rank-section">
+            <div class="rank-lbl"><span>Skills Coverage</span><span id="skillPct">0%</span></div>
+            <div class="rank-bar"><div class="rank-fill" id="skillFill" style="width:0%;background:linear-gradient(90deg,var(--accent),var(--success))"></div></div>
+          </div>
+          <div class="rank-section">
+            <div class="rank-lbl"><span>Competition Activity</span><span id="compPct">0%</span></div>
+            <div class="rank-bar"><div class="rank-fill" id="compFill" style="width:0%;background:linear-gradient(90deg,var(--warn),#ef4444)"></div></div>
+          </div>
+          <p style="font-size:.72rem;color:var(--text2);margin-top:.65rem;line-height:1.5">Ranking based on your career entries. Add more to improve your score!</p>
+        </div>
+      </div>
+
+      <!-- Skills from AI learn -->
+      <div class="side-card">
+        <div class="side-head"><span>🧠</span><h3>Topics Studied (AI Learn)</h3></div>
+        <div class="side-body">
+          <div id="studiedTopics">
+            <span style="font-size:.8rem;color:var(--text2);font-style:italic">Study topics in AI Learn to see them here</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI Summary -->
+      <div class="side-card">
+        <div class="side-head"><span>✨</span><h3>AI Career Summary</h3></div>
+        <div class="side-body">
+          <button class="ai-sum-btn" id="aiSumBtn" onclick="loadAISummary()">✨ Generate AI Career Summary</button>
+          <div id="aiSummaryText" style="margin-top:.85rem"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+let allEntries = [];
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+function escH(s) {
+  if (s == null) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function today() {
+  return new Date().toISOString().split('T')[0];
+}
+
+// ── Toggle add form ───────────────────────────────────────────────────────────
+function toggleAddForm() {
+  var body = document.getElementById('addForm');
+  var icon = document.getElementById('addToggleIcon');
+  var open = body.classList.toggle('open');
+  icon.textContent = open ? '▲' : '▼';
+  if (open) document.getElementById('entryDate').value = today();
+}
+
+// ── Add entry ─────────────────────────────────────────────────────────────────
+async function addEntry() {
+  var title = document.getElementById('entryTitle').value.trim();
+  if (!title) { alert('Please enter a title.'); return; }
+
+  var payload = {
+    entry_type:  document.getElementById('entryType').value,
+    title:       title,
+    description: document.getElementById('entryDesc').value.trim(),
+    date_earned: document.getElementById('entryDate').value || today(),
+    metadata:    {}
+  };
+
+  var res  = await fetch('/api/career/add', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(payload)
+  });
+  var data = await res.json();
+  if (data.success) {
+    document.getElementById('entryTitle').value = '';
+    document.getElementById('entryDesc').value  = '';
+    loadEntries();
+    // Collapse form
+    document.getElementById('addForm').classList.remove('open');
+    document.getElementById('addToggleIcon').textContent = '▼';
+  }
+}
+
+// ── Delete entry ──────────────────────────────────────────────────────────────
+async function deleteEntry(id) {
+  if (!confirm('Delete this entry?')) return;
+  await fetch('/api/career/delete/' + id, {method:'DELETE'});
+  loadEntries();
+}
+
+// ── Load & render entries ─────────────────────────────────────────────────────
+async function loadEntries() {
+  var res  = await fetch('/api/career/entries');
+  var data = await res.json();
+  if (!data.success) return;
+  allEntries = data.entries;
+  renderTimeline(allEntries);
+  updateStats(allEntries);
+  loadProfile();
+}
+
+function renderTimeline(entries) {
+  var tl = document.getElementById('timeline');
+  if (!entries.length) {
+    tl.innerHTML =
+      '<div class="tl-empty">'
+      + '<div style="font-size:3rem">🗺️</div>'
+      + '<h3>Your career journey starts here</h3>'
+      + '<p style="font-size:.8rem">Add skills, competitions, certificates and projects to build your career timeline.</p>'
+      + '</div>';
+    return;
+  }
+
+  tl.innerHTML = entries.map(function(e) {
+    var typeLabel = {skill:'Skill', competition:'Competition', certificate:'Certificate', project:'Project', course:'Course'}[e.entry_type] || e.entry_type;
+    return '<div class="tl-item type-' + e.entry_type + '">'
+      + '<div class="tl-dot"></div>'
+      + '<div class="tl-card">'
+      + '<div class="tl-top">'
+      + '<div class="tl-title">' + escH(e.title) + '</div>'
+      + '<span class="tl-type-badge tb-' + e.entry_type + '">' + typeLabel + '</span>'
+      + '</div>'
+      + (e.description ? '<div class="tl-desc">' + escH(e.description) + '</div>' : '')
+      + '<div class="tl-meta">'
+      + '<span>📅 ' + escH(e.date_earned||'') + '</span>'
+      + '<button class="tl-del" onclick="deleteEntry(\'' + e.id + '\')">🗑 Delete</button>'
+      + '</div>'
+      + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+function updateStats(entries) {
+  var counts = {skill:0, competition:0, certificate:0, project:0, course:0};
+  entries.forEach(function(e){ if (counts[e.entry_type] !== undefined) counts[e.entry_type]++; });
+
+  document.getElementById('skillCount').textContent = counts.skill + counts.course;
+  document.getElementById('compCount').textContent  = counts.competition;
+  document.getElementById('certCount').textContent  = counts.certificate;
+  document.getElementById('projCount').textContent  = counts.project;
+
+  // Ranking bars
+  var total    = entries.length;
+  var overallPct  = Math.min(100, total * 10);
+  var skillPct    = Math.min(100, (counts.skill + counts.course) * 15);
+  var compPct     = Math.min(100, counts.competition * 20);
+
+  document.getElementById('rankPct').textContent   = overallPct + '%';
+  document.getElementById('rankFill').style.width  = overallPct + '%';
+  document.getElementById('skillPct').textContent  = skillPct + '%';
+  document.getElementById('skillFill').style.width = skillPct + '%';
+  document.getElementById('compPct').textContent   = compPct + '%';
+  document.getElementById('compFill').style.width  = compPct + '%';
+}
+
+async function loadProfile() {
+  var res  = await fetch('/api/profile');
+  var data = await res.json();
+  var topics = data.topics_learned || [];
+  var level  = data.level || 'beginner';
+
+  var el = document.getElementById('studiedTopics');
+  if (!topics.length) {
+    el.innerHTML = '<span style="font-size:.8rem;color:var(--text2);font-style:italic">Study topics in AI Learn to see them here</span>';
+    return;
+  }
+  el.innerHTML = topics.slice(-20).map(function(t){
+    return '<span class="skill-chip sc-' + level + '">' + escH(t) + '</span>';
+  }).join('');
+}
+
+// ── AI Career Summary ─────────────────────────────────────────────────────────
+async function loadAISummary() {
+  var btn = document.getElementById('aiSumBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Generating…';
+  document.getElementById('aiSummaryText').innerHTML =
+    '<div style="color:var(--text2);font-size:.82rem;font-style:italic">AI is crafting your career summary…</div>';
+
+  var res  = await fetch('/api/career/ai_summary');
+  var data = await res.json();
+
+  if (data.success) {
+    document.getElementById('aiSummaryText').innerHTML =
+      '<div class="ai-summary-text">' + escH(data.summary) + '</div>';
+  } else {
+    document.getElementById('aiSummaryText').innerHTML =
+      '<div style="color:var(--danger);font-size:.82rem">Could not generate summary. Try again.</div>';
+  }
+
+  btn.disabled = false;
+  btn.textContent = '✨ Regenerate Summary';
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+loadEntries();
+</script>
+{% endblock %}

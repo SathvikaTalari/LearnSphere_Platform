@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+{% block title %}Assessments — LearnSphere{% endblock %}
+{% block content %}
+<div class="page-wrap">
+  <div class="page-header">
+    <div><h1 class="page-title">📝 Assessments</h1><p class="page-sub">Create quizzes with multiple question types for your students</p></div>
+    <div style="display:flex;gap:.65rem">
+      <a href="/educator/course/{{ course_id }}/lectures" class="btn btn-ghost">← Lectures</a>
+      <button onclick="showCreateAssessment()" class="btn btn-primary">+ New Assessment</button>
+    </div>
+  </div>
+
+  <!-- Create Assessment Modal -->
+  <div id="createModal" style="display:none;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:1.5rem;margin-bottom:1.4rem">
+    <h3 style="font-family:var(--ff-serif);font-size:1rem;margin-bottom:1rem">Create New Assessment</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:.75rem">
+      <div><label class="form-label">Title *</label><input id="newAssTitle" class="form-input" placeholder="e.g. Module 1 Quiz"></div>
+      <div><label class="form-label">Pass Score (%)</label><input id="newAssPass" type="number" value="60" min="1" max="100" class="form-input"></div>
+    </div>
+    <div style="margin-bottom:.75rem"><label class="form-label">Description</label><textarea id="newAssDesc" class="form-input form-textarea" rows="2" placeholder="Optional description..."></textarea></div>
+    <div style="display:flex;gap:.65rem">
+      <button onclick="createAssessment()" class="btn btn-primary">Create</button>
+      <button onclick="document.getElementById('createModal').style.display='none'" class="btn btn-ghost">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Assessment list -->
+  <div id="assessmentList"><div class="loading-card"><div class="spinner"></div><p>Loading assessments...</p></div></div>
+
+  <!-- Question Builder (shown after selecting assessment) -->
+  <div id="questionBuilder" style="display:none;margin-top:1.4rem">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+      <h2 style="font-family:var(--ff-serif);font-size:1.1rem" id="builderTitle">Questions</h2>
+      <button onclick="hideBuilder()" class="btn btn-ghost" style="font-size:.8rem">✕ Close</button>
+    </div>
+
+    <!-- Question type selector -->
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:1.2rem;margin-bottom:1rem">
+      <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;color:var(--text2);margin-bottom:.6rem">Add Question</div>
+      <div style="display:flex;flex-wrap:wrap;gap:.45rem;margin-bottom:1rem">
+        <button class="q-type-btn active" onclick="setQType('true_false',this)">✅ True/False</button>
+        <button class="q-type-btn" onclick="setQType('single_choice',this)">◉ Single Choice</button>
+        <button class="q-type-btn" onclick="setQType('multiple_choice',this)">☑ Multiple Choice</button>
+        <button class="q-type-btn" onclick="setQType('text_answer',this)">✍ Text Answer</button>
+        <button class="q-type-btn" onclick="setQType('fill_blank',this)">___ Fill Blank</button>
+        <button class="q-type-btn" onclick="setQType('match',this)">↔ Match</button>
+        <button class="q-type-btn" onclick="setQType('sortable',this)">↕ Sortable</button>
+        <button class="q-type-btn" onclick="setQType('audio',this)">🎧 Audio</button>
+        <button class="q-type-btn" onclick="setQType('video',this)">🎥 Video</button>
+      </div>
+
+      <div><label class="form-label">Question Text *</label><textarea id="qText" class="form-input form-textarea" rows="2" placeholder="Enter your question..."></textarea></div>
+
+      <!-- Dynamic options area -->
+      <div id="qOptionsArea" style="margin-top:.75rem"></div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.65rem;margin-top:.75rem">
+        <div><label class="form-label">Explanation (optional)</label><input id="qExplanation" class="form-input" placeholder="Why is that the answer?"></div>
+        <div><label class="form-label">Points</label><input id="qPoints" type="number" value="10" min="1" class="form-input"></div>
+      </div>
+      <button onclick="addQuestion()" class="btn btn-primary" style="margin-top:.85rem">+ Add Question</button>
+    </div>
+
+    <!-- Existing questions -->
+    <div id="questionsList"></div>
+  </div>
+</div>
+
+<style>
+.form-label { display:block;font-size:.72rem;font-weight:700;text-transform:uppercase;color:var(--text2);margin-bottom:.3rem;letter-spacing:.04em; }
+.q-type-btn { padding:.3rem .7rem;border-radius:6px;border:1px solid var(--border);background:var(--bg2);color:var(--text2);font-size:.76rem;cursor:pointer;font-family:var(--ff-sans);transition:all .14s; }
+.q-type-btn:hover { border-color:var(--accent);color:var(--accent); }
+.q-type-btn.active { background:var(--accent);border-color:var(--accent);color:#fff; }
+.ass-card { background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:1rem 1.25rem;margin-bottom:.75rem;display:flex;align-items:center;justify-content:space-between;gap:1rem; }
+.ass-info h3 { font-family:var(--ff-serif);font-size:.95rem;color:var(--text);margin-bottom:.2rem; }
+.ass-info p { font-size:.78rem;color:var(--text2); }
+.q-card { background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:.85rem 1rem;margin-bottom:.55rem;display:flex;align-items:flex-start;justify-content:space-between;gap:.75rem; }
+.q-card-info { flex:1; }
+.q-card-info h4 { font-size:.85rem;color:var(--text);margin-bottom:.2rem; }
+.q-card-info p { font-size:.75rem;color:var(--text2); }
+.q-type-tag { font-size:.63rem;font-weight:700;padding:.1rem .38rem;border-radius:4px;background:var(--accent-glow);border:1px solid var(--border2);color:var(--accent); }
+</style>
+
+<script>
+var courseId = '{{ course_id }}';
+var currentAssId = null;
+var currentQType = 'true_false';
+
+function showCreateAssessment(){ document.getElementById('createModal').style.display = 'block'; }
+
+async function createAssessment() {
+  var title = document.getElementById('newAssTitle').value.trim();
+  if (!title) { alert('Title required'); return; }
+  var res  = await fetch('/api/assessments', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({course_id:courseId, title:title, description:document.getElementById('newAssDesc').value.trim(), pass_score:parseInt(document.getElementById('newAssPass').value)||60})
+  });
+  var data = await res.json();
+  if (data.success) { document.getElementById('createModal').style.display='none'; document.getElementById('newAssTitle').value=''; loadAssessments(); }
+}
+
+async function loadAssessments() {
+  var res  = await fetch('/api/assessments/' + courseId);
+  var list = await res.json();
+  var el = document.getElementById('assessmentList');
+  if (!list.length) { el.innerHTML='<div style="color:var(--text2);padding:1.5rem;font-size:.85rem">No assessments yet. Create one above!</div>'; return; }
+  el.innerHTML = list.map(function(a){
+    return '<div class="ass-card"><div class="ass-info"><h3>' + escH(a.title) + '</h3><p>Pass: ' + a.pass_score + '% · ' + (a.description||'No description') + '</p></div>'
+      + '<div style="display:flex;gap:.5rem"><button onclick="openBuilder(\'' + a.id + '\',\'' + escH(a.title) + '\')" class="btn btn-ghost" style="font-size:.78rem">✏️ Questions</button></div></div>';
+  }).join('');
+}
+
+async function openBuilder(assId, title) {
+  currentAssId = assId;
+  document.getElementById('builderTitle').textContent = '📝 ' + title + ' — Questions';
+  document.getElementById('questionBuilder').style.display = 'block';
+  setQType('true_false', document.querySelector('.q-type-btn.active'));
+  loadQuestions();
+  document.getElementById('questionBuilder').scrollIntoView({behavior:'smooth'});
+}
+
+function hideBuilder() { document.getElementById('questionBuilder').style.display='none'; currentAssId=null; }
+
+function setQType(type, btn) {
+  currentQType = type;
+  document.querySelectorAll('.q-type-btn').forEach(function(b){ b.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+
+  var area = document.getElementById('qOptionsArea');
+  if (type === 'true_false') {
+    area.innerHTML = '<label class="form-label">Correct Answer</label><select id="qCorrect" class="form-input"><option value="true">True</option><option value="false">False</option></select>';
+  } else if (type === 'single_choice') {
+    area.innerHTML = '<label class="form-label">Options (one per line) &amp; Correct Answer</label>'
+      + '<textarea id="qOptions" class="form-input form-textarea" rows="4" placeholder="Option A&#10;Option B&#10;Option C&#10;Option D"></textarea>'
+      + '<label class="form-label" style="margin-top:.5rem">Correct Answer (exact text)</label>'
+      + '<input id="qCorrect" class="form-input" placeholder="e.g. Option A">';
+  } else if (type === 'multiple_choice') {
+    area.innerHTML = '<label class="form-label">Options (one per line)</label>'
+      + '<textarea id="qOptions" class="form-input form-textarea" rows="4" placeholder="Option A&#10;Option B&#10;Option C&#10;Option D"></textarea>'
+      + '<label class="form-label" style="margin-top:.5rem">Correct Answers (comma-separated)</label>'
+      + '<input id="qCorrect" class="form-input" placeholder="e.g. Option A,Option C">';
+  } else if (type === 'text_answer' || type === 'fill_blank') {
+    area.innerHTML = '<label class="form-label">Correct Answer (keywords, comma-separated OK)</label><input id="qCorrect" class="form-input" placeholder="e.g. gradient descent, optimization">';
+  } else if (type === 'match') {
+    area.innerHTML = '<label class="form-label">Left items (one per line)</label><textarea id="qOptions" class="form-input form-textarea" rows="3" placeholder="Term 1&#10;Term 2&#10;Term 3"></textarea>'
+      + '<label class="form-label" style="margin-top:.5rem">Right items in matching order (one per line)</label>'
+      + '<textarea id="qCorrect" class="form-input form-textarea" rows="3" placeholder="Definition 1&#10;Definition 2&#10;Definition 3"></textarea>';
+  } else if (type === 'sortable') {
+    area.innerHTML = '<label class="form-label">Items in correct order (one per line)</label><textarea id="qOptions" class="form-input form-textarea" rows="4" placeholder="Step 1&#10;Step 2&#10;Step 3&#10;Step 4"></textarea>'
+      + '<input type="hidden" id="qCorrect" value="sorted">';
+  } else if (type === 'audio') {
+    area.innerHTML = '<label class="form-label">Audio URL or description</label><input id="qOptions" class="form-input" placeholder="https://... or describe the audio content">'
+      + '<label class="form-label" style="margin-top:.5rem">Expected Answer</label><input id="qCorrect" class="form-input" placeholder="Expected answer after listening">';
+  } else if (type === 'video') {
+    area.innerHTML = '<label class="form-label">Video URL (YouTube embed)</label><input id="qOptions" class="form-input" placeholder="https://www.youtube.com/embed/...">'
+      + '<label class="form-label" style="margin-top:.5rem">Expected Answer</label><input id="qCorrect" class="form-input" placeholder="Expected answer after watching">';
+  }
+}
+
+async function addQuestion() {
+  if (!currentAssId) return;
+  var qText = document.getElementById('qText').value.trim();
+  if (!qText) { alert('Question text required'); return; }
+
+  var optEl = document.getElementById('qOptions');
+  var corrEl = document.getElementById('qCorrect');
+  var options = optEl ? (optEl.tagName === 'TEXTAREA' ? optEl.value.split('\n').filter(function(x){return x.trim();}) : [optEl.value.trim()]) : [];
+  var correct = corrEl ? corrEl.value.trim() : '';
+
+  var res = await fetch('/api/assessments/' + currentAssId + '/questions', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({
+      question_type: currentQType, question_text: qText,
+      options: options, correct_answer: correct,
+      explanation: document.getElementById('qExplanation').value.trim(),
+      points: parseInt(document.getElementById('qPoints').value)||10
+    })
+  });
+  var data = await res.json();
+  if (data.success) {
+    document.getElementById('qText').value = '';
+    document.getElementById('qExplanation').value = '';
+    if (document.getElementById('qOptions')) document.getElementById('qOptions').value = '';
+    if (document.getElementById('qCorrect')) document.getElementById('qCorrect').value = '';
+    loadQuestions();
+  }
+}
+
+async function loadQuestions() {
+  if (!currentAssId) return;
+  var list = await fetch('/api/assessments/' + currentAssId + '/questions').then(function(r){return r.json();});
+  var el = document.getElementById('questionsList');
+  if (!list.length) { el.innerHTML='<p style="color:var(--text2);font-size:.83rem">No questions yet. Add one above!</p>'; return; }
+  el.innerHTML = list.map(function(q,i){
+    var opts = JSON.parse(q.options || '[]');
+    return '<div class="q-card">'
+      + '<div class="q-card-info">'
+      + '<h4>Q' + (i+1) + '. ' + escH(q.question_text) + '</h4>'
+      + '<p><span class="q-type-tag">' + q.question_type + '</span> '
+      + (opts.length ? '· ' + opts.slice(0,2).map(escH).join(', ') + (opts.length>2?'…':'') : '')
+      + ' · Correct: <strong>' + escH(q.correct_answer||'') + '</strong>'
+      + ' · ' + q.points + ' pts</p>'
+      + '</div>'
+      + '<button onclick="deleteQuestion(\'' + q.id + '\')" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:.8rem;padding:.3rem">🗑</button>'
+      + '</div>';
+  }).join('');
+}
+
+async function deleteQuestion(qid) {
+  if (!confirm('Delete this question?')) return;
+  await fetch('/api/questions/' + qid, {method:'DELETE'});
+  loadQuestions();
+}
+
+function escH(s){ if(!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+loadAssessments();
+</script>
+{% endblock %}

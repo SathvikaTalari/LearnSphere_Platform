@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Certificate — {{ cert.course_title }}</title>
+<style>
+/* ─── Print: hide everything except .cert-page ─── */
+@media print {
+  body { margin:0; padding:0; background:#fff; }
+  .no-print { display:none !important; }
+  .cert-page { margin:0; box-shadow:none; width:100%; height:100vh; }
+}
+
+/* ─── Screen ─── */
+body {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  background: #1a1a2e;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  gap: 1.25rem;
+}
+
+/* Print button bar */
+.no-print {
+  display: flex; gap: .75rem; z-index: 100;
+}
+.no-print button, .no-print a {
+  padding: .6rem 1.5rem; border-radius: 8px; font-size: .9rem; font-weight: 700;
+  cursor: pointer; text-decoration: none; font-family: Arial, sans-serif;
+  border: none;
+}
+.btn-print { background: #059669; color: #fff; }
+.btn-print:hover { background: #047857; }
+.btn-close { background: #374151; color: #fff; }
+
+/* ─── Certificate page ─── */
+.cert-page {
+  width: 900px;
+  max-width: 100%;
+  background: #fff;
+  border: 8px solid #1e3a5f;
+  border-radius: 4px;
+  padding: 0;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0,0,0,.5);
+  overflow: hidden;
+}
+
+/* Gold frame inset */
+.cert-page::before {
+  content: '';
+  position: absolute;
+  inset: 12px;
+  border: 2px solid #b8860b;
+  border-radius: 2px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Background watermark pattern */
+.cert-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 20% 20%, rgba(30,58,95,.06) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 80%, rgba(184,134,11,.05) 0%, transparent 60%);
+}
+
+.cert-inner {
+  position: relative;
+  z-index: 2;
+  padding: 3rem 4rem;
+  text-align: center;
+}
+
+/* Header stripe */
+.cert-header {
+  background: linear-gradient(135deg, #1e3a5f 0%, #1a2f4e 100%);
+  margin: -3rem -4rem 2.5rem;
+  padding: 1.5rem 4rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.cert-logo {
+  font-family: 'Georgia', serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.cert-logo span { color: #fbbf24; }
+.cert-header-right {
+  font-size: .72rem;
+  color: rgba(255,255,255,.6);
+  text-align: right;
+  line-height: 1.5;
+}
+
+/* Badge */
+.cert-badge {
+  width: 80px; height: 80px;
+  margin: 0 auto 1.25rem;
+  background: linear-gradient(135deg, #b8860b, #fbbf24, #b8860b);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2.2rem;
+  box-shadow: 0 4px 20px rgba(184,134,11,.4);
+}
+
+/* Titles */
+.cert-of { font-size: .8rem; letter-spacing: .2em; text-transform: uppercase; color: #64748b; margin-bottom: .5rem; }
+.cert-type { font-size: 2.8rem; font-weight: 700; color: #1e3a5f; line-height: 1.1; margin-bottom: .35rem; }
+.cert-present { font-size: .85rem; color: #64748b; margin-bottom: .75rem; font-style: italic; }
+
+/* Student name */
+.cert-name {
+  font-size: 2.4rem;
+  font-style: italic;
+  color: #1e3a5f;
+  font-family: 'Georgia', serif;
+  border-bottom: 2px solid #b8860b;
+  padding-bottom: .4rem;
+  display: inline-block;
+  margin-bottom: .75rem;
+  min-width: 300px;
+}
+
+/* Course info */
+.cert-completion { font-size: .85rem; color: #475569; margin-bottom: .35rem; }
+.cert-course-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #1e3a5f;
+  margin-bottom: 1.5rem;
+  font-style: italic;
+}
+
+/* Divider */
+.cert-divider {
+  border: none;
+  border-top: 1px solid #e2e8f0;
+  margin: 1.25rem 0;
+}
+
+/* Footer info */
+.cert-footer-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+.cert-footer-item { text-align: center; }
+.cert-footer-label { font-size: .65rem; text-transform: uppercase; letter-spacing: .08em; color: #94a3b8; margin-bottom: .2rem; }
+.cert-footer-value { font-size: .82rem; font-weight: 700; color: #334155; font-family: 'Courier New', monospace; }
+
+/* QR placeholder + verification */
+.cert-qr-area {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: .6rem;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .3rem;
+}
+.cert-verify-url { font-size: .62rem; color: #64748b; word-break: break-all; max-width: 120px; text-align: center; }
+
+/* Signatures line */
+.cert-sigs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-top: 1.5rem;
+}
+.cert-sig { text-align: center; }
+.cert-sig-line { border-top: 1.5px solid #334155; padding-top: .35rem; font-size: .72rem; color: #475569; }
+.cert-sig-name { font-size: .8rem; font-weight: 700; color: #1e3a5f; margin-bottom: .1rem; }
+
+/* Bottom stripe */
+.cert-footer-stripe {
+  background: linear-gradient(135deg, #1e3a5f, #1a2f4e);
+  color: rgba(255,255,255,.5);
+  font-size: .65rem;
+  padding: .6rem 4rem;
+  text-align: center;
+  margin: 2.5rem -4rem -3rem;
+  letter-spacing: .06em;
+}
+</style>
+</head>
+<body>
+
+<!-- Print / Close buttons (hidden when printing) -->
+<div class="no-print">
+  <button class="btn-print" onclick="window.print()">🖨 Print / Save as PDF</button>
+  <a href="/student/course/{{ cert.course_id }}" class="btn-close">← Back to Course</a>
+</div>
+
+<!-- CERTIFICATE -->
+<div class="cert-page">
+  <div class="cert-bg"></div>
+  <div class="cert-inner">
+
+    <!-- Header -->
+    <div class="cert-header">
+      <div class="cert-logo">Learn<span>Sphere</span></div>
+      <div class="cert-header-right">
+        AI-Powered Learning Platform<br>
+        Certificate of Achievement
+      </div>
+    </div>
+
+    <!-- Badge -->
+    <div class="cert-badge">🎓</div>
+
+    <!-- Title block -->
+    <div class="cert-of">This is to certify that</div>
+    <div class="cert-type">Certificate of Completion</div>
+    <div class="cert-present">is proudly presented to</div>
+
+    <!-- Student name -->
+    <div class="cert-name">{{ cert.student_name }}</div>
+
+    <!-- Course -->
+    <div class="cert-completion">has successfully completed the course</div>
+    <div class="cert-course-title">"{{ cert.course_title }}"</div>
+
+    <hr class="cert-divider">
+
+    <!-- Footer grid: date, ID, verify -->
+    <div class="cert-footer-grid">
+      <div class="cert-footer-item">
+        <div class="cert-footer-label">Date Issued</div>
+        <div class="cert-footer-value">{{ cert.issued_at[:10] if cert.issued_at else 'N/A' }}</div>
+      </div>
+      <div class="cert-footer-item">
+        <div class="cert-footer-label">Certificate ID</div>
+        <div class="cert-footer-value" style="font-size:.72rem">{{ cert.cert_code }}</div>
+      </div>
+      <div class="cert-footer-item">
+        <div class="cert-footer-label">Verify Online</div>
+        <div class="cert-qr-area">
+          <!-- Simple QR-like visual using CSS pattern -->
+          <svg width="52" height="52" viewBox="0 0 52 52" xmlns="http://www.w3.org/2000/svg">
+            <rect width="52" height="52" fill="#f8fafc"/>
+            <!-- QR corner squares -->
+            <rect x="2"  y="2"  width="20" height="20" fill="none" stroke="#1e3a5f" stroke-width="2"/>
+            <rect x="6"  y="6"  width="12" height="12" fill="#1e3a5f"/>
+            <rect x="30" y="2"  width="20" height="20" fill="none" stroke="#1e3a5f" stroke-width="2"/>
+            <rect x="34" y="6"  width="12" height="12" fill="#1e3a5f"/>
+            <rect x="2"  y="30" width="20" height="20" fill="none" stroke="#1e3a5f" stroke-width="2"/>
+            <rect x="6"  y="34" width="12" height="12" fill="#1e3a5f"/>
+            <!-- QR data dots pattern -->
+            <rect x="26" y="24" width="3" height="3" fill="#1e3a5f"/>
+            <rect x="32" y="24" width="3" height="3" fill="#1e3a5f"/>
+            <rect x="38" y="24" width="3" height="3" fill="#1e3a5f"/>
+            <rect x="44" y="24" width="3" height="3" fill="#1e3a5f"/>
+            <rect x="26" y="30" width="3" height="3" fill="#1e3a5f"/>
+            <rect x="38" y="30" width="3" height="3" fill="#1e3a5f"/>
+            <rect x="26" y="36" width="3" height="3" fill="#1e3a5f"/>
+            <rect x="32" y="36" width="3" height="3" fill="#1e3a5f"/>
+            <rect x="44" y="36" width="3" height="3" fill="#1e3a5f"/>
+            <rect x="26" y="42" width="3" height="3" fill="#1e3a5f"/>
+            <rect x="38" y="42" width="3" height="3" fill="#1e3a5f"/>
+            <rect x="44" y="42" width="3" height="3" fill="#1e3a5f"/>
+          </svg>
+          <div class="cert-verify-url">/verify/{{ cert.cert_code }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Signatures -->
+    <div class="cert-sigs">
+      <div class="cert-sig">
+        <div class="cert-sig-name" style="font-style:italic;font-size:.95rem;color:#1e3a5f;margin-bottom:.2rem">LearnSphere Platform</div>
+        <div class="cert-sig-line">Platform Authority</div>
+      </div>
+      <div class="cert-sig">
+        <div class="cert-sig-name" style="font-style:italic;font-size:.95rem;color:#1e3a5f;margin-bottom:.2rem">Course Instructor</div>
+        <div class="cert-sig-line">Educator · LearnSphere</div>
+      </div>
+    </div>
+
+    <!-- Footer stripe -->
+    <div class="cert-footer-stripe">
+      LearnSphere AI Learning Platform · learnsphere.ai · This certificate is digitally verifiable at /verify/{{ cert.cert_code }}
+    </div>
+  </div>
+</div>
+
+<script>
+// Auto-print when opened from download link
+if (window.location.search.includes('print=1')) {
+  window.addEventListener('load', function(){ setTimeout(function(){ window.print(); }, 400); });
+}
+</script>
+</body>
+</html>

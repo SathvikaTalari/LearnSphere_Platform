@@ -1,0 +1,469 @@
+{% extends "base.html" %}
+{% block title %}Focus Mode — LearnSphere{% endblock %}
+{% block content %}
+<style>
+.foc-wrap        { max-width:1100px; margin:0 auto; padding:1.75rem 2rem 4rem; }
+.foc-hero        { text-align:center; padding:1.5rem 1rem 1.4rem; margin-bottom:1.6rem; }
+.foc-hero h1     { font-family:var(--ff-serif); font-size:1.9rem; font-weight:700; color:var(--text); margin-bottom:.4rem; }
+.foc-hero p      { font-size:.88rem; color:var(--text2); max-width:540px; margin:0 auto; line-height:1.65; }
+.foc-badge       { display:inline-block; background:rgba(245,158,11,.1); border:1px solid rgba(245,158,11,.3);
+                   color:var(--warn); font-size:.7rem; font-weight:700; padding:.2rem .65rem;
+                   border-radius:20px; letter-spacing:.05em; text-transform:uppercase; margin-bottom:.65rem; }
+
+.foc-grid        { display:grid; grid-template-columns:1fr 340px; gap:1.4rem; align-items:start; }
+
+/* ── Timer card ── */
+.timer-card      { background:var(--bg3); border:1px solid var(--border); border-radius:var(--r2); padding:2rem; text-align:center; }
+.timer-status    { font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--text2); margin-bottom:1.1rem; }
+
+.timer-ring-wrap { position:relative; width:220px; height:220px; margin:0 auto 1.5rem; }
+.timer-ring-wrap svg { transform:rotate(-90deg); }
+.timer-bg-circle { fill:none; stroke:var(--bg2); stroke-width:10; }
+.timer-prog      { fill:none; stroke:var(--warn); stroke-width:10; stroke-linecap:round; transition:stroke-dashoffset .9s linear; }
+.timer-inner     { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); text-align:center; }
+.timer-display   { font-family:var(--ff-mono); font-size:2.6rem; font-weight:700; color:var(--text); line-height:1; }
+.timer-label     { font-size:.72rem; color:var(--text2); margin-top:.3rem; }
+
+.topic-input     { width:100%; padding:.6rem .9rem; border-radius:8px; background:var(--bg2);
+                   border:1px solid var(--border); color:var(--text); font-family:var(--ff-sans);
+                   font-size:.85rem; outline:none; margin-bottom:1rem; transition:border-color .15s; }
+.topic-input:focus { border-color:var(--warn); }
+
+.timer-btns      { display:flex; gap:.65rem; justify-content:center; flex-wrap:wrap; }
+.t-btn           { padding:.6rem 1.4rem; border-radius:9px; border:none; font-family:var(--ff-serif);
+                   font-size:.92rem; font-weight:700; cursor:pointer; transition:all .16s; }
+.t-btn-start     { background:var(--warn); color:#fff; }
+.t-btn-start:hover { filter:brightness(1.1); transform:translateY(-1px); }
+.t-btn-stop      { background:var(--danger); color:#fff; display:none; }
+.t-btn-stop:hover { filter:brightness(1.1); }
+.t-btn-pause     { background:var(--bg2); border:1px solid var(--border); color:var(--text2); display:none; }
+.t-btn-pause.shown { display:block; }
+
+.presets         { display:flex; gap:.4rem; justify-content:center; margin-top:1rem; flex-wrap:wrap; }
+.preset-btn      { padding:.22rem .65rem; border-radius:6px; background:var(--bg2);
+                   border:1px solid var(--border); color:var(--text2); font-size:.74rem;
+                   cursor:pointer; font-family:var(--ff-sans); transition:all .14s; }
+.preset-btn:hover { border-color:var(--warn); color:var(--warn); }
+.preset-btn.active { background:rgba(245,158,11,.12); border-color:rgba(245,158,11,.3); color:var(--warn); }
+
+/* session complete toast */
+.session-toast   { position:fixed; bottom:2rem; right:2rem; background:var(--bg3); border:1px solid var(--warn);
+                   border-radius:12px; padding:1rem 1.4rem; max-width:320px; box-shadow:0 8px 32px rgba(0,0,0,.3);
+                   display:none; animation:fadeUp .3s ease; z-index:1000; }
+.session-toast h4 { font-family:var(--ff-serif); font-size:.95rem; color:var(--text); margin-bottom:.3rem; }
+.session-toast p  { font-size:.82rem; color:var(--text2); }
+
+/* ── Right side panels ── */
+.foc-right       { display:flex; flex-direction:column; gap:1.1rem; }
+.side-card       { background:var(--bg3); border:1px solid var(--border); border-radius:var(--r2); overflow:hidden; }
+.side-head       { display:flex; align-items:center; gap:.45rem; padding:.75rem 1.1rem; border-bottom:1px solid var(--border); }
+.side-head h3    { font-family:var(--ff-serif); font-size:.92rem; font-weight:700; color:var(--text); }
+.side-body       { padding:1rem 1.1rem; }
+
+/* Rewards */
+.reward-grid     { display:grid; grid-template-columns:1fr 1fr; gap:.65rem; }
+.reward-box      { background:var(--bg2); border:1px solid var(--border); border-radius:9px; padding:.75rem; text-align:center; }
+.reward-icon     { font-size:1.6rem; margin-bottom:.3rem; }
+.reward-val      { font-family:var(--ff-serif); font-size:1.3rem; font-weight:700; color:var(--text); }
+.reward-lbl      { font-size:.65rem; color:var(--text2); text-transform:uppercase; letter-spacing:.04em; }
+
+/* Badges */
+.badges-wrap     { display:flex; flex-wrap:wrap; gap:.45rem; }
+.badge-chip      { display:flex; align-items:center; gap:.35rem; padding:.28rem .65rem;
+                   background:rgba(245,158,11,.08); border:1px solid rgba(245,158,11,.25);
+                   border-radius:20px; font-size:.72rem; color:var(--warn); font-weight:600; }
+.no-badges       { font-size:.8rem; color:var(--text2); font-style:italic; }
+
+/* Leaderboard */
+.lb-row          { display:flex; align-items:center; gap:.65rem; padding:.45rem .6rem; border-radius:8px; margin-bottom:.3rem; }
+.lb-row:nth-child(1) { background:rgba(245,158,11,.07); }
+.lb-rank         { font-family:var(--ff-mono); font-size:.72rem; color:var(--text2); width:20px; flex-shrink:0; }
+.lb-name         { font-size:.82rem; color:var(--text); flex:1; font-weight:500; }
+.lb-coins        { font-size:.78rem; color:var(--warn); font-weight:700; }
+
+/* Anti-distraction mode */
+.distract-card   { background:linear-gradient(135deg,rgba(239,68,68,.06),rgba(239,68,68,.02)); }
+.distract-toggle { width:100%; display:flex; align-items:center; justify-content:space-between; padding:.7rem 1.1rem; cursor:pointer; }
+.distract-lbl    { font-size:.85rem; font-weight:700; color:var(--text); }
+.distract-badge  { padding:.15rem .5rem; border-radius:20px; font-size:.68rem; font-weight:700; }
+.distract-badge.off { background:var(--bg2); color:var(--text2); border:1px solid var(--border); }
+.distract-badge.on  { background:rgba(239,68,68,.15); color:var(--danger); border:1px solid rgba(239,68,68,.3); }
+.distract-tips   { padding:.75rem 1.1rem; border-top:1px solid var(--border); font-size:.8rem; color:var(--text2); line-height:1.6; display:none; }
+.distract-tips.visible { display:block; }
+.distract-tip    { display:flex; align-items:flex-start; gap:.45rem; margin-bottom:.4rem; }
+
+/* History */
+.hist-row        { display:flex; justify-content:space-between; align-items:center; padding:.38rem 0; border-bottom:1px solid var(--border); font-size:.8rem; }
+.hist-row:last-child { border:none; }
+.hist-topic      { color:var(--text); }
+.hist-meta       { color:var(--text2); display:flex; gap:.55rem; align-items:center; }
+.hist-coins      { color:var(--warn); font-weight:600; }
+
+@media(max-width:900px){ .foc-grid{ grid-template-columns:1fr; } }
+@media(max-width:700px){ .foc-wrap{ padding:1rem 1rem 3rem; } }
+</style>
+
+<div class="foc-wrap animate-in">
+  <div class="foc-hero">
+    <span class="foc-badge">⏱ Focus Reward Engine</span>
+    <h1>🎯 Focus Mode</h1>
+    <p>Track your study sessions, earn coins and badges for consistency, and climb the leaderboard. Anti-distraction mode keeps you on track.</p>
+  </div>
+
+  <div class="foc-grid">
+
+    <!-- ── Left: Timer ── -->
+    <div class="timer-card">
+      <div class="timer-status" id="timerStatus">READY TO FOCUS</div>
+
+      <!-- Topic input -->
+      <input id="topicInput" class="topic-input" placeholder="What are you studying? (e.g. Neural Networks)" maxlength="80">
+
+      <!-- Ring timer -->
+      <div class="timer-ring-wrap">
+        <svg width="220" height="220" viewBox="0 0 220 220">
+          <circle class="timer-bg-circle" cx="110" cy="110" r="100"/>
+          <circle class="timer-prog" id="timerCircle" cx="110" cy="110" r="100"
+            stroke-dasharray="628.3" stroke-dashoffset="0"/>
+        </svg>
+        <div class="timer-inner">
+          <div class="timer-display" id="timerDisplay">25:00</div>
+          <div class="timer-label" id="timerPhase">Focus Session</div>
+        </div>
+      </div>
+
+      <!-- Duration presets -->
+      <div class="presets">
+        <button class="preset-btn active" onclick="setDuration(25,this)">25 min</button>
+        <button class="preset-btn" onclick="setDuration(45,this)">45 min</button>
+        <button class="preset-btn" onclick="setDuration(60,this)">60 min</button>
+        <button class="preset-btn" onclick="setDuration(90,this)">90 min</button>
+      </div>
+
+      <!-- Controls -->
+      <div class="timer-btns" style="margin-top:1.25rem">
+        <button class="t-btn t-btn-start" id="startBtn" onclick="startTimer()">▶ Start Focus</button>
+        <button class="t-btn t-btn-pause" id="pauseBtn" onclick="pauseTimer()">⏸ Pause</button>
+        <button class="t-btn t-btn-stop"  id="stopBtn"  onclick="stopTimer()">⏹ End Session</button>
+      </div>
+
+      <!-- Inactivity detection note -->
+      <p style="font-size:.72rem;color:var(--text2);margin-top:1.1rem;line-height:1.5">
+        🖱 AI detects inactivity — leaving the tab or stopping mouse movement for 3+ min flags a distraction event. Stay focused to earn full coins!
+      </p>
+    </div>
+
+    <!-- ── Right: Stats ── -->
+    <div class="foc-right">
+
+      <!-- Rewards overview -->
+      <div class="side-card">
+        <div class="side-head">
+          <span>🪙</span>
+          <h3>Your Rewards</h3>
+        </div>
+        <div class="side-body">
+          <div class="reward-grid">
+            <div class="reward-box">
+              <div class="reward-icon">🪙</div>
+              <div class="reward-val" id="totalCoins">—</div>
+              <div class="reward-lbl">Total Coins</div>
+            </div>
+            <div class="reward-box">
+              <div class="reward-icon">⏱</div>
+              <div class="reward-val" id="totalMins">—</div>
+              <div class="reward-lbl">Focus Minutes</div>
+            </div>
+            <div class="reward-box">
+              <div class="reward-icon">🔥</div>
+              <div class="reward-val" id="streakDays">—</div>
+              <div class="reward-lbl">Day Streak</div>
+            </div>
+            <div class="reward-box">
+              <div class="reward-icon">🏅</div>
+              <div class="reward-val" id="badgeCount">—</div>
+              <div class="reward-lbl">Badges</div>
+            </div>
+          </div>
+          <div style="margin-top:.9rem">
+            <div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text2);margin-bottom:.5rem">Badges Earned</div>
+            <div class="badges-wrap" id="badgesWrap"><span class="no-badges">Complete sessions to earn badges</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Anti-distraction mode -->
+      <div class="side-card distract-card">
+        <button class="distract-toggle" onclick="toggleDistract()">
+          <span class="distract-lbl">🛡 Anti-Distraction Mode</span>
+          <span class="distract-badge off" id="distractBadge">OFF</span>
+        </button>
+        <div class="distract-tips" id="distractTips">
+          <div class="distract-tip">✅ Tab switch detection active — distraction events logged</div>
+          <div class="distract-tip">✅ Mouse inactivity tracked — 3 min idle = warning</div>
+          <div class="distract-tip">✅ Session coins reduced if 3+ distraction events occur</div>
+          <div class="distract-tip">💡 For full social media blocking, install a browser extension like Cold Turkey or Freedom</div>
+          <div style="margin-top:.5rem;font-size:.72rem;color:var(--text2)" id="distractCount">Distraction events this session: <strong>0</strong></div>
+        </div>
+      </div>
+
+      <!-- Leaderboard -->
+      <div class="side-card">
+        <div class="side-head"><span>🏆</span><h3>Coin Leaderboard</h3></div>
+        <div class="side-body" id="leaderboardBody">
+          <div style="font-size:.8rem;color:var(--text2)">Loading…</div>
+        </div>
+      </div>
+
+      <!-- Session history -->
+      <div class="side-card">
+        <div class="side-head"><span>📋</span><h3>Recent Sessions</h3></div>
+        <div class="side-body" id="historyBody">
+          <div style="font-size:.8rem;color:var(--text2)">Loading…</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Session complete toast -->
+<div class="session-toast" id="sessionToast">
+  <h4 id="toastTitle">🎉 Session Complete!</h4>
+  <p id="toastMsg">You earned 25 coins!</p>
+</div>
+
+<script>
+let timerInterval  = null;
+let totalSecs      = 25 * 60;
+let remainingSecs  = totalSecs;
+let isRunning      = false;
+let isPaused       = false;
+let sessionId      = null;
+let sessionStart   = null;
+let distractMode   = false;
+let distractEvents = 0;
+let lastActivity   = Date.now();
+let inactivityTimer = null;
+
+const CIRCUMFERENCE = 628.3; // 2 * π * 100
+
+function setDuration(mins, btn) {
+  if (isRunning) return;
+  totalSecs = mins * 60;
+  remainingSecs = totalSecs;
+  document.querySelectorAll('.preset-btn').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  updateDisplay();
+}
+
+function updateDisplay() {
+  const m = Math.floor(remainingSecs / 60);
+  const s = remainingSecs % 60;
+  document.getElementById('timerDisplay').textContent = pad(m) + ':' + pad(s);
+  const progress = 1 - (remainingSecs / totalSecs);
+  document.getElementById('timerCircle').style.strokeDashoffset = CIRCUMFERENCE * (1 - progress);
+}
+
+function pad(n) { return n < 10 ? '0' + n : String(n); }
+
+async function startTimer() {
+  const topic = document.getElementById('topicInput').value.trim() || 'General Study';
+  // Start backend session
+  const res  = await fetch('/api/focus/start', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({topic})
+  });
+  const data = await res.json();
+  sessionId  = data.session_id;
+  sessionStart = Date.now();
+
+  isRunning = true; isPaused = false;
+  document.getElementById('startBtn').style.display = 'none';
+  document.getElementById('pauseBtn').classList.add('shown');
+  document.getElementById('stopBtn').style.display = 'block';
+  document.getElementById('timerStatus').textContent = '🎯 FOCUSING — ' + topic.toUpperCase();
+  document.getElementById('timerStatus').style.color = 'var(--warn)';
+
+  startInactivityDetection();
+  tick();
+}
+
+function tick() {
+  if (!isRunning || isPaused) return;
+  timerInterval = setInterval(function(){
+    if (remainingSecs <= 0) {
+      clearInterval(timerInterval);
+      sessionComplete();
+      return;
+    }
+    remainingSecs--;
+    updateDisplay();
+    checkInactivity();
+  }, 1000);
+}
+
+async function stopTimer() {
+  clearInterval(timerInterval);
+  isRunning = false; isPaused = false;
+  stopInactivityDetection();
+
+  const mins = Math.floor((Date.now() - sessionStart) / 60000);
+  if (sessionId && mins > 0) {
+    const res  = await fetch('/api/focus/end', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({session_id: sessionId, duration_mins: mins})
+    });
+    const data = await res.json();
+    showToast('Session Saved ✅', 'You earned ' + data.coins + ' coins for ' + mins + ' minutes! ' + (data.new_badges.length ? '🏅 New badges: ' + data.new_badges.join(', ') : ''));
+  }
+
+  resetTimer();
+  loadStats();
+}
+
+async function sessionComplete() {
+  isRunning = false; isPaused = false;
+  stopInactivityDetection();
+
+  const mins = Math.floor(totalSecs / 60);
+  if (sessionId) {
+    const res  = await fetch('/api/focus/end', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({session_id: sessionId, duration_mins: mins})
+    });
+    const data = await res.json();
+    showToast('🎉 Session Complete!', 'Excellent work! +' + data.coins + ' coins earned!' + (data.new_badges.length ? ' 🏅 ' + data.new_badges.join(', ') : ''));
+  }
+
+  resetTimer();
+  loadStats();
+}
+
+function pauseTimer() {
+  isPaused = !isPaused;
+  const btn = document.getElementById('pauseBtn');
+  if (isPaused) {
+    clearInterval(timerInterval);
+    btn.textContent = '▶ Resume';
+    document.getElementById('timerStatus').textContent = '⏸ PAUSED';
+    document.getElementById('timerStatus').style.color = 'var(--text2)';
+  } else {
+    btn.textContent = '⏸ Pause';
+    document.getElementById('timerStatus').textContent = '🎯 FOCUSING';
+    document.getElementById('timerStatus').style.color = 'var(--warn)';
+    tick();
+  }
+}
+
+function resetTimer() {
+  remainingSecs = totalSecs;
+  sessionId = null; sessionStart = null;
+  updateDisplay();
+  document.getElementById('startBtn').style.display = 'block';
+  document.getElementById('pauseBtn').classList.remove('shown');
+  document.getElementById('pauseBtn').textContent = '⏸ Pause';
+  document.getElementById('stopBtn').style.display = 'none';
+  document.getElementById('timerStatus').textContent = 'READY TO FOCUS';
+  document.getElementById('timerStatus').style.color = 'var(--text2)';
+  distractEvents = 0;
+  updateDistractionCount();
+}
+
+// ── Anti-distraction detection ──
+function startInactivityDetection() {
+  lastActivity = Date.now();
+  document.addEventListener('mousemove', resetActivity);
+  document.addEventListener('keydown',   resetActivity);
+  document.addEventListener('click',     resetActivity);
+  document.addEventListener('visibilitychange', handleTabSwitch);
+}
+
+function stopInactivityDetection() {
+  document.removeEventListener('mousemove', resetActivity);
+  document.removeEventListener('keydown',   resetActivity);
+  document.removeEventListener('click',     resetActivity);
+  document.removeEventListener('visibilitychange', handleTabSwitch);
+}
+
+function resetActivity() { lastActivity = Date.now(); }
+
+function checkInactivity() {
+  if (!distractMode || !isRunning) return;
+  const idleSecs = (Date.now() - lastActivity) / 1000;
+  if (idleSecs > 180) { // 3 minutes idle
+    distractEvents++;
+    updateDistractionCount();
+    lastActivity = Date.now(); // reset so it doesn't spam
+  }
+}
+
+function handleTabSwitch() {
+  if (!distractMode || !isRunning) return;
+  if (document.hidden) {
+    distractEvents++;
+    updateDistractionCount();
+  }
+}
+
+function updateDistractionCount() {
+  const el = document.getElementById('distractCount');
+  if (el) el.innerHTML = 'Distraction events this session: <strong>' + distractEvents + '</strong>';
+}
+
+function toggleDistract() {
+  distractMode = !distractMode;
+  const badge = document.getElementById('distractBadge');
+  const tips  = document.getElementById('distractTips');
+  badge.textContent = distractMode ? 'ON' : 'OFF';
+  badge.className   = 'distract-badge ' + (distractMode ? 'on' : 'off');
+  tips.className    = 'distract-tips' + (distractMode ? ' visible' : '');
+}
+
+function showToast(title, msg) {
+  const toast = document.getElementById('sessionToast');
+  document.getElementById('toastTitle').textContent = title;
+  document.getElementById('toastMsg').textContent   = msg;
+  toast.style.display = 'block';
+  setTimeout(function(){ toast.style.display = 'none'; }, 5000);
+}
+
+// ── Load stats ──
+async function loadStats() {
+  const res  = await fetch('/api/focus/stats');
+  const data = await res.json();
+  if (!data.success) return;
+
+  const r = data.rewards;
+  const badges = JSON.parse(r.badges || '[]');
+  document.getElementById('totalCoins').textContent = r.coins || 0;
+  document.getElementById('totalMins').textContent  = r.total_focus_mins || 0;
+  document.getElementById('streakDays').textContent = r.streak_days || 0;
+  document.getElementById('badgeCount').textContent = badges.length;
+
+  const bw = document.getElementById('badgesWrap');
+  bw.innerHTML = badges.length
+    ? badges.map(function(b){ return '<span class="badge-chip">🏅 ' + b + '</span>'; }).join('')
+    : '<span class="no-badges">Complete sessions to earn badges</span>';
+
+  // Leaderboard
+  const lb = document.getElementById('leaderboardBody');
+  lb.innerHTML = data.leaderboard.length
+    ? data.leaderboard.map(function(r, i){
+        return '<div class="lb-row"><span class="lb-rank">' + (i+1) + '</span><span class="lb-name">' + r.username + '</span><span class="lb-coins">🪙 ' + r.coins + '</span></div>';
+      }).join('')
+    : '<div style="font-size:.8rem;color:var(--text2)">No data yet — be the first!</div>';
+
+  // History
+  const hb = document.getElementById('historyBody');
+  hb.innerHTML = data.sessions.length
+    ? data.sessions.map(function(s){
+        return '<div class="hist-row"><span class="hist-topic">' + (s.topic||'Study') + '</span><div class="hist-meta"><span>' + (s.duration_mins||0) + ' min</span><span class="hist-coins">+' + (s.coins_earned||0) + ' 🪙</span></div></div>';
+      }).join('')
+    : '<div style="font-size:.8rem;color:var(--text2);font-style:italic">No sessions yet</div>';
+}
+
+updateDisplay();
+loadStats();
+</script>
+{% endblock %}

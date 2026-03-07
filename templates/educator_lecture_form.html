@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+{% block title %}Lecture Form — LearnSphere{% endblock %}
+{% block content %}
+<div class="page-wrap form-page">
+    <div class="page-header">
+        <div><h1 class="page-title" id="formTitle">Add New Lecture</h1><p class="page-sub">Create rich learning content for students</p></div>
+        <button onclick="history.back()" class="btn btn-ghost">← Back</button>
+    </div>
+
+    <div class="form-card">
+        <div class="form-grid">
+            <div class="form-group full">
+                <label>Lecture Title *</label>
+                <input type="text" id="title" placeholder="e.g. Introduction to Neural Networks" class="form-input">
+            </div>
+
+            <!-- Content Type Selector -->
+            <div class="form-group full">
+                <label>Content Type</label>
+                <div class="type-selector">
+                    <button class="type-btn active" onclick="setType('text',this)" data-type="text">📄 Text Lesson</button>
+                    <button class="type-btn" onclick="setType('video',this)" data-type="video">🎥 Video Lesson</button>
+                    <button class="type-btn" onclick="setType('live',this)" data-type="live">🔴 Live Stream</button>
+                    <button class="type-btn" onclick="setType('quiz',this)" data-type="quiz">📝 Quiz</button>
+                    <button class="type-btn" onclick="setType('meet',this)" data-type="meet">📅 Google Meet</button>
+                </div>
+                <input type="hidden" id="lecType" value="text">
+            </div>
+
+            <div class="form-group">
+                <label>Duration (minutes)</label>
+                <input type="number" id="duration" value="15" min="1" max="300" class="form-input">
+            </div>
+            <div class="form-group">
+                <label>Order / Position</label>
+                <input type="number" id="orderNum" value="1" min="1" class="form-input">
+            </div>
+
+            <!-- VIDEO -->
+            <div class="form-group full type-field" id="videoSection" style="display:none">
+                <label>YouTube Video URL</label>
+                <div class="content-help" style="margin-bottom:.4rem">Paste any YouTube link — auto-converted to embed. e.g. https://www.youtube.com/watch?v=ABC123</div>
+                <input type="text" id="videoUrl" placeholder="https://www.youtube.com/watch?v=VIDEO_ID" class="form-input" oninput="autoConvertYT(this)" onpaste="setTimeout(function(){autoConvertYT(document.getElementById('videoUrl'))},50)">
+                <div id="ytPreview" style="margin-top:.75rem;display:none">
+                    <div style="font-size:.72rem;color:var(--success);margin-bottom:.4rem;font-weight:700">✅ Preview:</div>
+                    <div style="position:relative;padding-bottom:40%;height:0;border-radius:8px;overflow:hidden;border:1px solid var(--border)">
+                        <iframe id="ytPreviewFrame" style="position:absolute;top:0;left:0;width:100%;height:100%" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                </div>
+                <div id="ytError" style="color:var(--danger);font-size:.78rem;margin-top:.35rem;display:none"></div>
+            </div>
+
+            <!-- LIVE -->
+            <div class="form-group full type-field" id="liveSection" style="display:none">
+                <label>Live Stream URL</label>
+                <input type="text" id="liveUrl" placeholder="https://www.youtube.com/live/..." class="form-input">
+                <label style="margin-top:.75rem">Scheduled Date &amp; Time</label>
+                <input type="datetime-local" id="liveSchedule" class="form-input">
+                <label style="margin-top:.75rem">Pre-session Notes</label>
+                <textarea id="liveNotes" class="form-input form-textarea" rows="3" placeholder="Topics, pre-requisites, what students should prepare..."></textarea>
+            </div>
+
+            <!-- GOOGLE MEET -->
+            <div class="form-group full type-field" id="meetSection" style="display:none">
+                <label>Google Meet Link</label>
+                <input type="text" id="meetUrl" placeholder="https://meet.google.com/xxx-xxxx-xxx" class="form-input">
+                <label style="margin-top:.75rem">Scheduled Date &amp; Time</label>
+                <input type="datetime-local" id="meetSchedule" class="form-input">
+                <label style="margin-top:.75rem">Session Agenda</label>
+                <textarea id="meetAgenda" class="form-input form-textarea" rows="3" placeholder="Meeting agenda, topics, preparation instructions..."></textarea>
+            </div>
+
+            <!-- QUIZ notice -->
+            <div class="form-group full type-field" id="quizSection" style="display:none">
+                <div class="content-help" style="padding:.85rem 1rem;border-radius:10px;border:1px solid var(--border)">
+                    📝 <strong>Quiz Lecture</strong> — Save this, then click <strong>Assessments</strong> on the course page to add questions (True/False, MCQ, Fill-in-the-blank, Match, Audio, Video, and more).
+                </div>
+            </div>
+
+            <!-- TEXT content -->
+            <div class="form-group full" id="textSection">
+                <label>Lecture Content *</label>
+                <div class="content-help">Supports: ## Headings, **bold**, `code`, - bullet lists</div>
+                <textarea id="content" class="form-input form-textarea tall" placeholder="Write your lecture content here...
+
+## Introduction
+...
+
+## Key Concepts
+...
+
+## Summary
+..."></textarea>
+            </div>
+
+            <div class="form-group full" id="codeSection">
+                <label>Code Example (Python)</label>
+                <textarea id="codeExample" class="form-input form-textarea code-font" placeholder="# Optional Python code example
+import numpy as np"></textarea>
+            </div>
+        </div>
+
+        <div id="errMsg" class="error-msg-form"></div>
+        <div class="form-actions">
+            <button onclick="history.back()" class="btn btn-ghost">Cancel</button>
+            <button onclick="saveLecture()" class="btn btn-primary" id="saveBtn">Save Lecture</button>
+        </div>
+    </div>
+</div>
+
+<style>
+.type-selector { display:flex; flex-wrap:wrap; gap:.5rem; margin-top:.35rem; }
+.type-btn { padding:.5rem 1rem; border-radius:8px; border:1px solid var(--border); background:var(--bg2); color:var(--text2); font-size:.82rem; font-weight:600; cursor:pointer; font-family:var(--ff-sans); transition:all .15s; }
+.type-btn:hover { border-color:var(--accent); color:var(--accent); }
+.type-btn.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+</style>
+
+<script>
+var courseId  = '{{ course_id }}';
+var lectureId = '{{ lecture_id }}';
+
+function setType(type, btn) {
+    document.getElementById('lecType').value = type;
+    document.querySelectorAll('.type-btn').forEach(function(b){ b.classList.remove('active'); });
+    if (btn) btn.classList.add('active');
+    document.getElementById('videoSection').style.display = type === 'video' ? 'block' : 'none';
+    document.getElementById('liveSection').style.display  = type === 'live'  ? 'block' : 'none';
+    document.getElementById('meetSection').style.display  = type === 'meet'  ? 'block' : 'none';
+    document.getElementById('quizSection').style.display  = type === 'quiz'  ? 'block' : 'none';
+    document.getElementById('textSection').style.display  = (type === 'text' || type === 'quiz') ? 'block' : 'none';
+    document.getElementById('codeSection').style.display  = type === 'text'  ? 'block' : 'none';
+}
+
+function autoConvertYT(input) {
+    var raw = input.value.trim();
+    var errEl = document.getElementById('ytError');
+    var prevEl = document.getElementById('ytPreview');
+    var frameEl = document.getElementById('ytPreviewFrame');
+    errEl.style.display = 'none'; prevEl.style.display = 'none';
+    if (!raw) return;
+    var videoId = null;
+    var m = raw.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
+    if (m) videoId = m[1];
+    if (!videoId) { m = raw.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/); if (m) videoId = m[1]; }
+    if (!videoId) { m = raw.match(/youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/); if (m) videoId = m[1]; }
+    if (videoId) {
+        var embedUrl = 'https://www.youtube.com/embed/' + videoId;
+        input.value = embedUrl; frameEl.src = embedUrl; prevEl.style.display = 'block';
+    } else if (raw.includes('youtube') || raw.includes('youtu.be')) {
+        errEl.textContent = 'Could not extract Video ID. Check the URL.'; errEl.style.display = 'block';
+    }
+}
+
+async function loadLecture() {
+    if (!lectureId || lectureId === 'None') return;
+    document.getElementById('formTitle').textContent = 'Edit Lecture';
+    var data = await fetch('/api/lectures/' + lectureId).then(function(r){ return r.json(); });
+    var l = data.lecture;
+    document.getElementById('title').value       = l.title || '';
+    document.getElementById('duration').value    = l.duration_mins || 15;
+    document.getElementById('content').value     = l.content || '';
+    document.getElementById('codeExample').value = l.code_example || '';
+    var vurl = l.video_url || '';
+    if (l.lecture_type === 'video') {
+        document.getElementById('videoUrl').value = vurl;
+    } else if (l.lecture_type === 'live') {
+        try { var lv = JSON.parse(vurl); document.getElementById('liveUrl').value = lv.url||''; document.getElementById('liveSchedule').value = lv.schedule||''; document.getElementById('liveNotes').value = lv.notes||''; } catch(e) { document.getElementById('liveUrl').value = vurl; }
+    } else if (l.lecture_type === 'meet') {
+        try { var mv = JSON.parse(vurl); document.getElementById('meetUrl').value = mv.url||''; document.getElementById('meetSchedule').value = mv.schedule||''; document.getElementById('meetAgenda').value = mv.agenda||''; } catch(e) { document.getElementById('meetUrl').value = vurl; }
+    }
+    var typeBtn = document.querySelector('[data-type="' + (l.lecture_type||'text') + '"]');
+    setType(l.lecture_type || 'text', typeBtn);
+}
+
+async function saveLecture() {
+    var title   = document.getElementById('title').value.trim();
+    var type    = document.getElementById('lecType').value || 'text';
+    var content = document.getElementById('content').value.trim();
+    var errEl   = document.getElementById('errMsg');
+    if (!title) { errEl.textContent = 'Title is required'; errEl.style.display = 'block'; return; }
+    errEl.style.display = 'none';
+    var videoUrl = '';
+    if (type === 'video') {
+        videoUrl = document.getElementById('videoUrl').value.trim();
+    } else if (type === 'live') {
+        videoUrl = JSON.stringify({url:document.getElementById('liveUrl').value.trim(),schedule:document.getElementById('liveSchedule').value,notes:document.getElementById('liveNotes').value.trim()});
+    } else if (type === 'meet') {
+        videoUrl = JSON.stringify({url:document.getElementById('meetUrl').value.trim(),schedule:document.getElementById('meetSchedule').value,agenda:document.getElementById('meetAgenda').value.trim()});
+    }
+    var btn = document.getElementById('saveBtn');
+    btn.textContent = 'Saving...'; btn.disabled = true;
+    var payload = {
+        course_id: courseId && courseId !== 'None' ? courseId : undefined,
+        title: title, content: content || title,
+        lecture_type: type, video_url: videoUrl,
+        code_example: document.getElementById('codeExample').value,
+        duration_mins: parseInt(document.getElementById('duration').value)||15,
+        order_num: parseInt(document.getElementById('orderNum').value)||1,
+    };
+    var res;
+    if (lectureId && lectureId !== 'None') {
+        res = await fetch('/api/lectures/' + lectureId, {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    } else {
+        res = await fetch('/api/lectures', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    }
+    var data = await res.json();
+    if (data.success) {
+        var cid = courseId && courseId !== 'None' ? courseId : null;
+        if (cid) window.location = '/educator/course/' + cid + '/lectures';
+        else history.back();
+    } else {
+        errEl.textContent = data.error || 'Error saving'; errEl.style.display = 'block';
+        btn.textContent = 'Save Lecture'; btn.disabled = false;
+    }
+}
+loadLecture();
+</script>
+{% endblock %}

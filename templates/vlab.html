@@ -1,0 +1,341 @@
+{% extends "base.html" %}
+{% block title %}Virtual Lab — LearnSphere{% endblock %}
+{% block content %}
+
+<style>
+/* ── Virtual Lab styles ─────────────────────────────────────── */
+.vl-wrap         { max-width:1200px; margin:0 auto; padding:1.75rem 2rem 4rem; }
+.vl-hero         { text-align:center; padding:1.5rem 1rem 1.4rem; margin-bottom:1.5rem; }
+.vl-hero h1      { font-family:var(--ff-serif); font-size:1.9rem; font-weight:700; color:var(--text); margin-bottom:.45rem; }
+.vl-hero p       { font-size:.88rem; color:var(--text2); max-width:580px; margin:0 auto; line-height:1.65; }
+.vl-badge        { display:inline-block; background:rgba(16,185,129,.12); border:1px solid rgba(16,185,129,.3);
+                   color:var(--success); font-size:.7rem; font-weight:700; padding:.2rem .65rem;
+                   border-radius:20px; letter-spacing:.05em; text-transform:uppercase; margin-bottom:.65rem; }
+
+/* Search card */
+.vl-search-card  { background:var(--bg3); border:1px solid var(--border); border-radius:var(--r2);
+                   padding:1.5rem; margin-bottom:1.5rem; }
+.vl-search-row   { display:flex; gap:.75rem; align-items:flex-start; flex-wrap:wrap; margin-bottom:1rem; }
+.vl-input        { flex:1; min-width:240px; padding:.7rem 1rem; border-radius:10px;
+                   background:var(--bg2); border:1px solid var(--border); color:var(--text);
+                   font-family:var(--ff-sans); font-size:.9rem; outline:none; transition:border-color .15s; }
+.vl-input:focus  { border-color:var(--success); box-shadow:0 0 0 3px rgba(16,185,129,.12); }
+.vl-submit       { padding:.7rem 1.5rem; border-radius:10px; background:var(--success);
+                   border:none; color:#fff; font-family:var(--ff-serif); font-size:.92rem;
+                   font-weight:700; cursor:pointer; white-space:nowrap; transition:filter .15s; }
+.vl-submit:hover { filter:brightness(1.1); }
+.vl-submit:disabled { opacity:.5; cursor:not-allowed; }
+.vl-quick-label  { font-size:.7rem; color:var(--text2); font-weight:700; text-transform:uppercase; letter-spacing:.05em; margin-bottom:.45rem; }
+.vl-quick-chips  { display:flex; flex-wrap:wrap; gap:.35rem; }
+.vl-chip         { padding:.22rem .65rem; border-radius:20px; background:var(--bg2);
+                   border:1px solid var(--border); color:var(--text2); font-size:.74rem;
+                   cursor:pointer; font-family:var(--ff-sans); transition:all .14s; }
+.vl-chip:hover   { border-color:var(--success); color:var(--success); background:rgba(16,185,129,.08); }
+
+/* Empty / loading */
+.vl-empty        { display:flex; flex-direction:column; align-items:center; justify-content:center;
+                   min-height:320px; text-align:center; color:var(--text2); gap:.75rem; }
+.vl-empty h3     { font-family:var(--ff-serif); font-size:1.1rem; color:var(--text); }
+.vl-loading      { display:flex; flex-direction:column; align-items:center; justify-content:center;
+                   min-height:300px; gap:1rem; color:var(--text2); text-align:center; }
+
+/* Lab card */
+.lab-card        { background:var(--bg3); border:1px solid var(--border); border-radius:var(--r2); overflow:hidden; animation:fadeUp .35s ease both; }
+
+/* Lab header */
+.lab-head        { background:linear-gradient(135deg,rgba(16,185,129,.08),rgba(16,185,129,.02));
+                   border-bottom:1px solid var(--border); padding:1.4rem 1.75rem; }
+.lab-journal     { font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--success); margin-bottom:.4rem; }
+.lab-title       { font-family:var(--ff-serif); font-size:1.35rem; font-weight:700; color:var(--text); line-height:1.3; margin-bottom:.6rem; }
+.lab-meta-grid   { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:.6rem; }
+.lab-meta-item   { background:var(--bg2); border:1px solid var(--border); border-radius:8px; padding:.55rem .75rem; }
+.lab-meta-lbl    { font-size:.64rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--text2); display:block; margin-bottom:.2rem; }
+.lab-meta-val    { font-size:.81rem; color:var(--text); line-height:1.4; }
+
+/* Section tabs */
+.lab-tabs        { display:flex; flex-wrap:wrap; gap:.3rem; padding:.85rem 1.75rem;
+                   border-bottom:1px solid var(--border); background:var(--bg2); }
+.lab-tab         { padding:.3rem .88rem; border-radius:6px; border:1px solid transparent;
+                   background:none; color:var(--text2); font-size:.8rem; font-weight:600;
+                   cursor:pointer; font-family:var(--ff-sans); transition:all .14s; }
+.lab-tab.active  { background:rgba(16,185,129,.12); border-color:rgba(16,185,129,.3); color:var(--success); }
+
+/* Tab panes */
+.lab-pane        { padding:1.5rem 1.75rem; display:none; }
+.lab-pane.active { display:block; animation:fadeUp .22s ease both; }
+
+/* Dataset tab */
+.dataset-grid    { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+.dataset-box     { background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:1rem; }
+.dataset-box h4  { font-family:var(--ff-serif); font-size:.9rem; color:var(--text); margin-bottom:.55rem; }
+.dataset-box p   { font-size:.83rem; color:var(--text2); line-height:1.65; }
+
+/* Code tab */
+.lab-code-bar    { display:flex; justify-content:space-between; align-items:center;
+                   background:var(--bg2); padding:.5rem .95rem; border-radius:8px 8px 0 0;
+                   border:1px solid var(--border); border-bottom:none; font-size:.74rem; color:var(--success); font-weight:600; }
+.lab-code-bar + pre { border-radius:0 0 8px 8px; margin:0; border:1px solid var(--border); border-top:none; }
+.lab-copy-btn    { background:none; border:none; color:var(--text2); font-size:.72rem;
+                   cursor:pointer; font-family:var(--ff-sans); transition:color .14s; }
+.lab-copy-btn:hover { color:var(--success); }
+.run-note        { margin-top:.75rem; padding:.55rem .85rem; background:rgba(245,158,11,.06);
+                   border:1px solid rgba(245,158,11,.2); border-radius:8px; font-size:.78rem; color:var(--text2); }
+.run-note strong { color:var(--warn); }
+
+/* Graph tab */
+.graph-area      { text-align:center; }
+.graph-img       { max-width:100%; border-radius:10px; border:1px solid var(--border);
+                   background:var(--bg2); display:block; margin:0 auto; }
+.graph-placeholder { display:flex; flex-direction:column; align-items:center; justify-content:center;
+                     min-height:220px; background:var(--bg2); border:1px dashed var(--border2);
+                     border-radius:10px; color:var(--text2); gap:.55rem; }
+.graph-placeholder p { font-size:.82rem; }
+
+/* Interpretation tab */
+.interp-body     { font-size:.88rem; color:var(--text2); line-height:1.85; }
+.interp-body p   { margin-bottom:.85rem; }
+.observations    { list-style:none; display:flex; flex-direction:column; gap:.42rem; margin-bottom:1rem; }
+.obs-item        { display:flex; align-items:flex-start; gap:.55rem; padding:.45rem .7rem;
+                   background:var(--bg2); border-radius:7px; font-size:.83rem; color:var(--text2); border:1px solid var(--border); }
+.obs-item::before { content:'🔍'; flex-shrink:0; }
+.further-exp     { margin-top:1rem; }
+.further-exp h4  { font-family:var(--ff-serif); font-size:.9rem; color:var(--text); margin-bottom:.55rem; }
+.fe-item         { display:flex; align-items:center; gap:.55rem; padding:.38rem .7rem; cursor:pointer;
+                   background:var(--bg2); border:1px solid var(--border); border-radius:7px;
+                   margin-bottom:.38rem; font-size:.82rem; color:var(--text2); transition:all .14s; }
+.fe-item:hover   { border-color:var(--success); color:var(--success); background:rgba(16,185,129,.06); }
+.fe-item::before { content:'▶'; font-size:.65rem; color:var(--success); flex-shrink:0; }
+
+/* Run button */
+.run-btn         { display:inline-flex; align-items:center; gap:.5rem; padding:.45rem 1.15rem;
+                   border-radius:8px; background:rgba(16,185,129,.12); border:1px solid rgba(16,185,129,.3);
+                   color:var(--success); font-size:.82rem; font-weight:700; cursor:pointer;
+                   font-family:var(--ff-sans); transition:all .15s; margin-top:.75rem; }
+.run-btn:hover   { background:rgba(16,185,129,.2); }
+
+@media(max-width:700px){ .vl-wrap{ padding:1rem 1rem 3rem; } .lab-head,.lab-pane{ padding:1.1rem; } .lab-tabs{ padding:.65rem 1.1rem; } .dataset-grid{ grid-template-columns:1fr; } }
+</style>
+
+<div class="vl-wrap animate-in">
+  <div class="vl-hero">
+    <span class="vl-badge">🔬 Virtual Lab</span>
+    <h1>🧪 Virtual Experiment Lab</h1>
+    <p>Describe any ML concept or experiment. The AI generates a synthetic dataset, runnable Python code, a plot, and a detailed scientific interpretation — just like a real lab.</p>
+  </div>
+
+  <!-- Search -->
+  <div class="vl-search-card">
+    <div class="vl-search-row">
+      <input id="labInput" class="vl-input"
+             placeholder="e.g. Show experiment for overfitting, Visualize gradient descent, Demonstrate bias-variance tradeoff..."
+             onkeydown="if(event.key==='Enter') doLab()">
+      <button class="vl-submit" id="labBtn" onclick="doLab()">
+        <span id="lBtnTxt">Run Experiment</span>
+      </button>
+    </div>
+    <div class="vl-quick-label">Quick Experiments</div>
+    <div class="vl-quick-chips">
+      <button class="vl-chip" onclick="setExp('Show overfitting vs underfitting with polynomial regression')">Overfitting</button>
+      <button class="vl-chip" onclick="setExp('Visualize gradient descent converging on a loss surface')">Gradient Descent</button>
+      <button class="vl-chip" onclick="setExp('Demonstrate bias-variance tradeoff')">Bias-Variance</button>
+      <button class="vl-chip" onclick="setExp('Show K-Means clustering on 2D data')">K-Means</button>
+      <button class="vl-chip" onclick="setExp('Compare train vs validation accuracy with increasing model complexity')">Model Complexity</button>
+      <button class="vl-chip" onclick="setExp('Visualize decision boundary of SVM with different kernels')">SVM Kernels</button>
+      <button class="vl-chip" onclick="setExp('Show effect of learning rate on neural network training')">Learning Rate</button>
+      <button class="vl-chip" onclick="setExp('Demonstrate PCA dimensionality reduction')">PCA</button>
+    </div>
+  </div>
+
+  <!-- Lab Result -->
+  <div id="labArea">
+    <div class="vl-empty">
+      <div style="font-size:3.5rem">🔬</div>
+      <h3>Your virtual experiment will appear here</h3>
+      <p style="font-size:.83rem">Describe any ML experiment above. The AI will generate a complete lab session with synthetic data, code, a graph, and scientific interpretation.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentLab = null;
+
+function setExp(t) {
+  document.getElementById('labInput').value = t;
+  doLab();
+}
+
+async function doLab() {
+  const experiment = document.getElementById('labInput').value.trim();
+  if (!experiment) { alert('Please describe an experiment.'); return; }
+
+  const btn  = document.getElementById('labBtn');
+  const btxt = document.getElementById('lBtnTxt');
+  btn.disabled = true;
+  btxt.innerHTML = '<span style="display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:.4rem"></span>Running…';
+
+  document.getElementById('labArea').innerHTML =
+    '<div class="vl-loading"><div class="spinner"></div>' +
+    '<p>Setting up experiment: <strong>' + escH(experiment) + '</strong><br>' +
+    '<small style="color:var(--text2)">Generating dataset, code and graphs — may take 20–35 seconds…</small></p></div>';
+
+  try {
+    const res  = await fetch('/api/virtual_lab', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({experiment})
+    });
+    const data = await res.json();
+    if (data.success) {
+      currentLab = data.data;
+      renderLab(data.data, experiment);
+    } else {
+      document.getElementById('labArea').innerHTML =
+        '<div class="error-card"><div style="font-size:2rem">⚠️</div><h3>Experiment Failed</h3><p>' + escH(data.error) + '</p>' +
+        '<button onclick="doLab()" class="btn btn-ghost" style="margin-top:1rem">↺ Try Again</button></div>';
+    }
+  } catch(e) {
+    document.getElementById('labArea').innerHTML =
+      '<div class="error-card"><div style="font-size:2rem">⚠️</div><h3>Network Error</h3><p>' + escH(e.message) + '</p></div>';
+  }
+
+  btn.disabled = false;
+  btxt.textContent = 'Run Experiment';
+}
+
+function renderLab(d, experiment) {
+  const tabs = [
+    {key:'overview',        label:'🎯 Overview'},
+    {key:'dataset',         label:'📊 Dataset'},
+    {key:'code',            label:'💻 Code'},
+    {key:'graph',           label:'📈 Graph'},
+    {key:'interpretation',  label:'🧠 Interpretation'},
+  ];
+
+  const tabsHtml = tabs.map(function(t, i){
+    return '<button class="lab-tab' + (i===0?' active':'') + '" onclick="switchLabTab(this,\'lt-' + t.key + '\')">' + t.label + '</button>';
+  }).join('');
+
+  // Overview pane
+  const overviewHtml =
+    '<div id="lt-overview" class="lab-pane active">'
+    + '<div class="lab-meta-grid">'
+    + metaBox('Objective', d.objective || '')
+    + metaBox('Dataset', d.dataset_description || '')
+    + metaBox('Hypothesis', d.hypothesis || '')
+    + metaBox('Conclusion', d.conclusion || '')
+    + '</div></div>';
+
+  // Dataset pane
+  const datasetHtml =
+    '<div id="lt-dataset" class="lab-pane">'
+    + '<div class="dataset-grid">'
+    + '<div class="dataset-box"><h4>📦 Dataset Description</h4><p>' + escH(d.dataset_description || '') + '</p></div>'
+    + '<div class="dataset-box"><h4>🔬 Hypothesis</h4><p>' + escH(d.hypothesis || '') + '</p></div>'
+    + '</div></div>';
+
+  // Code pane
+  const codeHtml =
+    '<div id="lt-code" class="lab-pane">'
+    + '<div class="lab-code-bar"><span>Python Experiment Code</span>'
+    + '<button class="lab-copy-btn" onclick="copyLabCode(this)">Copy</button></div>'
+    + '<pre><code class="language-python">' + escH(d.code || '# No code generated') + '</code></pre>'
+    + '<div class="run-note"><strong>⚠ How to run:</strong> Copy the code and run it locally with Python. '
+    + 'Required packages: <code>numpy, sklearn, matplotlib</code>. '
+    + 'The code will generate a plot and print metrics to the console.</div>'
+    + '</div>';
+
+  // Graph pane (placeholder since we cannot run code server-side)
+  const graphHtml =
+    '<div id="lt-graph" class="lab-pane">'
+    + '<div class="graph-area">'
+    + '<div class="graph-placeholder">'
+    + '<div style="font-size:3rem">📈</div>'
+    + '<p><strong>To see the graph:</strong><br>Copy the code from the Code tab and run it locally.<br>The script will generate and display the matplotlib plot.</p>'
+    + '<button class="run-btn" onclick="switchLabTab(document.querySelector(\'.lab-tab:nth-child(3)\'),\'lt-code\')">'
+    + '💻 Go to Code</button>'
+    + '</div>'
+    + '<div style="margin-top:1.1rem;padding:.85rem 1rem;background:var(--bg2);border:1px solid var(--border);border-radius:8px;font-size:.82rem;color:var(--text2)">'
+    + '<strong style="color:var(--text)">What the graph will show:</strong><br>'
+    + (d.key_observations && d.key_observations.length
+        ? d.key_observations.map(function(o){ return '• ' + o; }).join('<br>')
+        : 'The plot will visualize the experiment results.')
+    + '</div>'
+    + '</div></div>';
+
+  // Interpretation pane
+  const furtherHtml = (d.further_experiments && d.further_experiments.length)
+    ? '<div class="further-exp"><h4>🚀 Follow-up Experiments</h4>'
+      + d.further_experiments.map(function(fe){
+          return '<div class="fe-item" onclick="loadFollowUp(\'' + escH(fe).replace(/'/g, "\\'") + '\')">' + escH(fe) + '</div>';
+        }).join('')
+      + '</div>'
+    : '';
+
+  const interpHtml =
+    '<div id="lt-interpretation" class="lab-pane">'
+    + '<div class="interp-body">'
+    + (d.interpretation || '').split(/\\n\\n|\n\n/).map(function(p){
+        return '<p>' + escH(p.trim()) + '</p>';
+      }).join('')
+    + '</div>'
+    + (d.key_observations && d.key_observations.length
+        ? '<h4 style="font-family:var(--ff-serif);font-size:.92rem;color:var(--text);margin:.85rem 0 .55rem">🔍 Key Observations</h4>'
+          + '<ul class="observations">'
+          + d.key_observations.map(function(o){ return '<li class="obs-item">' + escH(o) + '</li>'; }).join('')
+          + '</ul>'
+        : '')
+    + furtherHtml
+    + '</div>';
+
+  document.getElementById('labArea').innerHTML =
+    '<div class="lab-card">'
+    // Header
+    + '<div class="lab-head">'
+    + '<div class="lab-journal">LearnSphere Virtual Lab · Simulation Experiment</div>'
+    + '<div class="lab-title">' + escH(d.title || experiment) + '</div>'
+    + '<div class="lab-meta-grid">'
+    + metaBox('Objective', d.objective || '')
+    + metaBox('Hypothesis', d.hypothesis || '')
+    + '</div></div>'
+    // Tabs
+    + '<div class="lab-tabs">' + tabsHtml + '</div>'
+    // Panes
+    + overviewHtml + datasetHtml + codeHtml + graphHtml + interpHtml
+    + '</div>';
+
+  document.querySelectorAll('#labArea pre code').forEach(function(el){ hljs.highlightElement(el); });
+}
+
+function metaBox(label, text) {
+  return '<div class="lab-meta-item"><span class="lab-meta-lbl">' + label + '</span><span class="lab-meta-val">' + escH(text) + '</span></div>';
+}
+
+function switchLabTab(btn, paneId) {
+  var area = document.getElementById('labArea');
+  area.querySelectorAll('.lab-tab').forEach(function(t){ t.classList.remove('active'); });
+  area.querySelectorAll('.lab-pane').forEach(function(p){ p.classList.remove('active'); });
+  btn.classList.add('active');
+  var el = document.getElementById(paneId);
+  if (el) el.classList.add('active');
+}
+
+function loadFollowUp(exp) {
+  document.getElementById('labInput').value = exp;
+  doLab();
+}
+
+function copyLabCode(btn) {
+  var pre = btn.closest('.lab-code-bar').nextElementSibling;
+  if (!pre) return;
+  var code = pre.querySelector('code');
+  navigator.clipboard.writeText(code ? code.textContent : pre.textContent).then(function(){
+    btn.textContent = 'Copied!';
+    setTimeout(function(){ btn.textContent = 'Copy'; }, 2000);
+  });
+}
+
+function escH(s) {
+  if (s == null) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+{% endblock %}

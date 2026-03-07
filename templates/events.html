@@ -1,0 +1,282 @@
+{% extends "base.html" %}
+{% block title %}Events & Opportunities — LearnSphere{% endblock %}
+{% block content %}
+<style>
+.ev-wrap        { max-width:1180px; margin:0 auto; padding:1.75rem 2rem 4rem; }
+.ev-hero        { text-align:center; padding:1.5rem 1rem 1.4rem; margin-bottom:1.6rem; }
+.ev-hero h1     { font-family:var(--ff-serif); font-size:1.9rem; font-weight:700; color:var(--text); margin-bottom:.4rem; }
+.ev-hero p      { font-size:.88rem; color:var(--text2); max-width:580px; margin:0 auto; line-height:1.65; }
+.ev-badge       { display:inline-block; background:rgba(16,185,129,.1); border:1px solid rgba(16,185,129,.3);
+                  color:var(--success); font-size:.7rem; font-weight:700; padding:.2rem .65rem;
+                  border-radius:20px; letter-spacing:.05em; text-transform:uppercase; margin-bottom:.65rem; }
+
+/* ── Filter / toolbar ── */
+.ev-toolbar     { display:flex; gap:.65rem; align-items:center; flex-wrap:wrap; margin-bottom:1.4rem; }
+.ev-filter-btn  { padding:.3rem .85rem; border-radius:20px; border:1px solid var(--border);
+                  background:var(--bg3); color:var(--text2); font-size:.78rem; font-weight:600;
+                  cursor:pointer; font-family:var(--ff-sans); transition:all .14s; }
+.ev-filter-btn:hover,
+.ev-filter-btn.active { border-color:var(--success); color:var(--success); background:rgba(16,185,129,.08); }
+.ev-search      { flex:1; min-width:200px; padding:.42rem .85rem; border-radius:20px;
+                  background:var(--bg3); border:1px solid var(--border); color:var(--text);
+                  font-family:var(--ff-sans); font-size:.83rem; outline:none; transition:border-color .15s; }
+.ev-search:focus { border-color:var(--success); }
+.ai-rec-btn     { padding:.4rem 1.1rem; border-radius:20px; background:var(--accent);
+                  border:none; color:#fff; font-size:.8rem; font-weight:700;
+                  cursor:pointer; font-family:var(--ff-sans); white-space:nowrap; transition:filter .15s; }
+.ai-rec-btn:hover { filter:brightness(1.1); }
+.ai-rec-btn:disabled { opacity:.5; cursor:not-allowed; }
+
+/* ── Grid ── */
+.ev-layout      { display:grid; grid-template-columns:1fr 320px; gap:1.4rem; align-items:start; }
+.ev-grid        { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:1rem; }
+
+/* ── Event card ── */
+.ev-card        { background:var(--bg3); border:1px solid var(--border); border-radius:var(--r2);
+                  overflow:hidden; transition:border-color .18s,transform .18s;
+                  display:flex; flex-direction:column; }
+.ev-card:hover  { border-color:var(--border2); transform:translateY(-2px); }
+.ev-card-head   { padding:.85rem 1rem .55rem; }
+.ev-platform    { display:inline-block; font-size:.64rem; font-weight:700; text-transform:uppercase;
+                  letter-spacing:.06em; padding:.12rem .48rem; border-radius:4px; margin-bottom:.45rem; }
+.plt-Unstop     { background:rgba(16,185,129,.12); color:var(--success); }
+.plt-GeeksforGeeks { background:rgba(0,212,255,.1); color:var(--accent); }
+.plt-Kaggle     { background:rgba(20,184,166,.12); color:#14b8a6; }
+.plt-LeetCode   { background:rgba(245,158,11,.1); color:var(--warn); }
+.plt-Devpost    { background:rgba(124,58,237,.1); color:#7c3aed; }
+.plt-Google     { background:rgba(239,68,68,.08); color:#ef4444; }
+.plt-HackerRank { background:rgba(16,185,129,.1); color:var(--success); }
+.plt-Codeforces { background:rgba(239,68,68,.08); color:#ef4444; }
+.plt-MLH        { background:rgba(124,58,237,.1); color:#7c3aed; }
+.plt-Topcoder   { background:rgba(245,158,11,.1); color:var(--warn); }
+.plt-ICPC       { background:rgba(0,212,255,.1); color:var(--accent); }
+.plt-Devfolio   { background:rgba(124,58,237,.1); color:#7c3aed; }
+.plt-default    { background:var(--bg2); color:var(--text2); }
+
+.ev-type-badge  { float:right; font-size:.62rem; font-weight:700; text-transform:uppercase;
+                  padding:.1rem .4rem; border-radius:4px; }
+.type-hackathon  { background:rgba(124,58,237,.1); color:#7c3aed; }
+.type-contest    { background:rgba(0,212,255,.1); color:var(--accent); }
+.type-competition{ background:rgba(245,158,11,.1); color:var(--warn); }
+.type-challenge  { background:rgba(16,185,129,.1); color:var(--success); }
+
+.ev-title       { font-family:var(--ff-serif); font-size:.98rem; font-weight:700; color:var(--text);
+                  line-height:1.3; margin-bottom:.35rem; }
+.ev-desc        { font-size:.78rem; color:var(--text2); line-height:1.5; margin-bottom:.65rem; }
+.ev-meta        { display:flex; gap:.6rem; flex-wrap:wrap; font-size:.71rem; color:var(--text2); margin-bottom:.65rem; }
+.ev-meta span   { display:flex; align-items:center; gap:.22rem; }
+.ev-tags        { display:flex; flex-wrap:wrap; gap:.3rem; padding:.65rem 1rem; border-top:1px solid var(--border); }
+.ev-tag         { padding:.1rem .42rem; border-radius:4px; font-size:.63rem; font-weight:600;
+                  background:var(--bg2); border:1px solid var(--border); color:var(--text2); }
+.ev-link        { display:block; text-align:center; padding:.55rem 1rem; background:var(--success);
+                  color:#fff; font-size:.8rem; font-weight:700; text-decoration:none;
+                  transition:filter .15s; }
+.ev-link:hover  { filter:brightness(1.1); }
+
+/* ── AI Recommendation panel ── */
+.ai-panel-card  { background:var(--bg3); border:1px solid var(--border); border-radius:var(--r2);
+                  overflow:hidden; position:sticky; top:80px; }
+.ai-panel-head  { padding:.85rem 1.1rem; border-bottom:1px solid var(--border);
+                  background:linear-gradient(135deg,rgba(0,212,255,.06),rgba(0,212,255,.01)); }
+.ai-panel-head h3 { font-family:var(--ff-serif); font-size:.95rem; font-weight:700; color:var(--text); }
+.ai-panel-head p  { font-size:.73rem; color:var(--text2); margin-top:.2rem; }
+.ai-panel-body  { padding:1rem; }
+.ai-rec-loading { text-align:center; padding:1.5rem; font-size:.82rem; color:var(--text2); }
+.ai-rec-empty   { text-align:center; padding:1.5rem; font-size:.82rem; color:var(--text2);
+                  font-style:italic; }
+.rec-card       { background:var(--bg2); border:1px solid var(--border); border-radius:9px;
+                  padding:.75rem; margin-bottom:.65rem; transition:border-color .15s; }
+.rec-card:last-child { margin-bottom:0; }
+.rec-card:hover { border-color:var(--accent); }
+.rec-card-title { font-size:.85rem; font-weight:700; color:var(--text); margin-bottom:.2rem; }
+.rec-platform   { font-size:.65rem; color:var(--accent); font-weight:700; text-transform:uppercase;
+                  letter-spacing:.05em; margin-bottom:.35rem; }
+.rec-reason     { font-size:.76rem; color:var(--text2); line-height:1.5; margin-bottom:.5rem; }
+.rec-diff       { display:inline-block; font-size:.63rem; font-weight:700; padding:.1rem .4rem;
+                  border-radius:4px; }
+.diff-beginner      { background:rgba(16,185,129,.12); color:var(--success); }
+.diff-intermediate  { background:rgba(245,158,11,.1); color:var(--warn); }
+.diff-advanced      { background:rgba(239,68,68,.08); color:var(--danger); }
+.rec-link       { display:inline-flex; align-items:center; gap:.3rem; font-size:.73rem;
+                  color:var(--accent); font-weight:600; text-decoration:none; float:right; }
+.rec-link:hover { text-decoration:underline; }
+
+/* Source note */
+.source-note    { font-size:.7rem; color:var(--text2); text-align:center; padding:.65rem 1rem;
+                  border-top:1px solid var(--border); line-height:1.5; }
+
+/* Empty / loading states */
+.ev-loading     { grid-column:1/-1; text-align:center; padding:2.5rem; color:var(--text2); }
+.ev-none        { grid-column:1/-1; text-align:center; padding:2.5rem; color:var(--text2); font-style:italic; }
+
+@media(max-width:960px){ .ev-layout{ grid-template-columns:1fr; } .ai-panel-card{ position:static; } }
+@media(max-width:700px){ .ev-wrap{ padding:1rem 1rem 3rem; } }
+</style>
+
+<div class="ev-wrap animate-in">
+  <div class="ev-hero">
+    <span class="ev-badge">🔥 Live Opportunities</span>
+    <h1>🏆 Events & Hackathons</h1>
+    <p>Curated hackathons, contests, and challenges from GeeksforGeeks, Unstop, Kaggle, LeetCode and more. AI recommends the best ones for your skill level.</p>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="ev-toolbar">
+    <input class="ev-search" id="evSearch" placeholder="Search events…" oninput="filterEvents()">
+    <button class="ev-filter-btn active" onclick="setFilter('all',this)">All</button>
+    <button class="ev-filter-btn" onclick="setFilter('hackathon',this)">Hackathons</button>
+    <button class="ev-filter-btn" onclick="setFilter('contest',this)">Contests</button>
+    <button class="ev-filter-btn" onclick="setFilter('competition',this)">Competitions</button>
+    <button class="ev-filter-btn" onclick="setFilter('challenge',this)">Challenges</button>
+    <button class="ai-rec-btn" id="aiRecBtn" onclick="loadAIRecs()">🤖 AI Recommend For Me</button>
+  </div>
+
+  <div class="ev-layout">
+    <!-- Events grid -->
+    <div>
+      <div class="ev-grid" id="evGrid">
+        <div class="ev-loading"><div class="spinner"></div><p style="margin-top:.75rem">Loading events…</p></div>
+      </div>
+    </div>
+
+    <!-- AI Recommendation panel -->
+    <div class="ai-panel-card">
+      <div class="ai-panel-head">
+        <h3>🤖 AI Smart Recommendations</h3>
+        <p>Personalised to your learning profile</p>
+      </div>
+      <div class="ai-panel-body" id="aiRecBody">
+        <div class="ai-rec-empty">
+          Click <strong>"AI Recommend For Me"</strong> above to get personalised contest recommendations based on your studied topics and skill level.
+        </div>
+      </div>
+      <div class="source-note">
+        Events sourced from Unstop, GeeksforGeeks, Kaggle, LeetCode, Devpost &amp; more.<br>
+        Click any card to visit the platform directly.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let allEvents   = [];
+let currentFilter = 'all';
+
+async function loadEvents() {
+  try {
+    const res  = await fetch('/api/events');
+    const data = await res.json();
+    if (data.success) {
+      allEvents = data.events;
+      renderEvents(allEvents);
+    }
+  } catch(e) {
+    document.getElementById('evGrid').innerHTML =
+      '<div class="ev-none">Failed to load events. Please refresh.</div>';
+  }
+}
+
+function setFilter(type, btn) {
+  currentFilter = type;
+  document.querySelectorAll('.ev-filter-btn').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  filterEvents();
+}
+
+function filterEvents() {
+  const q = document.getElementById('evSearch').value.toLowerCase();
+  const filtered = allEvents.filter(function(ev) {
+    const matchType = currentFilter === 'all' || ev.event_type === currentFilter;
+    const matchQ    = !q ||
+      (ev.title||'').toLowerCase().includes(q) ||
+      (ev.platform||'').toLowerCase().includes(q) ||
+      (ev.description||'').toLowerCase().includes(q) ||
+      (ev.tags||'').toLowerCase().includes(q);
+    return matchType && matchQ;
+  });
+  renderEvents(filtered);
+}
+
+function renderEvents(events) {
+  const grid = document.getElementById('evGrid');
+  if (!events.length) {
+    grid.innerHTML = '<div class="ev-none">No events match your filter. Try clearing the search.</div>';
+    return;
+  }
+  grid.innerHTML = events.map(function(ev) {
+    const tags = parseTags(ev.tags);
+    const pltClass = 'plt-' + (ev.platform || 'default').replace(/\s/g,'');
+    const typeClass = 'type-' + (ev.event_type || 'hackathon');
+    return '<div class="ev-card">'
+      + '<div class="ev-card-head">'
+      + '<span class="ev-platform ' + pltClass + '">' + escH(ev.platform||'') + '</span>'
+      + '<span class="ev-type-badge ' + typeClass + '">' + escH(ev.event_type||'') + '</span>'
+      + '<div class="ev-title">' + escH(ev.title) + '</div>'
+      + '<div class="ev-desc">' + escH(ev.description||'') + '</div>'
+      + '<div class="ev-meta">'
+      + (ev.deadline ? '<span>📅 ' + escH(ev.deadline) + '</span>' : '')
+      + (ev.prize    ? '<span>🏆 ' + escH(ev.prize)    + '</span>' : '')
+      + '</div>'
+      + '</div>'
+      + (tags.length ? '<div class="ev-tags">' + tags.map(function(t){ return '<span class="ev-tag">' + escH(t) + '</span>'; }).join('') + '</div>' : '')
+      + '<a class="ev-link" href="' + escH(ev.url||'#') + '" target="_blank" rel="noopener">Visit Platform →</a>'
+      + '</div>';
+  }).join('');
+}
+
+function parseTags(raw) {
+  if (!raw) return [];
+  try { return JSON.parse(raw); } catch(e) { return []; }
+}
+
+async function loadAIRecs() {
+  const btn = document.getElementById('aiRecBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Analysing…';
+  document.getElementById('aiRecBody').innerHTML =
+    '<div class="ai-rec-loading"><div class="spinner"></div><p style="margin-top:.65rem">AI is analysing your profile…</p></div>';
+
+  try {
+    const res  = await fetch('/api/events/recommend', {method:'POST', headers:{'Content-Type':'application/json'}, body:'{}'});
+    const data = await res.json();
+    if (data.success && data.data && data.data.recommendations) {
+      renderAIRecs(data.data.recommendations);
+    } else {
+      document.getElementById('aiRecBody').innerHTML =
+        '<div class="ai-rec-empty">Could not generate recommendations. Study a few topics in AI Learn first!</div>';
+    }
+  } catch(e) {
+    document.getElementById('aiRecBody').innerHTML =
+      '<div class="ai-rec-empty">Network error. Please try again.</div>';
+  }
+
+  btn.disabled = false;
+  btn.textContent = '🤖 AI Recommend For Me';
+}
+
+function renderAIRecs(recs) {
+  if (!recs || !recs.length) {
+    document.getElementById('aiRecBody').innerHTML = '<div class="ai-rec-empty">No recommendations yet.</div>';
+    return;
+  }
+  document.getElementById('aiRecBody').innerHTML = recs.map(function(r) {
+    const diffClass = 'diff-' + (r.difficulty || 'beginner');
+    return '<div class="rec-card">'
+      + '<div class="rec-card-title">' + escH(r.title||'') + '</div>'
+      + '<div class="rec-platform">' + escH(r.platform||'') + '</div>'
+      + '<div class="rec-reason">' + escH(r.reason||'') + '</div>'
+      + '<span class="rec-diff ' + diffClass + '">' + escH(r.difficulty||'') + '</span>'
+      + (r.url ? '<a class="rec-link" href="' + escH(r.url) + '" target="_blank" rel="noopener">Open →</a>' : '')
+      + '<div style="clear:both"></div>'
+      + '</div>';
+  }).join('');
+}
+
+function escH(s) {
+  if (s == null) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+loadEvents();
+</script>
+{% endblock %}

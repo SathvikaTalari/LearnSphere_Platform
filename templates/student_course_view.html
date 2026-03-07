@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+{% block title %}Course — LearnSphere{% endblock %}
+{% block content %}
+<style>
+.cv-wrap{max-width:1100px;margin:0 auto;padding:1.75rem 2rem 4rem}
+/* Hero */
+.cv-hero{border-radius:var(--r2);padding:2rem 2.5rem;margin-bottom:1.4rem;position:relative;overflow:hidden;border:1px solid var(--border)}
+.cv-hero-grid{display:grid;grid-template-columns:1fr auto;gap:2rem;align-items:start}
+.cv-category{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--accent);margin-bottom:.4rem}
+.cv-title{font-family:var(--ff-serif);font-size:1.8rem;font-weight:700;color:var(--text);line-height:1.25;margin-bottom:.5rem}
+.cv-desc{font-size:.87rem;color:var(--text2);line-height:1.6;margin-bottom:.85rem;max-width:600px}
+.cv-meta{display:flex;gap:1rem;flex-wrap:wrap;font-size:.78rem;color:var(--text2)}
+.cv-meta span{display:flex;align-items:center;gap:.3rem}
+.cv-diff{font-size:.68rem;font-weight:700;padding:.15rem .5rem;border-radius:4px;margin-left:.5rem}
+.cv-diff.beginner{background:rgba(16,185,129,.1);color:var(--success)}
+.cv-diff.intermediate{background:rgba(245,158,11,.1);color:var(--warn)}
+.cv-diff.advanced{background:rgba(239,68,68,.08);color:var(--danger)}
+/* Progress ring */
+.progress-ring-box{text-align:center;min-width:120px}
+/* Rating */
+.cv-rating{display:flex;align-items:center;gap:.4rem;margin-top:.65rem}
+.cv-stars{color:#f59e0b;font-size:1rem}
+.cv-star-val{font-weight:700;color:var(--text);font-size:.88rem}
+.cv-star-count{color:var(--text2);font-size:.78rem}
+.cv-rate-btn{padding:.22rem .6rem;border-radius:6px;border:1px solid var(--border);background:var(--bg2);color:var(--text2);font-size:.72rem;cursor:pointer;transition:all .13s}
+.cv-rate-btn:hover{border-color:var(--accent);color:var(--accent)}
+/* Layout */
+.cv-layout{display:grid;grid-template-columns:1fr 300px;gap:1.4rem;align-items:start}
+/* Lecture list */
+.lec-section h2{font-family:var(--ff-serif);font-size:1.05rem;font-weight:700;color:var(--text);margin-bottom:.85rem;display:flex;align-items:center;gap:.5rem}
+.lec-item{display:flex;align-items:center;gap:.85rem;padding:.85rem 1rem;background:var(--bg3);border:1px solid var(--border);border-radius:10px;margin-bottom:.5rem;text-decoration:none;transition:all .15s}
+.lec-item:hover{border-color:var(--border2);transform:translateX(3px)}
+.lec-item.done{border-color:rgba(16,185,129,.3)}
+.lec-num{width:32px;height:32px;border-radius:50%;background:var(--bg2);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:700;color:var(--text2);flex-shrink:0}
+.lec-num.done{background:var(--success);border-color:var(--success);color:#fff}
+.lec-info{flex:1;min-width:0}
+.lec-info strong{display:block;font-size:.87rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lec-info span{font-size:.72rem;color:var(--text2)}
+.lec-type-icon{font-size:.8rem;flex-shrink:0}
+/* Right sidebar cards */
+.cv-sidebar{display:flex;flex-direction:column;gap:1rem}
+.cv-side-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden}
+.cv-side-head{padding:.75rem 1rem;border-bottom:1px solid var(--border);font-family:var(--ff-serif);font-size:.88rem;font-weight:700;color:var(--text);display:flex;align-items:center;gap:.4rem}
+.cv-side-body{padding:.9rem 1rem}
+/* Assessment cards */
+.ass-item{padding:.65rem .85rem;background:var(--bg2);border:1px solid var(--border);border-radius:8px;margin-bottom:.5rem;display:flex;align-items:center;justify-content:space-between;gap:.5rem}
+.ass-item:last-child{margin-bottom:0}
+.ass-item-info strong{display:block;font-size:.83rem;color:var(--text)}
+.ass-item-info span{font-size:.72rem;color:var(--text2)}
+.take-btn{padding:.28rem .72rem;border-radius:6px;background:var(--accent);border:none;color:#fff;font-size:.72rem;font-weight:700;cursor:pointer;white-space:nowrap;transition:filter .14s;text-decoration:none}
+.take-btn:hover{filter:brightness(1.1)}
+/* Certificate card */
+.cert-card{background:linear-gradient(135deg,rgba(16,185,129,.1),rgba(0,212,255,.06));border:1px solid rgba(16,185,129,.3);border-radius:var(--r2);padding:1.1rem;text-align:center}
+.cert-card h3{font-family:var(--ff-serif);font-size:.92rem;color:var(--success);margin-bottom:.3rem}
+.cert-dl-link{display:inline-flex;align-items:center;gap:.4rem;padding:.5rem 1.1rem;border-radius:7px;background:var(--success);color:#fff;font-size:.8rem;font-weight:700;text-decoration:none;transition:filter .14s;margin-top:.65rem}
+.cert-dl-link:hover{filter:brightness(1.1)}
+/* Progress bar */
+.cv-prog-bar{height:6px;border-radius:3px;background:var(--bg2);overflow:hidden;margin-top:.5rem}
+.cv-prog-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--accent),var(--success));transition:width .8s ease}
+/* Stars rating modal */
+.star-rating{display:flex;gap:.3rem;justify-content:center;margin:.65rem 0}
+.star-btn{font-size:1.8rem;background:none;border:none;cursor:pointer;color:#d1d5db;transition:color .12s}
+.star-btn:hover,.star-btn.on{color:#f59e0b}
+</style>
+
+<div class="cv-wrap animate-in">
+  <div id="courseContent"><div class="loading-card"><div class="spinner"></div><p>Loading course...</p></div></div>
+</div>
+
+<!-- Rating modal -->
+<div id="rateModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:none;align-items:center;justify-content:center">
+  <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:1.75rem 2rem;max-width:360px;width:90%;text-align:center">
+    <h3 style="font-family:var(--ff-serif);margin-bottom:.5rem">Rate this Course</h3>
+    <p style="font-size:.82rem;color:var(--text2);margin-bottom:.75rem">How would you rate your learning experience?</p>
+    <div class="star-rating" id="starRow">
+      <button class="star-btn" onclick="setStar(1)">★</button>
+      <button class="star-btn" onclick="setStar(2)">★</button>
+      <button class="star-btn" onclick="setStar(3)">★</button>
+      <button class="star-btn" onclick="setStar(4)">★</button>
+      <button class="star-btn" onclick="setStar(5)">★</button>
+    </div>
+    <textarea id="rateReview" placeholder="Write a review (optional)…" style="width:100%;padding:.55rem .8rem;border-radius:8px;background:var(--bg2);border:1px solid var(--border);color:var(--text);font-family:var(--ff-sans);font-size:.83rem;resize:vertical;outline:none;margin-bottom:.85rem" rows="3"></textarea>
+    <div style="display:flex;gap:.65rem;justify-content:center">
+      <button onclick="submitRating()" class="btn btn-primary" id="rateSubmitBtn">Submit Rating</button>
+      <button onclick="closeRateModal()" class="btn btn-ghost">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var courseId = '{{ course_id }}';
+var selectedStar = 0;
+var courseColor = '#00D4FF';
+
+async function load() {
+  var data = await fetch('/api/courses/' + courseId).then(function(r){return r.json();});
+  var c = data.course, lecs = data.lectures, done = data.completed || [];
+  var pct = lecs.length ? Math.round(done.length/lecs.length*100) : 0;
+  courseColor = c.thumbnail_color || '#00D4FF';
+
+  // Load rating
+  var ratingData = await fetch('/api/courses/' + courseId + '/rating').then(function(r){return r.json();});
+  var avgRating = ratingData.avg || 0;
+  var ratingCount = ratingData.count || 0;
+
+  // Load assessments
+  var assessments = await fetch('/api/assessments/' + courseId).then(function(r){return r.json();});
+
+  // Check certificate
+  var certData = await fetch('/api/certificate/' + courseId).then(function(r){return r.json();});
+  var hasCert = certData.success;
+
+  function starsHtml(r) {
+    var full=Math.floor(r);var empty=5-full;
+    return '★'.repeat(full)+'☆'.repeat(empty);
+  }
+
+  function lecTypeIcon(lt) {
+    var icons={text:'📄',video:'🎥',live:'🔴',quiz:'📝',meet:'📅'};
+    return icons[lt]||'📄';
+  }
+
+  // Sidebar: assessment list
+  var assHtml = '';
+  if (assessments.length) {
+    assHtml = assessments.map(function(a){
+      return '<div class="ass-item">'
+        + '<div class="ass-item-info"><strong>' + escH(a.title) + '</strong><span>Pass: ' + a.pass_score + '%</span></div>'
+        + '<a href="/student/course/' + courseId + '/assessment/' + a.id + '" class="take-btn">Take Quiz →</a>'
+        + '</div>';
+    }).join('');
+  } else {
+    assHtml = '<div style="font-size:.8rem;color:var(--text2);font-style:italic">No quizzes yet.</div>';
+  }
+
+  // Certificate section
+  var certHtml = '';
+  if (hasCert) {
+    certHtml = '<div class="cert-card"><div style="font-size:2rem">🎓</div><h3>Certificate Earned!</h3><p style="font-size:.78rem;color:var(--text2)">You completed this course successfully.</p>'
+      + '<a href="/certificate/' + courseId + '/download" target="_blank" class="cert-dl-link">⬇ Download Certificate</a></div>';
+  } else if (pct === 100) {
+    certHtml = '<div class="cert-card" style="border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.06)"><div style="font-size:1.8rem">📝</div><h3 style="color:var(--warn)">Almost there!</h3><p style="font-size:.78rem;color:var(--text2)">Pass a quiz to unlock your certificate.</p></div>';
+  } else {
+    certHtml = '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:.85rem;font-size:.8rem;color:var(--text2);text-align:center">Complete all lessons and pass a quiz to earn your certificate.</div>';
+  }
+
+  document.getElementById('courseContent').innerHTML =
+    '<div class="cv-wrap">'
+    + '<div class="cv-hero" style="background:linear-gradient(135deg,' + courseColor + '10,transparent);border-color:' + courseColor + '33">'
+    + '<div class="cv-hero-grid">'
+    + '<div>'
+    + '<div class="cv-category">' + escH(c.category||'ML') + '<span class="cv-diff ' + (c.difficulty||'') + '">' + (c.difficulty||'') + '</span></div>'
+    + '<div class="cv-title">' + escH(c.title) + '</div>'
+    + '<div class="cv-desc">' + escH(c.description||'') + '</div>'
+    + '<div class="cv-meta">'
+    + '<span>👩‍🏫 ' + escH(c.educator_name||'Educator') + '</span>'
+    + '<span>📖 ' + lecs.length + ' lessons</span>'
+    + '<span>✅ ' + done.length + ' done</span>'
+    + (c.duration_hours ? '<span>⏱ ' + c.duration_hours + 'h</span>' : '')
+    + '</div>'
+    + '<div class="cv-rating">'
+    + (avgRating > 0 ? '<span class="cv-stars">' + starsHtml(avgRating) + '</span><span class="cv-star-val">' + avgRating.toFixed(1) + '</span><span class="cv-star-count">(' + ratingCount + ' ratings)</span>' : '<span style="font-size:.78rem;color:var(--text2)">No ratings yet</span>')
+    + '<button class="cv-rate-btn" onclick="openRateModal()">⭐ Rate</button>'
+    + '</div>'
+    + '<div class="cv-prog-bar"><div class="cv-prog-fill" style="width:' + pct + '%"></div></div>'
+    + '<div style="font-size:.72rem;color:var(--text2);margin-top:.3rem">' + pct + '% complete</div>'
+    + '</div>'
+    + '<div class="progress-ring-box">'
+    + '<svg width="100" height="100" viewBox="0 0 100 100">'
+    + '<circle cx="50" cy="50" r="38" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="7"/>'
+    + '<circle cx="50" cy="50" r="38" fill="none" stroke="' + courseColor + '" stroke-width="7"'
+    + ' stroke-dasharray="' + (2*Math.PI*38).toFixed(1) + '" stroke-dashoffset="' + (2*Math.PI*38*(1-pct/100)).toFixed(1) + '"'
+    + ' stroke-linecap="round" transform="rotate(-90 50 50)"/>'
+    + '<text x="50" y="54" text-anchor="middle" fill="' + courseColor + '" font-size="18" font-family="var(--ff-serif)" font-weight="800">' + pct + '%</text>'
+    + '</svg>'
+    + '<p style="color:var(--text2);font-size:.72rem">Progress</p>'
+    + '</div>'
+    + '</div></div>'  // cv-hero-grid + cv-hero
+
+    + '<div class="cv-layout">'
+
+    // Left: lecture list
+    + '<div class="lec-section">'
+    + '<h2>📚 Course Lessons <span style="font-size:.75rem;color:var(--text2);font-weight:400">' + done.length + '/' + lecs.length + ' completed</span></h2>'
+    + (lecs.length === 0
+      ? '<div style="padding:1.5rem;text-align:center;color:var(--text2)">No lessons yet.</div>'
+      : lecs.map(function(l,i){
+          var isDone = done.includes(l.id);
+          var icon = lecTypeIcon(l.lecture_type);
+          return '<a href="/student/lecture/' + l.id + '" class="lec-item' + (isDone?' done':'') + '">'
+            + '<div class="lec-num' + (isDone?' done':'') + '">' + (isDone?'✓':(i+1)) + '</div>'
+            + '<div class="lec-info"><strong>' + escH(l.title) + '</strong>'
+            + '<span>' + icon + ' ' + l.lecture_type + ' · ⏱ ' + (l.duration_mins||15) + ' min'
+            + (l.code_example ? ' · 💻 code' : '') + '</span></div>'
+            + (isDone ? '<span style="font-size:.72rem;color:var(--success);flex-shrink:0">✓ Done</span>' : '<span style="font-size:.72rem;color:var(--text2);flex-shrink:0">Start →</span>')
+            + '</a>';
+        }).join('')
+    )
+
+    + (pct < 100
+      ? '<div style="margin-top:.85rem;text-align:center"><button onclick="enrollNow()" class="btn btn-primary" id="enrollBtn">' + (done.length>0?'Continue Learning':'Enroll &amp; Start') + '</button></div>'
+      : '')
+    + '</div>'
+
+    // Right sidebar
+    + '<div class="cv-sidebar">'
+
+    // Assessments
+    + '<div class="cv-side-card"><div class="cv-side-head">📝 Quizzes</div><div class="cv-side-body">' + assHtml + '</div></div>'
+
+    // Certificate
+    + '<div class="cv-side-card"><div class="cv-side-head">🎓 Certificate</div><div class="cv-side-body">' + certHtml + '</div></div>'
+
+    + '</div>'  // sidebar
+
+    + '</div></div>';  // cv-layout + cv-wrap
+}
+
+function openRateModal() { document.getElementById('rateModal').style.display = 'flex'; }
+function closeRateModal() { document.getElementById('rateModal').style.display = 'none'; }
+function setStar(n) {
+  selectedStar = n;
+  document.querySelectorAll('.star-btn').forEach(function(b,i){ b.classList.toggle('on', i<n); });
+}
+async function submitRating() {
+  if (!selectedStar) { alert('Please select a star rating'); return; }
+  var btn = document.getElementById('rateSubmitBtn');
+  btn.textContent = 'Saving…'; btn.disabled = true;
+  await fetch('/api/courses/' + courseId + '/rate', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({rating:selectedStar, review:document.getElementById('rateReview').value.trim()})
+  });
+  closeRateModal();
+  load(); // reload to show updated rating
+}
+async function enrollNow() {
+  var btn = document.getElementById('enrollBtn');
+  if (btn) { btn.textContent='Enrolling…'; btn.disabled=true; }
+  await fetch('/api/enroll/' + courseId, {method:'POST'});
+  window.location.reload();
+}
+function escH(s){ if(s==null)return''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+load();
+</script>
+{% endblock %}

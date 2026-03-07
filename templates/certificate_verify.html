@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Verify Certificate — LearnSphere</title>
+<style>
+body{font-family:Arial,sans-serif;background:#0f172a;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem}
+.verify-card{background:#fff;border-radius:16px;padding:2.5rem 3rem;max-width:520px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.verify-icon{font-size:4rem;margin-bottom:1rem}
+.verify-valid{color:#059669;font-size:1.6rem;font-weight:800;margin-bottom:.5rem}
+.verify-sub{color:#475569;font-size:.88rem;margin-bottom:1.5rem}
+.verify-row{display:flex;justify-content:space-between;align-items:center;padding:.65rem 1rem;background:#f8fafc;border-radius:8px;margin-bottom:.5rem}
+.verify-lbl{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;font-weight:700}
+.verify-val{font-size:.88rem;font-weight:700;color:#1e293b}
+.verify-code{font-family:'Courier New',monospace;font-size:.75rem;background:#1e293b;color:#34d399;padding:.3rem .6rem;border-radius:6px}
+</style>
+</head>
+<body>
+<div class="verify-card">
+  <div class="verify-icon">✅</div>
+  <div class="verify-valid">Certificate Verified</div>
+  <div class="verify-sub">This is an authentic LearnSphere certificate.</div>
+  <div class="verify-row"><span class="verify-lbl">Student</span><span class="verify-val">{{ cert.student_name }}</span></div>
+  <div class="verify-row"><span class="verify-lbl">Course</span><span class="verify-val">{{ cert.course_title }}</span></div>
+  <div class="verify-row"><span class="verify-lbl">Issued</span><span class="verify-val">{{ cert.issued_at[:10] if cert.issued_at else 'N/A' }}</span></div>
+  <div class="verify-row"><span class="verify-lbl">Certificate ID</span><span class="verify-code">{{ cert.cert_code }}</span></div>
+  <div style="margin-top:1.5rem;font-size:.75rem;color:#94a3b8">Issued by LearnSphere AI Learning Platform</div>
+</div>
+</body>
+</html>
