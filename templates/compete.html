@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Beat the AI — LearnSphere{% endblock %}
+{% block title %}Compete — LearnSphere{% endblock %}
 {% block extra_css %}
 <style>
 .battle-wrap { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
@@ -161,7 +161,7 @@
   <!-- ══ LOBBY ══════════════════════════════════════════════════ -->
   <div id="lobbyScreen">
     <div class="battle-lobby animate-in">
-      <div class="lobby-title">Beat the <span>AI</span> ⚔️</div>
+      <div class="lobby-title">Compete <span>Mode</span></div>
       <p class="lobby-sub">Answer ML questions faster and more accurately than our AI tutor. Can you outsmart the machine?</p>
 
       <div class="lobby-config">
@@ -194,10 +194,10 @@
         </div>
       </div>
 
-      <button class="start-btn" onclick="startBattle()">⚔️ Start Battle</button>
+      <button class="start-btn" onclick="startBattle()">Start Compete</button>
 
       <div style="margin-top:2.5rem">
-        <div class="section-header" style="margin:0 0 0.75rem"><h2>🏆 Leaderboard</h2></div>
+        <div class="section-header" style="margin:0 0 0.75rem"><h2>Leaderboard</h2></div>
         <div id="lbList" class="leaderboard-list">
           <div class="loading-card" style="min-height:100px"><div class="spinner"></div></div>
         </div>
@@ -209,14 +209,14 @@
   <div id="arenaScreen" style="display:none">
     <div class="scoreboard">
       <div class="score-side" id="youSide">
-        <div class="score-avatar">🧑‍🎓</div>
+        <div class="score-avatar" style="font-family:var(--font-serif);font-weight:700">P</div>
         <div class="score-name">You</div>
         <div class="score-number" id="yourScore">0</div>
         <div class="score-sub" id="yourCorr">0 correct</div>
       </div>
       <div class="vs-badge">VS</div>
       <div class="score-side" id="aiSide">
-        <div class="score-avatar">🤖</div>
+        <div class="score-avatar" style="font-family:var(--font-serif);font-weight:700">A</div>
         <div class="score-name">AI</div>
         <div class="score-number" id="aiScore">0</div>
         <div class="score-sub" id="aiCorr">0 correct</div>
@@ -246,18 +246,19 @@
   <!-- ══ RESULT ══════════════════════════════════════════════════ -->
   <div id="resultScreen" style="display:none">
     <div class="result-screen">
-      <div class="result-emoji" id="resultEmoji">🏆</div>
+      <div class="result-emoji" id="resultEmoji" style="font-family:var(--font-serif);font-weight:700"></div>
       <div class="result-title" id="resultTitle">You Win!</div>
       <div class="result-sub"   id="resultSub">Great job!</div>
       <div class="q-history"    id="qHistory"></div>
       <div class="result-scores">
         <div class="rs-card"><div class="rs-label">Your Score</div><div class="rs-score" id="finalYou" style="color:var(--accent)">0</div></div>
         <div class="rs-card"><div class="rs-label">AI Score</div><div class="rs-score" id="finalAI" style="color:var(--accent-2)">0</div></div>
+        <div class="rs-card" id="coinsEarnedCard" style="display:none"><div class="rs-label">Coins Earned</div><div class="rs-score" id="finalCoins" style="color:#F59E0B">0</div></div>
       </div>
       <div class="result-actions">
-        <button class="btn btn-primary" onclick="startBattle()">⚔️ Rematch</button>
+        <button class="btn btn-primary" onclick="startBattle()">Rematch</button>
         <button class="btn btn-ghost"   onclick="goLobby()">← Lobby</button>
-        <a href="/dna" class="btn btn-ghost">🧬 View DNA</a>
+        <a href="/dna" class="btn btn-ghost">View DNA</a>
       </div>
     </div>
   </div>
@@ -280,7 +281,7 @@ async function loadLeaderboard(){
     var rows = await fetch('/api/battle/leaderboard').then(function(r){ return r.json(); });
     var el = document.getElementById('lbList');
     if(!rows.length){ el.innerHTML='<p style="text-align:center;color:var(--text-2);padding:1.5rem">No games played yet. Be the first!</p>'; return; }
-    var rankIcon = function(i){ return i===0?'🥇':i===1?'🥈':i===2?'🥉':'#'+(i+1); };
+    var rankIcon = function(i){ return i===0?'1':i===1?'2':i===2?'3':'#'+(i+1); };
     el.innerHTML = '<div class="lb-header"><span style="width:24px"></span><span style="flex:1">Player</span><span style="min-width:60px;text-align:right">Best</span><span style="min-width:50px;text-align:right">Games</span><span style="min-width:45px;text-align:right">Wins</span></div>' +
       rows.map(function(r,i){
         var cls = i===0?'gold':i===1?'silver':i===2?'bronze':'';
@@ -374,7 +375,7 @@ function autoTimeout(){
   G.answered = true;
   var fb = document.getElementById('qFeedback');
   fb.className = 'q-feedback wrong';
-  fb.innerHTML = "⏱️ Time's up! Correct answer: <strong>"+G.currentQ.answer+"</strong>. "+G.currentQ.explanation;
+  fb.innerHTML = "Time's up! Correct answer: <strong>"+G.currentQ.answer+"</strong>. "+G.currentQ.explanation;
   fb.style.display = 'block';
   document.querySelectorAll('.q-option').forEach(function(b){
     b.disabled = true;
@@ -400,13 +401,13 @@ function selectAnswer(btn, letter){
   });
 
   var fb = document.getElementById('qFeedback');
-  var aiMsg = aiRight ? '🤖 AI got it right.' : '🤖 AI got it wrong!';
+  var aiMsg = aiRight ? 'AI got it right.' : 'AI got it wrong!';
   if(youRight){
     fb.className = 'q-feedback correct';
-    fb.innerHTML = '✅ Correct! '+G.currentQ.explanation+' — '+aiMsg;
+    fb.innerHTML = 'Correct! '+G.currentQ.explanation+' — '+aiMsg;
   } else {
     fb.className = 'q-feedback wrong';
-    fb.innerHTML = '❌ Answer was <strong>'+correct+'</strong>. '+G.currentQ.explanation+' — '+aiMsg;
+    fb.innerHTML = 'Answer was <strong>'+correct+'</strong>. '+G.currentQ.explanation+' — '+aiMsg;
   }
   fb.style.display = 'block';
   processResult(youRight, aiRight);
@@ -444,7 +445,7 @@ function showResults(){
   hide('arenaScreen');
   var youWon = G.yourScore > G.aiScore;
   var tie    = G.yourScore === G.aiScore;
-  document.getElementById('resultEmoji').textContent = tie?'🤝':youWon?'🏆':'🤖';
+  document.getElementById('resultEmoji').innerHTML = tie?'<span style="font-size:3rem">TIE</span>':youWon?'<span style="font-size:3rem">WIN</span>':'<span style="font-size:3rem">LOSS</span>';
   document.getElementById('resultTitle').textContent = tie?"It's a Tie!":youWon?'You Win!':'AI Wins!';
   document.getElementById('resultSub').textContent   = tie?'Perfectly matched — rematch?':youWon?'You beat the AI '+G.yourScore+' to '+G.aiScore+'!':'AI edges it '+G.aiScore+' to '+G.yourScore+'. Rematch?';
   document.getElementById('finalYou').textContent = G.yourScore;
@@ -454,9 +455,15 @@ function showResults(){
   document.getElementById('qHistory').innerHTML = G.history.map(function(h,i){
     return '<div class="q-dot '+(h.y?'ok':'no')+'" title="Q'+(i+1)+': '+(h.y?'Correct':'Wrong')+'">'+(h.y?'✓':'✗')+'</div>';
   }).join('');
+  document.getElementById('coinsEarnedCard').style.display='none';
   fetch('/api/battle/save_score',{
     method:'POST', headers:{'Content-Type':'application/json'},
     body: JSON.stringify({score:G.yourScore, ai_score:G.aiScore, topic:G.topic})
+  }).then(r=>r.json()).then(data=>{
+    if(data.success && data.coins_earned > 0) {
+      document.getElementById('coinsEarnedCard').style.display='block';
+      document.getElementById('finalCoins').textContent = data.coins_earned;
+    }
   }).catch(function(){});
   show('resultScreen');
 }

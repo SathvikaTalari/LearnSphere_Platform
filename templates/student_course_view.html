@@ -92,9 +92,148 @@ var courseId = '{{ course_id }}';
 var selectedStar = 0;
 var courseColor = '#00D4FF';
 
+function buildCourseOverview(course, lectures) {
+  // --- What You'll Learn: derive from lecture titles ---
+  var learnItems = lectures.map(function(l){ return escH(l.title); });
+  var catItems = {
+    'Machine Learning': ['Understand core ML algorithms', 'Build predictive models', 'Evaluate model performance', 'Apply ML to real-world problems'],
+    'Deep Learning': ['Design neural network architectures', 'Train deep learning models', 'Use TensorFlow & PyTorch', 'Implement CNNs, RNNs, Transformers'],
+    'NLP': ['Process and analyze text data', 'Build NLP pipelines', 'Understand word embeddings', 'Apply modern transformer models'],
+    'Natural Language Processing': ['Process and analyze text data', 'Build NLP pipelines', 'Understand word embeddings', 'Apply modern transformer models'],
+    'Data Science': ['Analyze real-world datasets', 'Create data visualizations', 'Apply statistical methods', 'Build end-to-end data pipelines'],
+    'Computer Vision': ['Build image classifiers', 'Implement object detection', 'Use transfer learning', 'Apply data augmentation'],
+    'Reinforcement Learning': ['Understand MDPs', 'Implement Q-Learning', 'Apply policy gradients', 'Build RL environments'],
+    'Generative AI': ['Understand transformer architecture', 'Fine-tune large models', 'Master prompt engineering', 'Build RAG pipelines'],
+    'MLOps': ['Deploy ML models', 'Build CI/CD pipelines', 'Monitor model performance', 'Containerize ML apps']
+  };
+  var extraItems = catItems[course.category] || ['Master key concepts', 'Apply theory to practice', 'Build real projects', 'Gain industry-ready skills'];
+  var allLearn = learnItems.concat(extraItems).slice(0, 8);
+
+  // --- Prerequisites based on difficulty ---
+  var prereqMap = {
+    'beginner': ['Basic understanding of programming', 'Familiarity with mathematics (algebra)', 'No prior ML experience needed'],
+    'intermediate': ['Basic Python programming skills', 'Understanding of statistics & probability', 'Introductory ML concepts'],
+    'advanced': ['Strong Python programming experience', 'Linear algebra & calculus fundamentals', 'Prior ML/DL project experience', 'Understanding of neural networks']
+  };
+  var prereqs = prereqMap[course.difficulty] || prereqMap['beginner'];
+
+  // --- Skills from category ---
+  var skillMap = {
+    'Machine Learning': ['Python', 'Scikit-learn', 'Data Analysis', 'Model Evaluation', 'Feature Engineering', 'Regression', 'Classification'],
+    'Deep Learning': ['TensorFlow', 'PyTorch', 'Neural Networks', 'Computer Vision', 'Model Optimization', 'GPU Training'],
+    'NLP': ['Text Processing', 'Tokenization', 'Word Embeddings', 'Transformers', 'Sentiment Analysis', 'BERT/GPT'],
+    'Natural Language Processing': ['Text Processing', 'Tokenization', 'Word Embeddings', 'Transformers', 'Sentiment Analysis', 'BERT/GPT'],
+    'Data Science': ['Python', 'Pandas', 'SQL', 'Data Visualization', 'Statistics', 'Excel'],
+    'Computer Vision': ['OpenCV', 'CNNs', 'Image Processing', 'Transfer Learning', 'YOLO', 'Segmentation'],
+    'Reinforcement Learning': ['Gym', 'Q-Learning', 'Policy Gradients', 'Deep RL', 'Multi-Agent'],
+    'Generative AI': ['Transformers', 'LLMs', 'Prompt Engineering', 'RAG', 'Fine-tuning', 'RLHF'],
+    'MLOps': ['Docker', 'Kubernetes', 'CI/CD', 'Model Serving', 'MLflow', 'Monitoring']
+  };
+  var skills = skillMap[course.category] || ['Python', 'Data Analysis', 'Machine Learning', 'Problem Solving'];
+
+  // --- Total duration ---
+  var totalMins = lectures.reduce(function(s,l){ return s + (l.duration_mins||15); }, 0);
+  var totalHrs = (totalMins / 60).toFixed(1);
+
+  var html = '<div class="course-overview">';
+
+  // Card 1: What You'll Learn
+  html += '<div class="co-card">'
+    + '<div class="co-card-header"><span class="co-icon">🎯</span> What You\'ll Learn</div>'
+    + '<div class="co-card-body"><div class="co-learn-grid">'
+    + allLearn.map(function(item){ return '<div class="co-learn-item">' + item + '</div>'; }).join('')
+    + '</div></div></div>';
+
+  // Card 2: Course Syllabus
+  html += '<div class="co-card">'
+    + '<div class="co-card-header"><span class="co-icon">📋</span> Course Syllabus <span style="font-size:.72rem;color:var(--text2);font-weight:400;margin-left:auto">' + lectures.length + ' lessons · ' + totalHrs + 'h total</span></div>'
+    + '<div class="co-card-body">'
+    + (lectures.length === 0 ? '<div style="font-size:.8rem;color:var(--text2);text-align:center;padding:1rem">No lessons added yet.</div>' :
+       lectures.map(function(l,i){
+         return '<div class="co-syllabus-item">'
+           + '<div class="co-syllabus-num">' + (i+1) + '</div>'
+           + '<div class="co-syllabus-info"><strong>' + escH(l.title) + '</strong>'
+           + '<span>' + (l.lecture_type||'text') + (l.code_example ? ' · includes code' : '') + '</span></div>'
+           + '<div class="co-syllabus-dur">' + (l.duration_mins||15) + ' min</div>'
+           + '</div>';
+       }).join(''))
+    + '</div></div>';
+
+  // Card 3: Prerequisites
+  html += '<div class="co-card">'
+    + '<div class="co-card-header"><span class="co-icon">📌</span> Prerequisites</div>'
+    + '<div class="co-card-body">'
+    + prereqs.map(function(p){ return '<div class="co-prereq-item">' + p + '</div>'; }).join('')
+    + '</div></div>';
+
+  // Card 4: Skills
+  html += '<div class="co-card">'
+    + '<div class="co-card-header"><span class="co-icon">🛠</span> Skills You\'ll Gain</div>'
+    + '<div class="co-card-body"><div class="co-skills">'
+    + skills.map(function(s){ return '<span class="co-skill-tag">' + s + '</span>'; }).join('')
+    + '</div></div></div>';
+
+  html += '</div>';
+  return html;
+}
+
+/* ── Build Sections & Chapters interface ─────────────────────────── */
+function buildSectionsView(course, lectures, done) {
+  if (!lectures.length) return '';
+
+  // Group lectures into logical sections (every 2-3 lectures)
+  var sections = [];
+  var sectionSize = Math.max(2, Math.ceil(lectures.length / Math.ceil(lectures.length / 3)));
+  for (var i = 0; i < lectures.length; i += sectionSize) {
+    var grp = lectures.slice(i, i + sectionSize);
+    var sectionTitle = '';
+    if (i === 0) sectionTitle = 'Introduction & Foundations';
+    else if (i + sectionSize >= lectures.length) sectionTitle = 'Advanced Topics & Applications';
+    else sectionTitle = 'Core Concepts (Part ' + Math.ceil((i)/sectionSize + 1) + ')';
+    sections.push({ title: sectionTitle, lectures: grp });
+  }
+
+  var totalChapters = lectures.length;
+
+  var html = '<div class="cv2-content-section">';
+  html += '<div class="cv2-content-head">';
+  html += '<h3>📄 Page Content <span class="sub">' + sections.length + ' sections · ' + totalChapters + ' chapters</span></h3>';
+  html += '<div class="cv2-add-section">+ Add section</div>';
+  html += '</div>';
+
+  sections.forEach(function(sec, si) {
+    var doneInSection = sec.lectures.filter(function(l){ return done.includes(l.id); }).length;
+    var isFirstSection = si === 0;
+    html += '<div class="cv2-section-item">';
+    html += '<div class="cv2-section-header" onclick="toggleSection(this)">';
+    html += '<span class="cv2-section-drag">⋮⋮</span>';
+    html += '<span class="cv2-section-title">' + escH(sec.title) + '</span>';
+    html += '<span class="cv2-section-count">' + sec.lectures.length + ' chapter' + (sec.lectures.length!==1?'s':'') + '</span>';
+    html += '<span class="cv2-section-toggle' + (isFirstSection?' open':'') + '">▼</span>';
+    html += '</div>';
+    html += '<div class="cv2-chapter-list' + (isFirstSection?' open':'') + '">';
+    sec.lectures.forEach(function(l) {
+      var isDone = done.includes(l.id);
+      var typeIcon = {text:'📄',video:'🎥',live:'🔴',quiz:'📝',meet:'📅'}[l.lecture_type] || '📄';
+      html += '<a href="/student/lecture/' + l.id + '" class="cv2-chapter-item' + (isDone?' done':'') + '" style="text-decoration:none;color:inherit">';
+      html += '<span class="cv2-chapter-drag">⋮⋮</span>';
+      html += '<span class="cv2-chapter-icon' + (isDone?' done':'') + '">' + (isDone?'✓':typeIcon) + '</span>';
+      html += '<span class="cv2-chapter-title">' + escH(l.title) + '</span>';
+      html += '</a>';
+    });
+    html += '<div class="cv2-add-chapter">+ Add new chapter</div>';
+    html += '</div>';
+    html += '</div>';
+  });
+
+  html += '</div>';
+  return html;
+}
+
 async function load() {
   var data = await fetch('/api/courses/' + courseId).then(function(r){return r.json();});
   var c = data.course, lecs = data.lectures, done = data.completed || [];
+  var isEnrolled = data.enrolled || false;
   var pct = lecs.length ? Math.round(done.length/lecs.length*100) : 0;
   courseColor = c.thumbnail_color || '#00D4FF';
 
@@ -144,13 +283,65 @@ async function load() {
     certHtml = '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:.85rem;font-size:.8rem;color:var(--text2);text-align:center">Complete all lessons and pass a quiz to earn your certificate.</div>';
   }
 
-  document.getElementById('courseContent').innerHTML =
-    '<div class="cv-wrap">'
-    + '<div class="cv-hero" style="background:linear-gradient(135deg,' + courseColor + '10,transparent);border-color:' + courseColor + '33">'
+  // Compute meta data
+  var totalMins = lecs.reduce(function(s,l){ return s + (l.duration_mins||15); }, 0);
+  var totalHrs = (totalMins / 60).toFixed(1);
+  var sectionCount = Math.ceil(lecs.length / Math.max(2, Math.ceil(lecs.length / Math.ceil(lecs.length / 3))));
+
+  // Build the page
+  var fullHtml = '<div class="cv-wrap">';
+
+  // ── Page header (title + edited date) ──
+  fullHtml += '<div style="margin-bottom:.5rem">'
+    + '<div class="cv-title" style="margin-bottom:.15rem">' + escH(c.title) + '</div>'
+    + '<div style="display:flex;align-items:center;gap:.6rem;font-size:.75rem;color:var(--text2)">'
+    + '<span style="color:var(--accent)">📄 Page</span>'
+    + '<span>·</span><span>🌐 English</span>'
+    + '<span>·</span><span>Edited ' + new Date().toLocaleDateString('en-US', {day:'numeric',month:'short',year:'numeric'}) + '</span>'
+    + '</div></div>';
+
+  // ── Tabs ──
+  fullHtml += '<div class="cv2-tabs">'
+    + '<button class="cv2-tab active" onclick="switchCvTab(this,\'details\')">Details Content</button>'
+    + '<button class="cv2-tab" onclick="switchCvTab(this,\'report\')">Report Issue</button>'
+    + '<button class="cv2-tab" onclick="switchCvTab(this,\'discuss\')">Discussion</button>'
+    + '</div>';
+
+  // ── Meta bar ──
+  fullHtml += '<div class="cv2-meta-bar">'
+    + '<div class="cv2-meta-item"><span class="cv2-meta-icon">📋</span> <strong>' + sectionCount + ' sections & ' + lecs.length + ' Chapters</strong></div>'
+    + '<div class="cv2-meta-divider"></div>'
+    + '<div class="cv2-meta-item"><span class="cv2-meta-icon">🏆</span> <strong>100 Points</strong></div>'
+    + '<div class="cv2-meta-divider"></div>'
+    + '<div class="cv2-meta-item"><span class="cv2-meta-icon">⏱</span> <strong>' + totalHrs + ' Hours</strong> Estimation</div>'
+    + '<div class="cv2-meta-divider"></div>'
+    + '<div class="cv2-meta-item"><span class="cv2-meta-icon">🎓</span> Certificate of Completion</div>'
+    + '</div>';
+
+  // ── Trainer section ──
+  fullHtml += '<div class="cv2-trainers">'
+    + '<div class="cv2-trainers-head">'
+    + '<h3>Trainer</h3>'
+    + '<div class="cv2-add-trainer">+ Add trainer</div>'
+    + '</div>'
+    + '<div class="cv2-trainer-grid">'
+    + '<div class="cv2-trainer-card">'
+    + '<div class="cv2-trainer-avatar">' + ((c.educator_name||'E')[0].toUpperCase()) + '</div>'
+    + '<div class="cv2-trainer-info">'
+    + '<div class="cv2-trainer-name">' + escH(c.educator_name||'Educator') + '</div>'
+    + '<div class="cv2-trainer-role">Lead Instructor at LearnSphere</div>'
+    + '<span class="cv2-trainer-badge">Author + ' + escH(c.category||'ML') + ' Dept.</span>'
+    + '</div></div>'
+    + '</div></div>';
+
+  // ── Sections & Chapters view ──
+  fullHtml += buildSectionsView(c, lecs, done);
+
+  // ── Hero (condensed) with progress ──
+  fullHtml += '<div class="cv-hero" style="background:linear-gradient(135deg,' + courseColor + '10,transparent);border-color:' + courseColor + '33">'
     + '<div class="cv-hero-grid">'
     + '<div>'
     + '<div class="cv-category">' + escH(c.category||'ML') + '<span class="cv-diff ' + (c.difficulty||'') + '">' + (c.difficulty||'') + '</span></div>'
-    + '<div class="cv-title">' + escH(c.title) + '</div>'
     + '<div class="cv-desc">' + escH(c.description||'') + '</div>'
     + '<div class="cv-meta">'
     + '<span>👩‍🏫 ' + escH(c.educator_name||'Educator') + '</span>'
@@ -175,12 +366,15 @@ async function load() {
     + '</svg>'
     + '<p style="color:var(--text2);font-size:.72rem">Progress</p>'
     + '</div>'
-    + '</div></div>'  // cv-hero-grid + cv-hero
+    + '</div></div>';
 
-    + '<div class="cv-layout">'
+  // ── Course Overview Section ──
+  fullHtml += buildCourseOverview(c, lecs);
 
-    // Left: lecture list
-    + '<div class="lec-section">'
+  fullHtml += '<div class="cv-layout">';
+
+  // Left: lecture list
+  fullHtml += '<div class="lec-section">'
     + '<h2>📚 Course Lessons <span style="font-size:.75rem;color:var(--text2);font-weight:400">' + done.length + '/' + lecs.length + ' completed</span></h2>'
     + (lecs.length === 0
       ? '<div style="padding:1.5rem;text-align:center;color:var(--text2)">No lessons yet.</div>'
@@ -198,22 +392,54 @@ async function load() {
     )
 
     + (pct < 100
-      ? '<div style="margin-top:.85rem;text-align:center"><button onclick="enrollNow()" class="btn btn-primary" id="enrollBtn">' + (done.length>0?'Continue Learning':'Enroll &amp; Start') + '</button></div>'
+      ? (isEnrolled 
+          ? '<div style="margin-top:.85rem;text-align:center"><button class="btn btn-primary" disabled style="background:transparent;color:var(--success);border:1px solid var(--success);cursor:default;">Enrolled ✓</button></div>'
+          : '<div style="margin-top:.85rem;text-align:center"><button onclick="enrollNow()" class="btn btn-primary" id="enrollBtn">Enroll &amp; Start</button></div>')
       : '')
-    + '</div>'
+    + '</div>';
 
-    // Right sidebar
-    + '<div class="cv-sidebar">'
+  // Right sidebar
+  fullHtml += '<div class="cv-sidebar">';
 
-    // Assessments
-    + '<div class="cv-side-card"><div class="cv-side-head">📝 Quizzes</div><div class="cv-side-body">' + assHtml + '</div></div>'
+  // Assessments
+  fullHtml += '<div class="cv-side-card"><div class="cv-side-head">📝 Quizzes</div><div class="cv-side-body">' + assHtml + '</div></div>';
 
-    // Certificate
-    + '<div class="cv-side-card"><div class="cv-side-head">🎓 Certificate</div><div class="cv-side-body">' + certHtml + '</div></div>'
+  // Certificate
+  fullHtml += '<div class="cv-side-card"><div class="cv-side-head">🎓 Certificate</div><div class="cv-side-body">' + certHtml + '</div></div>';
 
-    + '</div>'  // sidebar
+  fullHtml += '</div>';  // sidebar
+  fullHtml += '</div>';  // cv-layout
 
-    + '</div></div>';  // cv-layout + cv-wrap
+  // Discussion Forum
+  if (isEnrolled) {
+      fullHtml += '<div class="cv-layout" style="margin-top:2rem;display:block;">';
+      fullHtml += '<h2>💬 Discussion Forum</h2>';
+      fullHtml += '<div style="background:var(--bg2);padding:1.5rem;border-radius:12px;border:1px solid var(--border)">';
+      fullHtml += '  <div id="forumList" style="margin-bottom:1rem; max-height:400px; overflow-y:auto;">Loading discussions...</div>';
+      fullHtml += '  <div style="display:flex;gap:0.75rem;">';
+      fullHtml += '    <input type="text" id="forumInput" onkeydown="if(event.key===\'Enter\')postForum()" style="flex:1;background:var(--bg1);border:1px solid var(--border);color:var(--text1);padding:0.75rem;border-radius:8px;outline:none;" placeholder="Ask a question or start a discussion...">';
+      fullHtml += '    <button class="btn btn-primary" onclick="postForum()">Post</button>';
+      fullHtml += '  </div>';
+      fullHtml += '</div>';
+      fullHtml += '</div>';
+  }
+  
+  fullHtml += '</div>'; // cv-wrap
+  
+  document.getElementById('courseContent').innerHTML = fullHtml;
+  if(isEnrolled) { loadForums(); }
+}
+
+function switchCvTab(btn, tab) {
+  document.querySelectorAll('.cv2-tab').forEach(function(t){ t.classList.remove('active'); });
+  btn.classList.add('active');
+}
+
+function toggleSection(header) {
+  var toggle = header.querySelector('.cv2-section-toggle');
+  var list = header.nextElementSibling;
+  toggle.classList.toggle('open');
+  list.classList.toggle('open');
 }
 
 function openRateModal() { document.getElementById('rateModal').style.display = 'flex'; }
@@ -231,7 +457,7 @@ async function submitRating() {
     body: JSON.stringify({rating:selectedStar, review:document.getElementById('rateReview').value.trim()})
   });
   closeRateModal();
-  load(); // reload to show updated rating
+  load();
 }
 async function enrollNow() {
   var btn = document.getElementById('enrollBtn');
@@ -240,6 +466,35 @@ async function enrollNow() {
   window.location.reload();
 }
 function escH(s){ if(s==null)return''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+async function loadForums() {
+  const res = await fetch('/api/community/forums/' + courseId);
+  const data = await res.json();
+  let html = '';
+  data.forEach(m => {
+    html += '<div style="padding:0.75rem 0;border-bottom:1px solid rgba(255,255,255,0.05);">'
+      + '<strong style="color:var(--accent)">' + escH(m.username) + '</strong> <span style="font-size:0.75rem;color:var(--text2);margin-left:0.5rem">' + m.created_at + '</span>'
+      + '<div style="margin-top:0.35rem;color:var(--text1);line-height:1.4;">' + escH(m.content) + '</div></div>';
+  });
+  if(!html) html = '<p style="color:var(--text2);font-size:0.9rem;">No discussions yet. Be the first to ask!</p>';
+  document.getElementById('forumList').innerHTML = html;
+}
+
+async function postForum() {
+  const inp = document.getElementById('forumInput');
+  const c = inp.value.trim();
+  if(!c) return;
+  inp.disabled = true;
+  await fetch('/api/community/forums/' + courseId, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({content:c})
+  });
+  inp.value = '';
+  inp.disabled = false;
+  inp.focus();
+  loadForums();
+}
+
 load();
 </script>
 {% endblock %}

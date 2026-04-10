@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 from groq import Groq
-import json, os, sqlite3, hashlib, uuid
-from datetime import datetime
+import json, os, sqlite3, hashlib, uuid, random
+from datetime import datetime, timedelta
 from functools import wraps
 
 app = Flask(__name__)
@@ -128,6 +128,11 @@ def init_db():
         id TEXT PRIMARY KEY, student_id TEXT NOT NULL, lecture_id TEXT NOT NULL,
         content TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP)''')
 
+    c.execute('''CREATE TABLE IF NOT EXISTS otps (
+        email TEXT PRIMARY KEY,
+        otp TEXT NOT NULL,
+        expires_at TEXT NOT NULL)''')
+
     # AI Learning DNA — tracks per-concept performance
     c.execute('''CREATE TABLE IF NOT EXISTS learning_dna (
         id TEXT PRIMARY KEY,
@@ -246,11 +251,58 @@ def init_db():
         created_at TEXT DEFAULT CURRENT_TIMESTAMP,
         UNIQUE(course_id, student_id))''')
 
+    # ── Community & Social Features ──────────────────────────────────────────
+    c.execute('''CREATE TABLE IF NOT EXISTS course_forums (
+        id TEXT PRIMARY KEY,
+        course_id TEXT NOT NULL,
+        user_id TEXT NOT NULL,
+        username TEXT NOT NULL,
+        content TEXT NOT NULL,
+        parent_id TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP)''')
+
+    c.execute('''CREATE TABLE IF NOT EXISTS study_groups (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        description TEXT,
+        course_id TEXT,
+        created_by TEXT NOT NULL,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP)''')
+
+    c.execute('''CREATE TABLE IF NOT EXISTS study_group_members (
+        group_id TEXT NOT NULL,
+        user_id TEXT NOT NULL,
+        username TEXT,
+        joined_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (group_id, user_id))''')
+
+    c.execute('''CREATE TABLE IF NOT EXISTS study_group_notes (
+        id TEXT PRIMARY KEY,
+        group_id TEXT NOT NULL,
+        user_id TEXT NOT NULL,
+        username TEXT,
+        content TEXT NOT NULL,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP)''')
+
+    c.execute('''CREATE TABLE IF NOT EXISTS mock_interviews (
+        id TEXT PRIMARY KEY,
+        host_id TEXT NOT NULL,
+        host_name TEXT NOT NULL,
+        peer_id TEXT,
+        peer_name TEXT,
+        topic TEXT NOT NULL,
+        meeting_url TEXT,
+        scheduled_at TEXT NOT NULL,
+        status TEXT DEFAULT 'open',
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP)''')
+
     # Upgrade courses table if needed
     for col_sql in [
         "ALTER TABLE courses ADD COLUMN price REAL DEFAULT 0.0",
         "ALTER TABLE courses ADD COLUMN features TEXT DEFAULT '[]'",
         "ALTER TABLE courses ADD COLUMN duration_hours REAL DEFAULT 0.0",
+        "ALTER TABLE users ADD COLUMN college TEXT DEFAULT ''",
+        "ALTER TABLE users ADD COLUMN region TEXT DEFAULT ''",
     ]:
         try: c.execute(col_sql)
         except Exception: pass
@@ -647,6 +699,1436 @@ pipeline.fit(processed, labels)
 test = ["recurrent neural networks handle sequences"]
 print("Prediction:", "ML topic" if pipeline.predict([preprocess(test[0])])[0] else "Other")''',1,20))
 
+        # ── Course 4: Computer Vision with CNNs ──────────────────────────────
+        cid4 = str(uuid.uuid4())
+        c.execute("""INSERT INTO courses (id,title,description,category,difficulty,educator_id,educator_name,thumbnail_color)
+                     VALUES (?,?,?,?,?,?,?,?)""",
+                  (cid4,'Computer Vision with CNNs',
+                   'Master image classification, object detection, and segmentation using Convolutional Neural Networks. Build real-world CV applications.',
+                   'Computer Vision','intermediate',admin_id,'Prof. Educator','#EC4899'))
+        cv_lectures = [
+            (1,'Image Classification Fundamentals','text',25,
+             '''Image Classification is the task of assigning a label to an image from a predefined set of categories.
+
+## How Computers See Images
+Images are stored as 3D arrays of numbers:
+- Height × Width × Channels (RGB)
+- Each pixel: 0-255 intensity value
+- A 224×224 color image = 224 × 224 × 3 = 150,528 numbers
+
+## The CNN Architecture
+```
+Input → [Conv → ReLU → Pool] × N → Flatten → Dense → Output
+```
+
+**Convolutional Layer**: Slides small filters across the image to detect features
+- Early layers: edges, corners, textures
+- Deep layers: eyes, wheels, faces
+
+**Pooling Layer**: Reduces spatial dimensions (Max Pool most common)
+
+**Fully Connected**: Final classification layers
+
+## Key CNN Architectures
+| Model | Year | Params | Top-1 Accuracy |
+|-------|------|--------|----------------|
+| AlexNet | 2012 | 60M | 63.3% |
+| VGG-16 | 2014 | 138M | 74.4% |
+| ResNet-50 | 2015 | 25M | 76.1% |
+| EfficientNet | 2019 | 5.3M | 77.1% |
+
+## Applications
+- Medical imaging (X-ray diagnosis)
+- Self-driving cars (road recognition)
+- Face recognition systems
+- Quality control in manufacturing''',
+             '''import tensorflow as tf
+from tensorflow.keras import layers, models
+
+# Build a CNN for image classification
+model = models.Sequential([
+    layers.Conv2D(32, (3,3), activation="relu", input_shape=(32,32,3)),
+    layers.MaxPooling2D((2,2)),
+    layers.Conv2D(64, (3,3), activation="relu"),
+    layers.MaxPooling2D((2,2)),
+    layers.Conv2D(64, (3,3), activation="relu"),
+    layers.Flatten(),
+    layers.Dense(64, activation="relu"),
+    layers.Dropout(0.5),
+    layers.Dense(10, activation="softmax")
+])
+
+model.compile(optimizer="adam",
+              loss="sparse_categorical_crossentropy",
+              metrics=["accuracy"])
+model.summary()
+
+# Load CIFAR-10 dataset
+(x_train, y_train), (x_test, y_test) = tf.keras.datasets.cifar10.load_data()
+x_train, x_test = x_train / 255.0, x_test / 255.0
+
+# Train
+# model.fit(x_train, y_train, epochs=10, validation_data=(x_test, y_test))'''),
+            (2,'Object Detection with YOLO','text',35,
+             '''Object Detection localizes AND classifies multiple objects within an image simultaneously.
+
+## Detection vs Classification
+- **Classification**: "This image contains a cat"
+- **Detection**: "There is a cat at coordinates (50,30,200,180) and a dog at (300,100,450,350)"
+
+## YOLO (You Only Look Once)
+The most popular real-time detection framework.
+
+### How YOLO Works
+1. Divide image into S×S grid
+2. Each cell predicts B bounding boxes + confidence
+3. Each cell predicts C class probabilities
+4. Non-max suppression removes duplicates
+
+### Key Metrics
+- **IoU** (Intersection over Union): Measures overlap between predicted and ground truth boxes
+- **mAP** (mean Average Precision): Standard detection metric
+- **FPS**: Frames per second (real-time = 30+ FPS)
+
+## YOLO Versions
+- YOLOv3: Balanced speed/accuracy
+- YOLOv5: PyTorch native, easy to use
+- YOLOv8: Latest, state-of-the-art
+
+## Applications
+- Autonomous driving
+- Security surveillance
+- Retail analytics
+- Sports analysis''',
+             '''from ultralytics import YOLO
+
+# Load a pre-trained YOLOv8 model
+model = YOLO("yolov8n.pt")  # nano model for speed
+
+# Run inference on an image
+# results = model("path/to/image.jpg")
+
+# Train on custom dataset
+# model.train(data="custom.yaml", epochs=50, imgsz=640)
+
+# Example: Process results
+# for result in results:
+#     boxes = result.boxes
+#     for box in boxes:
+#         x1, y1, x2, y2 = box.xyxy[0]
+#         conf = box.conf[0]
+#         cls = box.cls[0]
+#         print(f"Class: {cls}, Confidence: {conf:.2f}")
+#         print(f"Bounding Box: ({x1:.0f},{y1:.0f}) to ({x2:.0f},{y2:.0f})")
+
+print("YOLOv8 loaded successfully!")
+print("Model has", sum(p.numel() for p in model.model.parameters()), "parameters")'''),
+            (3,'Transfer Learning & Fine-tuning','text',30,
+             '''Transfer Learning leverages pre-trained models to solve new tasks with minimal data and training.
+
+## Why Transfer Learning?
+- Training from scratch needs millions of images
+- Pre-trained models already know edges, textures, shapes
+- Fine-tuning only adjusts top layers for your task
+
+## The Process
+```
+Pre-trained Model (ImageNet) → Freeze base layers → Add custom head → Fine-tune
+```
+
+### Step 1: Choose a backbone
+- ResNet, EfficientNet, VGG, MobileNet
+
+### Step 2: Freeze early layers
+- Keep learned features from ImageNet
+- Only train the last few layers
+
+### Step 3: Add your classifier
+- Replace the final classification layer
+- Add Dense layers for your specific classes
+
+### Step 4: Fine-tune
+- Unfreeze some deeper layers
+- Train with very low learning rate (1e-5)
+
+## When to Use What
+| Your Data | Strategy |
+|-----------|----------|
+| Small, similar to ImageNet | Freeze all, train head only |
+| Small, different domain | Freeze early, fine-tune late |
+| Large dataset | Fine-tune entire network |
+
+## Data Augmentation
+Artificially expand your training data:
+- Random rotations, flips, crops
+- Color jittering, brightness changes
+- Mixup, CutMix, RandAugment''',
+             '''import tensorflow as tf
+from tensorflow.keras.applications import ResNet50
+from tensorflow.keras import layers, models
+
+# Load pre-trained ResNet50 (without top classification layer)
+base_model = ResNet50(weights="imagenet", include_top=False,
+                      input_shape=(224, 224, 3))
+
+# Freeze the base model
+base_model.trainable = False
+
+# Build custom classifier on top
+model = models.Sequential([
+    base_model,
+    layers.GlobalAveragePooling2D(),
+    layers.Dense(256, activation="relu"),
+    layers.Dropout(0.5),
+    layers.Dense(5, activation="softmax")  # 5 classes
+])
+
+model.compile(
+    optimizer=tf.keras.optimizers.Adam(1e-4),
+    loss="categorical_crossentropy",
+    metrics=["accuracy"]
+)
+
+print(f"Total params: {model.count_params():,}")
+print(f"Trainable params: {sum(p.numpy().size for p in model.trainable_weights):,}")
+
+# Fine-tuning: unfreeze last 20 layers
+base_model.trainable = True
+for layer in base_model.layers[:-20]:
+    layer.trainable = False
+
+model.compile(optimizer=tf.keras.optimizers.Adam(1e-5),
+              loss="categorical_crossentropy", metrics=["accuracy"])
+print("\\nAfter fine-tuning setup:")
+print(f"Trainable params: {sum(p.numpy().size for p in model.trainable_weights):,}")'''),
+            (4,'Image Segmentation','text',30,
+             '''Image Segmentation assigns a class label to every single pixel in an image.
+
+## Types of Segmentation
+1. **Semantic Segmentation**: Label every pixel with a class (all cars = same label)
+2. **Instance Segmentation**: Distinguish between individual objects (car1, car2)
+3. **Panoptic Segmentation**: Combines both semantic + instance
+
+## U-Net Architecture
+The most popular segmentation architecture:
+```
+Encoder (Downsampling) → Bottleneck → Decoder (Upsampling)
+        ↓ Skip connections ↑
+```
+
+### Encoder Path
+- Convolutional blocks + max pooling
+- Captures WHAT is in the image
+
+### Decoder Path
+- Transposed convolutions (upsampling)
+- Skip connections from encoder
+- Recovers WHERE objects are
+
+### Skip Connections
+- Connect encoder layers to decoder layers
+- Preserve fine spatial details
+- Critical for precise boundaries
+
+## Loss Functions
+- **Cross-Entropy**: Standard pixel-wise loss
+- **Dice Loss**: Measures overlap between prediction and ground truth
+- **Focal Loss**: Handles class imbalance
+
+## Applications
+- Medical image analysis (tumor segmentation)
+- Autonomous driving (road, pedestrian, vehicle)
+- Satellite imagery (land use mapping)
+- Video editing (background removal)''',
+             '''import tensorflow as tf
+from tensorflow.keras import layers, models
+
+def build_unet(input_shape=(256, 256, 3), num_classes=2):
+    inputs = layers.Input(shape=input_shape)
+
+    # Encoder
+    c1 = layers.Conv2D(64, 3, activation="relu", padding="same")(inputs)
+    c1 = layers.Conv2D(64, 3, activation="relu", padding="same")(c1)
+    p1 = layers.MaxPooling2D()(c1)
+
+    c2 = layers.Conv2D(128, 3, activation="relu", padding="same")(p1)
+    c2 = layers.Conv2D(128, 3, activation="relu", padding="same")(c2)
+    p2 = layers.MaxPooling2D()(c2)
+
+    # Bottleneck
+    c3 = layers.Conv2D(256, 3, activation="relu", padding="same")(p2)
+    c3 = layers.Conv2D(256, 3, activation="relu", padding="same")(c3)
+
+    # Decoder
+    u1 = layers.UpSampling2D()(c3)
+    u1 = layers.Concatenate()([u1, c2])  # Skip connection
+    c4 = layers.Conv2D(128, 3, activation="relu", padding="same")(u1)
+    c4 = layers.Conv2D(128, 3, activation="relu", padding="same")(c4)
+
+    u2 = layers.UpSampling2D()(c4)
+    u2 = layers.Concatenate()([u2, c1])  # Skip connection
+    c5 = layers.Conv2D(64, 3, activation="relu", padding="same")(u2)
+    c5 = layers.Conv2D(64, 3, activation="relu", padding="same")(c5)
+
+    outputs = layers.Conv2D(num_classes, 1, activation="softmax")(c5)
+
+    return models.Model(inputs, outputs)
+
+model = build_unet()
+model.compile(optimizer="adam", loss="sparse_categorical_crossentropy", metrics=["accuracy"])
+print("U-Net built successfully!")
+model.summary()'''),
+        ]
+        for order, title, ltype, dur, content, code in cv_lectures:
+            lid = str(uuid.uuid4())
+            c.execute("""INSERT INTO lectures (id,course_id,title,content,lecture_type,code_example,order_num,duration_mins)
+                         VALUES (?,?,?,?,?,?,?,?)""",
+                      (lid, cid4, title, content, ltype, code, order, dur))
+
+        # ── Course 5: Reinforcement Learning ─────────────────────────────────
+        cid5 = str(uuid.uuid4())
+        c.execute("""INSERT INTO courses (id,title,description,category,difficulty,educator_id,educator_name,thumbnail_color)
+                     VALUES (?,?,?,?,?,?,?,?)""",
+                  (cid5,'Reinforcement Learning Mastery',
+                   'From MDPs to Deep RL — learn how agents learn optimal decisions through trial and error. Build game-playing AI.',
+                   'Reinforcement Learning','advanced',admin_id,'Prof. Educator','#EF4444'))
+        rl_lectures = [
+            (1,'MDPs & Foundations of RL','text',30,
+             '''Reinforcement Learning is about agents learning optimal behavior through interaction with an environment.
+
+## The RL Framework
+```
+Agent → Action → Environment → Reward + New State → Agent
+```
+
+## Markov Decision Process (MDP)
+The mathematical foundation of RL:
+- **S**: Set of states
+- **A**: Set of actions
+- **P(s'|s,a)**: Transition probability
+- **R(s,a)**: Reward function
+- **γ**: Discount factor (0-1)
+
+## Key Concepts
+**Policy (π)**: Strategy mapping states to actions
+- π(a|s) = probability of taking action a in state s
+
+**Value Function V(s)**: Expected cumulative reward from state s
+- V(s) = E[R₁ + γR₂ + γ²R₃ + ...]
+
+**Q Function Q(s,a)**: Expected reward for taking action a in state s
+
+## Exploration vs Exploitation
+The fundamental dilemma:
+- **Exploit**: Use current best strategy
+- **Explore**: Try new actions to find better strategies
+- **ε-greedy**: Exploit (1-ε)%, Explore ε% of the time
+
+## Types of RL
+1. **Model-Based**: Learn the environment model, then plan
+2. **Model-Free**: Learn directly from experience
+   - Value-based (Q-Learning, DQN)
+   - Policy-based (REINFORCE, PPO)
+   - Actor-Critic (A2C, SAC)''',
+             '''import numpy as np
+
+class GridWorld:
+    """Simple 4x4 grid environment"""
+    def __init__(self):
+        self.size = 4
+        self.state = (0, 0)
+        self.goal = (3, 3)
+        self.actions = [(0,1),(0,-1),(1,0),(-1,0)]  # right,left,down,up
+
+    def step(self, action):
+        dx, dy = self.actions[action]
+        nx = max(0, min(self.size-1, self.state[0]+dx))
+        ny = max(0, min(self.size-1, self.state[1]+dy))
+        self.state = (nx, ny)
+        if self.state == self.goal:
+            return self.state, 10.0, True
+        return self.state, -0.1, False
+
+    def reset(self):
+        self.state = (0, 0)
+        return self.state
+
+# Value Iteration
+V = np.zeros((4,4))
+gamma = 0.9
+for _ in range(100):
+    for i in range(4):
+        for j in range(4):
+            if (i,j) == (3,3): continue
+            values = []
+            for a in range(4):
+                ni = max(0,min(3,i+[0,0,1,-1][a]))
+                nj = max(0,min(3,j+[1,-1,0,0][a]))
+                r = 10.0 if (ni,nj)==(3,3) else -0.1
+                values.append(r + gamma * V[ni,nj])
+            V[i,j] = max(values)
+
+print("Optimal Value Function:")
+print(np.round(V, 2))'''),
+            (2,'Q-Learning Algorithm','text',35,
+             '''Q-Learning is a model-free, off-policy RL algorithm that learns the optimal Q-function directly.
+
+## The Q-Learning Update Rule
+```
+Q(s,a) ← Q(s,a) + α[r + γ·max_a' Q(s',a') - Q(s,a)]
+```
+
+Where:
+- α: Learning rate (how fast to update)
+- γ: Discount factor (how much to value future rewards)
+- r: Immediate reward
+- max_a' Q(s',a'): Best possible future value
+
+## Algorithm Steps
+1. Initialize Q-table with zeros
+2. For each episode:
+   a. Start in initial state
+   b. Choose action (ε-greedy)
+   c. Take action, observe reward and new state
+   d. Update Q-value using the formula
+   e. Move to new state
+   f. Repeat until terminal state
+
+## Key Properties
+- **Off-policy**: Learns optimal Q regardless of current policy
+- **Tabular**: Works with discrete state/action spaces
+- **Convergence**: Guaranteed with sufficient exploration
+- **Model-free**: No need to know environment dynamics
+
+## Hyperparameters
+| Parameter | Typical Range | Effect |
+|-----------|--------------|--------|
+| α (learning rate) | 0.01-0.5 | Speed vs stability |
+| γ (discount) | 0.9-0.99 | Short vs long-term focus |
+| ε (exploration) | 0.1-1.0 (decaying) | Explore vs exploit |''',
+             '''import numpy as np
+
+class QLearningAgent:
+    def __init__(self, n_states, n_actions, lr=0.1, gamma=0.99, epsilon=1.0):
+        self.Q = np.zeros((n_states, n_actions))
+        self.lr = lr
+        self.gamma = gamma
+        self.epsilon = epsilon
+        self.epsilon_decay = 0.995
+        self.epsilon_min = 0.01
+
+    def choose_action(self, state):
+        if np.random.random() < self.epsilon:
+            return np.random.randint(self.Q.shape[1])
+        return np.argmax(self.Q[state])
+
+    def update(self, state, action, reward, next_state, done):
+        target = reward
+        if not done:
+            target += self.gamma * np.max(self.Q[next_state])
+        self.Q[state, action] += self.lr * (target - self.Q[state, action])
+
+    def decay_epsilon(self):
+        self.epsilon = max(self.epsilon_min, self.epsilon * self.epsilon_decay)
+
+# Training loop
+agent = QLearningAgent(n_states=16, n_actions=4)
+
+for episode in range(500):
+    state = 0  # start state
+    total_reward = 0
+    for step in range(50):
+        action = agent.choose_action(state)
+        # Simulate environment step
+        next_state = min(15, max(0, state + [-4,-1,1,4][action]))
+        reward = 10.0 if next_state == 15 else -0.1
+        done = next_state == 15
+        agent.update(state, action, reward, next_state, done)
+        state = next_state
+        total_reward += reward
+        if done: break
+    agent.decay_epsilon()
+
+print("Training complete!")
+print("Q-table sample (states 0-3):")
+print(np.round(agent.Q[:4], 2))'''),
+            (3,'Deep Q-Networks (DQN)','text',40,
+             '''DQN combines Q-Learning with deep neural networks to handle large/continuous state spaces.
+
+## Why DQN?
+- Q-tables can not handle large state spaces
+- 1 Atari frame = 210×160×3 pixels = billions of possible states
+- Use a neural network to approximate Q(s,a)
+
+## Key Innovations
+
+### 1. Experience Replay
+- Store transitions (s, a, r, s') in a replay buffer
+- Sample random mini-batches for training
+- Breaks correlation between consecutive samples
+- More data-efficient learning
+
+### 2. Target Network
+- Separate network for computing targets
+- Updated periodically (every N steps)
+- Stabilizes training significantly
+
+### 3. Architecture
+```
+State (pixels/features) → CNN/MLP → Q-values for each action
+```
+
+## DQN Algorithm
+```
+1. Initialize replay buffer D, Q-network, target network Q'
+2. For each episode:
+   a. Get state s
+   b. Choose action a (ε-greedy from Q)
+   c. Execute a, observe r, s'
+   d. Store (s,a,r,s') in D
+   e. Sample mini-batch from D
+   f. Compute target: y = r + γ·max Q'(s',a')
+   g. Update Q by minimizing (Q(s,a) - y)²
+   h. Periodically update Q' ← Q
+```
+
+## Advanced Variants
+- **Double DQN**: Use Q to select action, Q' to evaluate → reduces overestimation
+- **Dueling DQN**: Separate value and advantage streams
+- **Rainbow**: Combines 6 improvements into one agent''',
+             '''import numpy as np
+from collections import deque
+import random
+
+class DQNAgent:
+    """Simplified DQN Agent (without neural network for demo)"""
+    def __init__(self, state_size, action_size):
+        self.state_size = state_size
+        self.action_size = action_size
+        self.memory = deque(maxlen=2000)
+        self.gamma = 0.95
+        self.epsilon = 1.0
+        self.epsilon_min = 0.01
+        self.epsilon_decay = 0.995
+        self.learning_rate = 0.001
+        # In real DQN: self.model = build_neural_network()
+
+    def remember(self, state, action, reward, next_state, done):
+        self.memory.append((state, action, reward, next_state, done))
+
+    def act(self, state):
+        if np.random.rand() <= self.epsilon:
+            return random.randrange(self.action_size)
+        # In real DQN: return np.argmax(self.model.predict(state))
+        return 0
+
+    def replay(self, batch_size=32):
+        if len(self.memory) < batch_size:
+            return
+        minibatch = random.sample(self.memory, batch_size)
+        for state, action, reward, next_state, done in minibatch:
+            target = reward
+            if not done:
+                target = reward + self.gamma * 1.0  # simplified
+            # In real DQN: self.model.fit(state, target)
+
+        if self.epsilon > self.epsilon_min:
+            self.epsilon *= self.epsilon_decay
+
+# Demo
+agent = DQNAgent(state_size=4, action_size=2)
+
+# Simulate training
+for episode in range(100):
+    state = np.random.randn(4)
+    for t in range(50):
+        action = agent.act(state)
+        next_state = np.random.randn(4)
+        reward = float(np.random.rand() > 0.5)
+        done = t == 49
+        agent.remember(state, action, reward, next_state, done)
+        state = next_state
+        if done: break
+    agent.replay()
+
+print(f"DQN Agent trained for 100 episodes")
+print(f"Final epsilon: {agent.epsilon:.4f}")
+print(f"Memory size: {len(agent.memory)}")'''),
+        ]
+        for order, title, ltype, dur, content, code in rl_lectures:
+            lid = str(uuid.uuid4())
+            c.execute("""INSERT INTO lectures (id,course_id,title,content,lecture_type,code_example,order_num,duration_mins)
+                         VALUES (?,?,?,?,?,?,?,?)""",
+                      (lid, cid5, title, content, ltype, code, order, dur))
+
+        # ── Course 6: Data Science with Python ───────────────────────────────
+        cid6 = str(uuid.uuid4())
+        c.execute("""INSERT INTO courses (id,title,description,category,difficulty,educator_id,educator_name,thumbnail_color)
+                     VALUES (?,?,?,?,?,?,?,?)""",
+                  (cid6,'Data Science with Python',
+                   'Learn data analysis from scratch with Pandas, visualization with Matplotlib & Seaborn, and statistical analysis for real-world datasets.',
+                   'Data Science','beginner',admin_id,'Prof. Educator','#8B5CF6'))
+        ds_lectures = [
+            (1,'Pandas & Data Wrangling','text',25,
+             '''Pandas is the backbone of data science in Python — a powerful library for data manipulation and analysis.
+
+## Core Data Structures
+- **Series**: 1D labeled array (like a column)
+- **DataFrame**: 2D table (rows + columns)
+
+## Essential Operations
+
+### Reading Data
+```python
+df = pd.read_csv("data.csv")
+df = pd.read_excel("data.xlsx")
+df = pd.read_json("data.json")
+```
+
+### Exploring Data
+- `df.head()` — first 5 rows
+- `df.info()` — column types + null counts
+- `df.describe()` — summary statistics
+- `df.shape` — (rows, columns)
+
+### Selection
+- `df["column"]` — single column
+- `df[["col1","col2"]]` — multiple columns
+- `df.loc[row, col]` — by label
+- `df.iloc[row, col]` — by position
+
+### Filtering
+```python
+df[df["age"] > 25]
+df[(df["age"] > 25) & (df["city"] == "NYC")]
+```
+
+### Data Cleaning
+- `df.dropna()` — remove rows with nulls
+- `df.fillna(0)` — fill nulls with value
+- `df.duplicated()` — find duplicates
+- `df.drop_duplicates()` — remove duplicates
+
+### Grouping & Aggregation
+```python
+df.groupby("category").mean()
+df.groupby("region")["sales"].agg(["sum","mean","count"])
+```''',
+             '''import pandas as pd
+import numpy as np
+
+# Create sample sales dataset
+np.random.seed(42)
+n = 100
+data = {
+    "product": np.random.choice(["Laptop","Phone","Tablet","Watch"], n),
+    "region": np.random.choice(["North","South","East","West"], n),
+    "sales": np.random.randint(100, 5000, n),
+    "quantity": np.random.randint(1, 20, n),
+    "date": pd.date_range("2024-01-01", periods=n, freq="D")
+}
+df = pd.DataFrame(data)
+
+# Data exploration
+print("Shape:", df.shape)
+print("\\nColumn types:\\n", df.dtypes)
+print("\\nSummary Statistics:\\n", df.describe())
+
+# Grouping
+print("\\nSales by Product:")
+print(df.groupby("product")["sales"].agg(["mean","sum","count"]).round(0))
+
+# Filtering
+high_sales = df[df["sales"] > 3000]
+print(f"\\nHigh-value sales (>3000): {len(high_sales)} records")
+
+# Time-based analysis
+df["month"] = df["date"].dt.month_name()
+monthly = df.groupby("month")["sales"].sum().sort_values(ascending=False)
+print("\\nTop 3 months by sales:")
+print(monthly.head(3))'''),
+            (2,'Data Visualization with Matplotlib & Seaborn','text',30,
+             '''Data Visualization transforms raw numbers into visual insights — critical for both exploration and communication.
+
+## Matplotlib Basics
+The foundational plotting library in Python.
+
+### Common Plot Types
+- **Line plot**: Trends over time
+- **Bar chart**: Comparing categories
+- **Scatter plot**: Relationships between variables
+- **Histogram**: Distribution of values
+- **Pie chart**: Proportions of a whole
+
+### Anatomy of a Plot
+```
+Figure → Axes → Plot Elements (lines, bars, labels)
+```
+
+## Seaborn: Statistical Visualization
+Built on top of Matplotlib with beautiful default styles.
+
+### Key Seaborn Plots
+- `sns.histplot()` — Distribution with KDE
+- `sns.boxplot()` — Box-and-whisker
+- `sns.heatmap()` — Correlation matrices
+- `sns.pairplot()` — All variable pairs
+- `sns.countplot()` — Category counts
+
+## Visualization Best Practices
+1. Choose the right chart type for your data
+2. Label axes clearly with units
+3. Use color purposefully (not decoratively)
+4. Remove chart junk (unnecessary gridlines, borders)
+5. Tell a story with your visualization
+6. Use consistent color palettes
+7. Consider your audience''',
+             '''import matplotlib.pyplot as plt
+import numpy as np
+
+# Create sample data
+categories = ["ML", "Deep Learning", "NLP", "Data Science", "Computer Vision"]
+scores = [85, 72, 90, 78, 65]
+colors = ["#00D4FF", "#7C3AED", "#10B981", "#F59E0B", "#EC4899"]
+
+# Bar chart
+fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+
+axes[0].barh(categories, scores, color=colors)
+axes[0].set_xlabel("Progress (%)")
+axes[0].set_title("Course Progress Overview")
+axes[0].set_xlim(0, 100)
+
+# Scatter plot
+np.random.seed(42)
+study_hours = np.random.uniform(1, 10, 30)
+exam_scores = 30 + 6 * study_hours + np.random.normal(0, 5, 30)
+axes[1].scatter(study_hours, exam_scores, c="#00D4FF", alpha=0.7, s=60)
+axes[1].set_xlabel("Study Hours")
+axes[1].set_ylabel("Exam Score")
+axes[1].set_title("Study Hours vs Exam Score")
+
+# Add trend line
+z = np.polyfit(study_hours, exam_scores, 1)
+p = np.poly1d(z)
+axes[1].plot(sorted(study_hours), p(sorted(study_hours)), "r--", alpha=0.8)
+
+plt.tight_layout()
+plt.savefig("visualization_demo.png", dpi=150)
+print("Chart saved as visualization_demo.png")
+print(f"Correlation: {np.corrcoef(study_hours, exam_scores)[0,1]:.3f}")'''),
+            (3,'Exploratory Data Analysis (EDA)','text',35,
+             '''EDA is the detective work of data science — understanding your data before building models.
+
+## The EDA Process
+1. **Load & Inspect**: Shape, types, head/tail
+2. **Summary Statistics**: Mean, median, std, quartiles
+3. **Missing Values**: Identify patterns of missingness
+4. **Distributions**: Histograms, KDE plots for each feature
+5. **Correlations**: Heatmaps, pairplots
+6. **Outliers**: Box plots, IQR method
+7. **Feature Relationships**: Scatter plots, grouped analyses
+
+## Key Questions to Ask
+- What does each column represent?
+- Are there missing values? How many? Pattern?
+- What is the distribution of the target variable?
+- Which features are correlated?
+- Are there outliers? Are they real or errors?
+- Do I need to transform any features?
+
+## Common Patterns to Look For
+- **Skewed distributions** → Consider log transform
+- **High correlation** between features → Multicollinearity risk
+- **Class imbalance** → May need SMOTE or weighted loss
+- **Temporal patterns** → Time-series features needed
+
+## Tools for EDA
+- `pandas-profiling` — Automated EDA reports
+- `sweetviz` — Beautiful comparison reports
+- `dtale` — Interactive data exploration
+- `missingno` — Missing data visualization''',
+             '''import pandas as pd
+import numpy as np
+
+# Create a realistic dataset
+np.random.seed(42)
+n = 200
+df = pd.DataFrame({
+    "age": np.random.randint(18, 65, n),
+    "income": np.random.lognormal(10.5, 0.8, n).astype(int),
+    "education_years": np.random.randint(8, 22, n),
+    "experience": np.random.randint(0, 40, n),
+    "department": np.random.choice(["Engineering","Marketing","Sales","HR","Finance"], n),
+    "satisfaction": np.random.randint(1, 11, n),
+})
+# Add some missing values
+df.loc[np.random.choice(n, 15, replace=False), "income"] = np.nan
+df.loc[np.random.choice(n, 10, replace=False), "satisfaction"] = np.nan
+
+print("=== EXPLORATORY DATA ANALYSIS ===\\n")
+print(f"Shape: {df.shape}")
+print(f"\\nColumn Types:\\n{df.dtypes}\\n")
+
+# Missing values
+print("Missing Values:")
+print(df.isnull().sum()[df.isnull().sum() > 0])
+
+# Summary statistics
+print(f"\\nSummary Statistics:\\n{df.describe().round(1)}\\n")
+
+# Correlation matrix
+numeric_cols = df.select_dtypes(include=[np.number]).columns
+corr = df[numeric_cols].corr()
+print("Correlation Matrix:")
+print(corr.round(3))
+
+# Outlier detection (IQR method)
+for col in ["income", "age", "experience"]:
+    Q1, Q3 = df[col].quantile([0.25, 0.75])
+    IQR = Q3 - Q1
+    outliers = df[(df[col] < Q1 - 1.5*IQR) | (df[col] > Q3 + 1.5*IQR)]
+    print(f"\\n{col}: {len(outliers)} outliers detected")
+
+# Group analysis
+print("\\nAverage salary by department:")
+print(df.groupby("department")["income"].mean().sort_values(ascending=False).round(0))'''),
+        ]
+        for order, title, ltype, dur, content, code in ds_lectures:
+            lid = str(uuid.uuid4())
+            c.execute("""INSERT INTO lectures (id,course_id,title,content,lecture_type,code_example,order_num,duration_mins)
+                         VALUES (?,?,?,?,?,?,?,?)""",
+                      (lid, cid6, title, content, ltype, code, order, dur))
+
+        # ── Course 7: Generative AI & LLMs ──────────────────────────────────
+        cid7 = str(uuid.uuid4())
+        c.execute("""INSERT INTO courses (id,title,description,category,difficulty,educator_id,educator_name,thumbnail_color)
+                     VALUES (?,?,?,?,?,?,?,?)""",
+                  (cid7,'Generative AI & Large Language Models',
+                   'Deep dive into transformer architecture, LLMs, prompt engineering, RAG, and fine-tuning. Build AI-powered applications.',
+                   'Generative AI','advanced',admin_id,'Prof. Educator','#F59E0B'))
+        gen_lectures = [
+            (1,'Transformer Architecture','text',40,
+             '''The Transformer is the architecture behind GPT, BERT, and all modern LLMs.
+
+## The Attention Mechanism
+"Attention Is All You Need" (Vaswani et al., 2017)
+
+### Self-Attention
+Each token looks at ALL other tokens to understand context:
+```
+"The cat sat on the mat"
+For "sat": attends most to "cat" (who sat) and "mat" (where)
+```
+
+### Multi-Head Attention
+Multiple attention heads capture different relationships:
+- Head 1: Syntactic relationships
+- Head 2: Semantic similarities
+- Head 3: Positional relationships
+
+## Transformer Architecture
+```
+Input → Embedding + Positional Encoding → N × [Multi-Head Attention → Feed-Forward] → Output
+```
+
+### Key Components
+1. **Token Embedding**: Words → vectors (768 or 1024 dims)
+2. **Positional Encoding**: Inject position information
+3. **Layer Normalization**: Stabilize training
+4. **Residual Connections**: Enable deep networks
+
+## Encoder vs Decoder
+- **Encoder-only**: BERT — bidirectional understanding
+- **Decoder-only**: GPT — autoregressive generation
+- **Encoder-Decoder**: T5 — sequence-to-sequence tasks
+
+## Scaling Laws
+```
+Performance ∝ log(Parameters) × log(Data) × log(Compute)
+```
+- GPT-3: 175B params → emergent abilities
+- GPT-4: ~1.7T params (estimated)
+- Llama 3: 70B params, open-source''',
+             '''import numpy as np
+
+def softmax(x):
+    e = np.exp(x - np.max(x, axis=-1, keepdims=True))
+    return e / e.sum(axis=-1, keepdims=True)
+
+def scaled_dot_product_attention(Q, K, V):
+    """Core attention mechanism"""
+    d_k = Q.shape[-1]
+    scores = Q @ K.transpose(-1, -2) / np.sqrt(d_k)
+    weights = softmax(scores)
+    return weights @ V, weights
+
+# Demo: Simple self-attention
+np.random.seed(42)
+seq_len, d_model = 4, 8
+
+# Simulate token embeddings for "The cat sat"
+tokens = np.random.randn(seq_len, d_model)
+
+# Query, Key, Value projections
+W_q = np.random.randn(d_model, d_model) * 0.1
+W_k = np.random.randn(d_model, d_model) * 0.1
+W_v = np.random.randn(d_model, d_model) * 0.1
+
+Q = tokens @ W_q
+K = tokens @ W_k
+V = tokens @ W_v
+
+output, attention_weights = scaled_dot_product_attention(Q, K, V)
+
+print("Input shape:", tokens.shape)
+print("Output shape:", output.shape)
+print("\\nAttention weights (who attends to whom):")
+print(np.round(attention_weights, 3))
+print("\\nToken 3 attends most to token:", np.argmax(attention_weights[2]))'''),
+            (2,'Prompt Engineering Mastery','text',30,
+             '''Prompt Engineering is the art and science of designing effective instructions for LLMs.
+
+## Prompt Anatomy
+```
+[System Message] + [Context/Examples] + [User Query] + [Output Format]
+```
+
+## Core Techniques
+
+### 1. Zero-Shot Prompting
+Direct instruction without examples:
+"Classify the following review as positive or negative: ..."
+
+### 2. Few-Shot Prompting
+Provide examples before the task:
+```
+Review: "Great product!" → Positive
+Review: "Terrible quality" → Negative
+Review: "It works okay" → ???
+```
+
+### 3. Chain-of-Thought (CoT)
+Ask the model to reason step by step:
+"Let's think step by step..."
+- Dramatically improves math & logic tasks
+- 20-40% accuracy improvement on complex questions
+
+### 4. Role Prompting
+"You are an expert data scientist. Explain..."
+
+### 5. Output Formatting
+"Respond in JSON format with keys: answer, confidence, reasoning"
+
+## Advanced Techniques
+- **Self-Consistency**: Generate multiple CoT paths, take majority vote
+- **Tree of Thoughts**: Explore multiple reasoning branches
+- **Retrieval-Augmented Generation (RAG)**: Inject external knowledge
+- **Constitutional AI**: Self-critique and revision
+
+## Common Pitfalls
+❌ Vague instructions
+❌ Missing context
+❌ No output format specification
+❌ Asking too many things at once''',
+             '''# Prompt Engineering Examples
+
+# 1. Zero-Shot Classification
+zero_shot = """Classify the following text into one of these categories: 
+[Technology, Sports, Politics, Entertainment]
+
+Text: "The new GPU architecture delivers 3x faster training for neural networks."
+Category:"""
+
+# 2. Few-Shot with Chain of Thought
+few_shot_cot = """Solve the math problem step by step.
+
+Question: If a train travels 120 km in 2 hours, what is its speed?
+Reasoning: Speed = Distance / Time = 120 / 2 = 60 km/h
+Answer: 60 km/h
+
+Question: A store has a 25% discount on a $80 item. What is the final price?
+Reasoning: Discount = 80 * 0.25 = $20. Final = 80 - 20 = $60
+Answer: $60
+
+Question: If 3 workers can build a wall in 12 hours, how long for 6 workers?
+Reasoning:"""
+
+# 3. Structured Output
+structured = """Extract entities from the following text and return as JSON.
+
+Text: "OpenAI released GPT-4 in March 2023, which can process both text and images."
+
+Return format:
+{
+    "organizations": [],
+    "products": [],
+    "dates": [],
+    "capabilities": []
+}"""
+
+# 4. RAG-style prompt
+rag_prompt = """Use the following context to answer the question.
+If the answer is not in the context, say "I don't have enough information."
+
+Context: {retrieved_documents}
+
+Question: {user_question}
+
+Answer:"""
+
+print("=== Prompt Engineering Templates ===")
+print("\\n1. Zero-Shot:", len(zero_shot), "chars")
+print("2. Few-Shot CoT:", len(few_shot_cot), "chars")
+print("3. Structured Output:", len(structured), "chars")
+print("4. RAG Template:", len(rag_prompt), "chars")
+print("\\nPrompt engineering is about clarity, context, and constraints.")'''),
+            (3,'RAG: Retrieval-Augmented Generation','text',35,
+             '''RAG combines the power of LLMs with external knowledge retrieval for accurate, up-to-date responses.
+
+## Why RAG?
+LLMs have knowledge cutoffs and can hallucinate. RAG solves this by:
+1. Retrieving relevant documents from a knowledge base
+2. Injecting them as context into the prompt
+3. LLM generates answer grounded in real data
+
+## RAG Architecture
+```
+User Query → Embedding → Vector Search → Top-K Documents → LLM Prompt → Answer
+```
+
+### Step 1: Indexing (Offline)
+- Split documents into chunks (500-1000 tokens)
+- Generate embeddings for each chunk
+- Store in vector database (Pinecone, Weaviate, ChromaDB)
+
+### Step 2: Retrieval (Online)
+- Convert user query to embedding
+- Find most similar chunks via cosine similarity
+- Return top-K relevant chunks
+
+### Step 3: Generation
+- Insert retrieved chunks into prompt context
+- LLM generates answer referencing the context
+
+## Vector Databases
+| Database | Type | Best For |
+|----------|------|----------|
+| ChromaDB | Open-source | Prototyping |
+| Pinecone | Managed | Production |
+| Weaviate | Open-source | Hybrid search |
+| FAISS | Library | Speed |
+
+## Chunking Strategies
+- Fixed-size chunks (simple but may break context)
+- Sentence-based (preserves meaning)
+- Recursive splitting (respects document structure)
+- Semantic chunking (AI-based boundaries)
+
+## Evaluation Metrics
+- **Faithfulness**: Is the answer grounded in retrieved docs?
+- **Relevance**: Are retrieved docs relevant to the query?
+- **Answer correctness**: Is the final answer correct?''',
+             '''import numpy as np
+
+class SimpleRAG:
+    """Simplified RAG system for demonstration"""
+
+    def __init__(self):
+        self.documents = []
+        self.embeddings = []
+
+    def add_document(self, text, metadata=None):
+        # In production: use OpenAI/Sentence-Transformers embeddings
+        embedding = self._simple_embed(text)
+        self.documents.append({"text": text, "metadata": metadata or {}})
+        self.embeddings.append(embedding)
+
+    def _simple_embed(self, text):
+        """Simple TF-based embedding (demo only)"""
+        words = text.lower().split()
+        vocab = list(set(words))
+        vec = np.zeros(100)
+        for i, w in enumerate(words[:100]):
+            vec[hash(w) % 100] += 1
+        return vec / (np.linalg.norm(vec) + 1e-8)
+
+    def retrieve(self, query, top_k=3):
+        query_emb = self._simple_embed(query)
+        scores = []
+        for emb in self.embeddings:
+            score = np.dot(query_emb, emb)
+            scores.append(score)
+        top_indices = np.argsort(scores)[-top_k:][::-1]
+        return [(self.documents[i]["text"], scores[i]) for i in top_indices]
+
+    def generate(self, query):
+        retrieved = self.retrieve(query)
+        context = "\\n".join([f"[Doc {i+1}]: {doc}" for i, (doc, _) in enumerate(retrieved)])
+        prompt = f"Context:\\n{context}\\n\\nQuestion: {query}\\nAnswer:"
+        return prompt, retrieved
+
+# Demo
+rag = SimpleRAG()
+rag.add_document("Machine learning uses algorithms to learn patterns from data.")
+rag.add_document("Deep learning is a subset of ML using neural networks with many layers.")
+rag.add_document("Natural language processing enables computers to understand human language.")
+rag.add_document("Reinforcement learning trains agents through reward signals.")
+rag.add_document("Computer vision allows machines to interpret visual information.")
+
+prompt, docs = rag.generate("What is deep learning?")
+print("Retrieved Documents:")
+for doc, score in docs:
+    print(f"  Score: {score:.3f} | {doc[:60]}...")
+print(f"\\nGenerated Prompt:\\n{prompt}")'''),
+        ]
+        for order, title, ltype, dur, content, code in gen_lectures:
+            lid = str(uuid.uuid4())
+            c.execute("""INSERT INTO lectures (id,course_id,title,content,lecture_type,code_example,order_num,duration_mins)
+                         VALUES (?,?,?,?,?,?,?,?)""",
+                      (lid, cid7, title, content, ltype, code, order, dur))
+
+        # ── Course 8: MLOps & Model Deployment ──────────────────────────────
+        cid8 = str(uuid.uuid4())
+        c.execute("""INSERT INTO courses (id,title,description,category,difficulty,educator_id,educator_name,thumbnail_color)
+                     VALUES (?,?,?,?,?,?,?,?)""",
+                  (cid8,'MLOps & Model Deployment',
+                   'Learn to deploy, monitor, and maintain ML models in production. Docker, CI/CD, model serving, and A/B testing.',
+                   'MLOps','intermediate',admin_id,'Prof. Educator','#06B6D4'))
+        mlops_lectures = [
+            (1,'Model Serving with Flask & FastAPI','text',30,
+             '''Deploying an ML model means making it accessible via an API so applications can get predictions.
+
+## Serving Options
+1. **REST API** (Flask/FastAPI) — Most common, simple
+2. **gRPC** — High performance, binary protocol
+3. **Batch Inference** — Process large datasets offline
+4. **Edge Deployment** — Run on devices (TFLite, ONNX)
+
+## Flask vs FastAPI
+| Feature | Flask | FastAPI |
+|---------|-------|---------|
+| Speed | Standard | 3x faster |
+| Async | Manual | Built-in |
+| Docs | Manual | Auto-generated |
+| Validation | Manual | Pydantic |
+
+## API Design Best Practices
+- Use POST for prediction endpoints
+- Accept JSON input, return JSON output
+- Include model version in response
+- Add health check endpoint
+- Handle errors gracefully
+- Use input validation
+
+## Model Loading Strategies
+- **On startup**: Load once, reuse → most common
+- **Lazy loading**: Load on first request
+- **Model registry**: Pull latest version from registry
+
+## Production Considerations
+- Logging & monitoring
+- Rate limiting
+- Authentication
+- Input validation
+- Batch prediction support
+- A/B testing support''',
+             '''from flask import Flask, request, jsonify
+import numpy as np
+import pickle
+import os
+
+app = Flask(__name__)
+
+# Simulated model (in production: load from pickle/joblib/ONNX)
+class SimpleModel:
+    def predict(self, features):
+        return [sum(f) * 0.1 for f in features]
+
+    def version(self):
+        return "1.0.0"
+
+model = SimpleModel()
+
+@app.route("/health", methods=["GET"])
+def health():
+    return jsonify({"status": "healthy", "model_version": model.version()})
+
+@app.route("/predict", methods=["POST"])
+def predict():
+    try:
+        data = request.json
+        features = data.get("features", [])
+        if not features:
+            return jsonify({"error": "No features provided"}), 400
+
+        predictions = model.predict(features)
+        return jsonify({
+            "predictions": predictions,
+            "model_version": model.version(),
+            "count": len(predictions)
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/predict/batch", methods=["POST"])
+def predict_batch():
+    data = request.json
+    features = data.get("features", [])
+    predictions = model.predict(features)
+    return jsonify({
+        "predictions": predictions,
+        "batch_size": len(features)
+    })
+
+# FastAPI equivalent (shown as comment):
+# from fastapi import FastAPI
+# from pydantic import BaseModel
+# app = FastAPI()
+# class PredictionRequest(BaseModel):
+#     features: list[list[float]]
+# @app.post("/predict")
+# async def predict(req: PredictionRequest):
+#     return {"predictions": model.predict(req.features)}
+
+if __name__ == "__main__":
+    print("ML API Server starting...")
+    print(f"Model version: {model.version()}")
+    print("Endpoints: /health, /predict, /predict/batch")
+    # app.run(host="0.0.0.0", port=5000)'''),
+            (2,'Docker for ML Applications','text',25,
+             '''Docker packages your ML application with all dependencies into a portable container.
+
+## Why Docker for ML?
+- **Reproducibility**: Same environment everywhere
+- **Dependency isolation**: No "it works on my machine"
+- **Easy deployment**: Ship container to any cloud
+- **Scaling**: Run multiple instances easily
+
+## Dockerfile Anatomy
+```dockerfile
+FROM python:3.10-slim          # Base image
+WORKDIR /app                   # Set working directory
+COPY requirements.txt .        # Copy dependency list
+RUN pip install -r requirements.txt  # Install dependencies
+COPY . .                       # Copy application code
+COPY model.pkl .               # Copy trained model
+EXPOSE 8000                    # Declare port
+CMD ["python", "serve.py"]     # Start command
+```
+
+## Docker Commands
+```bash
+docker build -t my-ml-app .           # Build image
+docker run -p 8000:8000 my-ml-app     # Run container
+docker push registry/my-ml-app:v1     # Push to registry
+```
+
+## Multi-Stage Builds for ML
+```dockerfile
+# Stage 1: Training
+FROM python:3.10 AS trainer
+COPY train.py requirements-train.txt ./
+RUN pip install -r requirements-train.txt
+RUN python train.py  # outputs model.pkl
+
+# Stage 2: Serving (smaller image)
+FROM python:3.10-slim
+COPY --from=trainer /app/model.pkl .
+COPY serve.py requirements-serve.txt ./
+RUN pip install -r requirements-serve.txt
+CMD ["python", "serve.py"]
+```
+
+## Best Practices
+- Use slim base images (python:3.10-slim)
+- Multi-stage builds to reduce image size
+- Cache pip install layer separately
+- Don't include training data in production image
+- Use .dockerignore file
+- Pin dependency versions''',
+             '''# Dockerfile Generator for ML Projects
+
+def generate_dockerfile(project_type="api", python_version="3.10",
+                       port=8000, use_gpu=False):
+    """Generate a Dockerfile for ML projects"""
+
+    base = f"python:{python_version}-slim"
+    if use_gpu:
+        base = f"nvidia/cuda:11.8.0-runtime-ubuntu22.04"
+
+    lines = [
+        f"FROM {base}",
+        "",
+        "# Set working directory",
+        "WORKDIR /app",
+        "",
+        "# Install system dependencies",
+        "RUN apt-get update && apt-get install -y --no-install-recommends \\\\",
+        "    build-essential && rm -rf /var/lib/apt/lists/*",
+        "",
+        "# Install Python dependencies (cached layer)",
+        "COPY requirements.txt .",
+        "RUN pip install --no-cache-dir -r requirements.txt",
+        "",
+        "# Copy application code",
+        "COPY . .",
+        "",
+    ]
+
+    if project_type == "api":
+        lines.extend([
+            f"EXPOSE {port}",
+            "",
+            "# Health check",
+            f\'HEALTHCHECK CMD curl -f http://localhost:{port}/health || exit 1\',
+            "",
+            f\'CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "{port}"]\',
+        ])
+    elif project_type == "batch":
+        lines.extend([
+            \'CMD ["python", "batch_predict.py"]\',
+        ])
+
+    return "\\n".join(lines)
+
+# Generate Dockerfile
+dockerfile = generate_dockerfile(project_type="api", port=8000)
+print("=== Generated Dockerfile ===")
+print(dockerfile)
+print("\\n=== Docker Commands ===")
+print("docker build -t ml-api .")
+print("docker run -p 8000:8000 ml-api")
+print("docker push myregistry/ml-api:v1")'''),
+            (3,'ML Pipeline CI/CD','text',30,
+             '''CI/CD for ML automates the process of testing, training, and deploying models whenever code or data changes.
+
+## ML CI/CD Pipeline
+```
+Code Push → Tests → Train → Evaluate → Register → Deploy → Monitor
+```
+
+## Key Differences from Software CI/CD
+| Software CI/CD | ML CI/CD |
+|---------------|----------|
+| Test code | Test code + data + model |
+| Build artifact | Build model artifact |
+| Deploy code | Deploy model + serving code |
+| Unit tests | Unit tests + model quality tests |
+
+## Pipeline Components
+
+### 1. Data Validation
+- Check data schema (columns, types)
+- Detect data drift
+- Validate data quality (nulls, outliers)
+
+### 2. Model Training
+- Reproducible training with versioned data
+- Hyperparameter tracking (MLflow, W&B)
+- GPU resource management
+
+### 3. Model Evaluation
+- Performance metrics (accuracy, F1, AUC)
+- Compare against baseline/production model
+- Bias and fairness checks
+- Latency benchmarks
+
+### 4. Model Registry
+- Version control for models
+- Stage management (staging → production)
+- Metadata: metrics, training data version, params
+
+### 5. Deployment
+- Canary deployment (route 5% traffic to new model)
+- A/B testing (compare two models)
+- Shadow mode (run new model alongside, don't serve)
+
+## Tools
+- **MLflow**: Experiment tracking + model registry
+- **DVC**: Data version control
+- **GitHub Actions**: CI/CD automation
+- **Kubeflow**: ML pipelines on Kubernetes
+- **Weights & Biases**: Experiment tracking
+- **Seldon/BentoML**: Model serving''',
+             '''import json
+from datetime import datetime
+
+class MLPipeline:
+    """Simplified ML CI/CD Pipeline"""
+
+    def __init__(self, model_name):
+        self.model_name = model_name
+        self.stages = []
+        self.metrics = {}
+
+    def validate_data(self, data_stats):
+        """Stage 1: Data validation"""
+        checks = {
+            "row_count": data_stats.get("rows", 0) > 100,
+            "no_nulls": data_stats.get("null_pct", 100) < 5,
+            "schema_match": data_stats.get("schema_valid", False),
+        }
+        passed = all(checks.values())
+        self.stages.append(("data_validation", passed, checks))
+        return passed
+
+    def train_model(self, params):
+        """Stage 2: Model training"""
+        # Simulated training
+        accuracy = 0.85 + (params.get("epochs", 10) * 0.005)
+        self.metrics = {"accuracy": min(accuracy, 0.98), "f1": accuracy - 0.02}
+        self.stages.append(("training", True, params))
+        return self.metrics
+
+    def evaluate(self, baseline_accuracy=0.80):
+        """Stage 3: Model evaluation"""
+        improved = self.metrics.get("accuracy", 0) > baseline_accuracy
+        self.stages.append(("evaluation", improved, {
+            "current": self.metrics.get("accuracy", 0),
+            "baseline": baseline_accuracy,
+            "improved": improved
+        }))
+        return improved
+
+    def deploy(self, strategy="canary"):
+        """Stage 4: Deploy"""
+        self.stages.append(("deployment", True, {"strategy": strategy}))
+        return {"status": "deployed", "strategy": strategy}
+
+    def report(self):
+        print(f"\\n{'='*50}")
+        print(f"ML Pipeline Report: {self.model_name}")
+        print(f"{'='*50}")
+        for stage, passed, details in self.stages:
+            status = "✅ PASS" if passed else "❌ FAIL"
+            print(f"\\n{status} | {stage}")
+            for k, v in details.items():
+                print(f"       {k}: {v}")
+
+# Run pipeline
+pipeline = MLPipeline("sentiment-classifier-v2")
+
+# Stage 1
+pipeline.validate_data({"rows": 5000, "null_pct": 1.2, "schema_valid": True})
+
+# Stage 2
+pipeline.train_model({"epochs": 20, "lr": 0.001, "batch_size": 32})
+
+# Stage 3
+pipeline.evaluate(baseline_accuracy=0.82)
+
+# Stage 4
+pipeline.deploy(strategy="canary")
+
+pipeline.report()'''),
+        ]
+        for order, title, ltype, dur, content, code in mlops_lectures:
+            lid = str(uuid.uuid4())
+            c.execute("""INSERT INTO lectures (id,course_id,title,content,lecture_type,code_example,order_num,duration_mins)
+                         VALUES (?,?,?,?,?,?,?,?)""",
+                      (lid, cid8, title, content, ltype, code, order, dur))
+
     except Exception:
         pass
 
@@ -697,8 +2179,18 @@ def login():
     if user:
         session['user_id']=user['id']; session['username']=user['username']
         session['role']=user['role']; session['email']=user['email']
+        try:
+            session['college']=user['college']
+        except (IndexError, KeyError):
+            session['college']=''
+        try:
+            session['region']=user['region']
+        except (IndexError, KeyError):
+            session['region']=''
         return jsonify({'success':True,'role':user['role'],'username':user['username']})
     return jsonify({'success':False,'error':'Invalid email or password'})
+
+
 
 @app.route('/api/auth/register', methods=['POST'])
 def register():
@@ -706,8 +2198,8 @@ def register():
     conn = get_db()
     try:
         uid = str(uuid.uuid4())
-        conn.execute("INSERT INTO users (id,username,email,password,role) VALUES (?,?,?,?,?)",
-                     (uid, data['username'], data['email'], hash_password(data['password']), data.get('role','student')))
+        conn.execute("INSERT INTO users (id,username,email,password,role,college,region) VALUES (?,?,?,?,?,?,?)",
+                     (uid, data['username'], data['email'], hash_password(data['password']), data.get('role','student'), data.get('college',''), data.get('region','')))
         conn.commit(); conn.close()
         return jsonify({'success':True})
     except sqlite3.IntegrityError:
@@ -850,11 +2342,14 @@ def get_course(course_id):
     lectures = conn.execute("SELECT * FROM lectures WHERE course_id=? ORDER BY order_num",(course_id,)).fetchall()
     if not course: return jsonify({'error':'Not found'}),404
     completed = []
+    enrolled = False
     if session.get('role')=='student':
         rows = conn.execute("SELECT lecture_id FROM completed_lectures WHERE student_id=?",(session['user_id'],)).fetchall()
         completed = [r['lecture_id'] for r in rows]
+        is_enrolled = conn.execute("SELECT 1 FROM enrollments WHERE student_id=? AND course_id=?",(session['user_id'],course_id)).fetchone()
+        if is_enrolled: enrolled = True
     conn.close()
-    return jsonify({'course':dict(course),'lectures':[dict(l) for l in lectures],'completed':completed})
+    return jsonify({'course':dict(course),'lectures':[dict(l) for l in lectures],'completed':completed,'enrolled':enrolled})
 
 @app.route('/api/courses/<course_id>', methods=['PUT'])
 @educator_required
@@ -1272,7 +2767,7 @@ def get_profile(): return jsonify(get_user_profile())
 def quiz_check():
     data=request.json; ans=data.get('answer',''); correct=data.get('correct',''); topic=data.get('topic','')
     ok=ans.upper()==correct.upper(); update_profile(topic,ok)
-    return jsonify({'correct':ok,'message':'Correct! Great job! 🎉' if ok else f'Not quite. Answer is {correct}.'})
+    return jsonify({'correct':ok,'message':'Correct! Great job!' if ok else f'Not quite. Answer is {correct}.'})
 
 @app.route('/api/suggest_topics')
 @login_required
@@ -1324,10 +2819,10 @@ Be conversational and make it easy to understand. Mention one concrete example i
 def dna_page():
     return render_template('dna.html')
 
-@app.route('/battle')
+@app.route('/compete')
 @login_required
 def battle_page():
-    return render_template('battle.html')
+    return render_template('compete.html')
 
 @app.route('/api/dna/update', methods=['POST'])
 @login_required
@@ -1628,13 +3123,21 @@ def battle_question():
 def save_battle_score():
     data = request.json
     conn = get_db()
+    score = data.get('score', 0)
     conn.execute(
         "INSERT INTO battle_scores (id,user_id,username,score,ai_score,topic) VALUES (?,?,?,?,?,?)",
         (str(uuid.uuid4()), session['user_id'], session['username'],
-         data.get('score', 0), data.get('ai_score', 0), data.get('topic', 'ML'))
+         score, data.get('ai_score', 0), data.get('topic', 'ML'))
     )
+    coins_earned = score // 10
+    if coins_earned > 0:
+        existing_reward = conn.execute("SELECT coins FROM user_rewards WHERE user_id=?", (session['user_id'],)).fetchone()
+        if existing_reward:
+            conn.execute("UPDATE user_rewards SET coins = coins + ? WHERE user_id=?", (coins_earned, session['user_id']))
+        else:
+            conn.execute("INSERT INTO user_rewards (user_id, coins) VALUES (?, ?)", (session['user_id'], coins_earned))
     conn.commit(); conn.close()
-    return jsonify({'success': True})
+    return jsonify({'success': True, 'coins_earned': coins_earned})
 
 
 @app.route('/api/battle/leaderboard')
@@ -2300,6 +3803,128 @@ def educator_assessments(course_id):
 @login_required
 def take_assessment(course_id, assessment_id):
     return render_template('take_assessment.html', course_id=course_id, assessment_id=assessment_id)
+
+# ─── COMMUNITY & SOCIAL PAGES ───────────────────────────────────────────────
+
+@app.route('/community')
+@login_required
+def community_dashboard():
+    return render_template('community.html')
+
+@app.route('/u/<username>')
+def public_profile(username):
+    conn = get_db()
+    user = conn.execute("SELECT id, username, level, college, region, created_at, role FROM users WHERE username=?", (username,)).fetchone()
+    if not user:
+        conn.close()
+        return "User not found", 404
+    
+    uid = user['id']
+    certs = conn.execute("SELECT course_title, issued_at FROM certificates WHERE student_id=?", (uid,)).fetchall()
+    battles = conn.execute("SELECT * FROM battle_scores WHERE user_id=? ORDER BY played_at DESC LIMIT 5", (uid,)).fetchall()
+    careers = conn.execute("SELECT * FROM career_entries WHERE user_id=? ORDER BY date_earned DESC", (uid,)).fetchall()
+    conn.close()
+    
+    return render_template('public_profile.html', 
+                           profile=dict(user), 
+                           certs=[dict(c) for c in certs], 
+                           battles=[dict(b) for b in battles], 
+                           careers=[dict(ce) for ce in careers])
+
+# ─── COMMUNITY API ──────────────────────────────────────────────────────────
+
+@app.route('/api/community/leaderboard')
+def api_leaderboard():
+    loc = request.args.get('filter', 'global')
+    conn = get_db()
+    query = "SELECT username, score FROM battle_scores GROUP BY user_id ORDER BY score DESC LIMIT 10"
+    if loc == 'college' and session.get('college'):
+        query = f"SELECT bs.username, bs.score FROM battle_scores bs JOIN users u ON bs.user_id=u.id WHERE u.college='{session['college']}' GROUP BY bs.user_id ORDER BY bs.score DESC LIMIT 10"
+    elif loc == 'region' and session.get('region'):
+        query = f"SELECT bs.username, bs.score FROM battle_scores bs JOIN users u ON bs.user_id=u.id WHERE u.region='{session['region']}' GROUP BY bs.user_id ORDER BY bs.score DESC LIMIT 10"
+    
+    try:
+        rows = conn.execute(query).fetchall()
+    except:
+        rows = []
+    conn.close()
+    return jsonify([dict(r) for r in rows])
+
+@app.route('/api/community/groups', methods=['GET', 'POST'])
+@login_required
+def api_groups():
+    conn = get_db()
+    if request.method == 'POST':
+        data = request.json
+        gid = str(uuid.uuid4())
+        conn.execute("INSERT INTO study_groups (id, name, description, course_id, created_by) VALUES (?,?,?,?,?)",
+                     (gid, data['name'], data.get('description',''), data.get('course_id',''), session['user_id']))
+        conn.execute("INSERT INTO study_group_members (group_id, user_id, username) VALUES (?,?,?)",
+                     (gid, session['user_id'], session['username']))
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True})
+    else:
+        groups = conn.execute("SELECT g.*, (SELECT COUNT(*) FROM study_group_members WHERE group_id=g.id) as count FROM study_groups g").fetchall()
+        my_groups = conn.execute("SELECT group_id FROM study_group_members WHERE user_id=?", (session['user_id'],)).fetchall()
+        conn.close()
+        return jsonify({'groups': [dict(g) for g in groups], 'my_groups': [r['group_id'] for r in my_groups]})
+
+@app.route('/api/community/groups/<group_id>/join', methods=['POST'])
+@login_required
+def join_group(group_id):
+    conn = get_db()
+    try:
+        conn.execute("INSERT INTO study_group_members (group_id, user_id, username) VALUES (?,?,?)",
+                     (group_id, session['user_id'], session['username']))
+        conn.commit()
+    except: pass
+    conn.close()
+    return jsonify({'success': True})
+
+@app.route('/api/community/forums/<course_id>', methods=['GET', 'POST'])
+@login_required
+def api_forums(course_id):
+    conn = get_db()
+    if request.method == 'POST':
+        data = request.json
+        fid = str(uuid.uuid4())
+        conn.execute("INSERT INTO course_forums (id, course_id, user_id, username, content, parent_id) VALUES (?,?,?,?,?,?)",
+                     (fid, course_id, session['user_id'], session['username'], data['content'], data.get('parent_id')))
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True})
+    else:
+        rows = conn.execute("SELECT * FROM course_forums WHERE course_id=? ORDER BY created_at ASC", (course_id,)).fetchall()
+        conn.close()
+        return jsonify([dict(r) for r in rows])
+
+@app.route('/api/community/interviews', methods=['GET', 'POST'])
+@login_required
+def api_interviews():
+    conn = get_db()
+    if request.method == 'POST':
+        data = request.json
+        iid = str(uuid.uuid4())
+        conn.execute("INSERT INTO mock_interviews (id, host_id, host_name, topic, meeting_url, scheduled_at) VALUES (?,?,?,?,?,?)",
+                     (iid, session['user_id'], session['username'], data['topic'], data['meeting_url'], data['scheduled_at']))
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True})
+    else:
+        rows = conn.execute("SELECT * FROM mock_interviews WHERE status='open' ORDER BY scheduled_at ASC").fetchall()
+        conn.close()
+        return jsonify([dict(r) for r in rows])
+
+@app.route('/api/community/interviews/<interview_id>/book', methods=['POST'])
+@login_required
+def book_interview(interview_id):
+    conn = get_db()
+    conn.execute("UPDATE mock_interviews SET peer_id=?, peer_name=?, status='booked' WHERE id=? AND status='open'",
+                 (session['user_id'], session['username'], interview_id))
+    conn.commit()
+    conn.close()
+    return jsonify({'success': True})
 
 init_db()  # ← runs on every startup, Gunicorn or otherwise
 

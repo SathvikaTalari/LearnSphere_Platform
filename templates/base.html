@@ -34,19 +34,19 @@
       <a href="/student/courses"   class="nav-link {% if '/student/course' in request.path %}active{% endif %}">Courses</a>
       <a href="/learn"             class="nav-link {% if request.path == '/learn' %}active{% endif %}">AI Learn</a>
       <a href="/code"              class="nav-link {% if request.path == '/code' %}active{% endif %}">Code Lab</a>
-      <a href="/dna"               class="nav-link {% if request.path == '/dna' %}active{% endif %}">🧬 My DNA</a>
-      <a href="/battle"            class="nav-link {% if request.path == '/battle' %}active{% endif %}">⚔️ Battle AI</a>
-      <a href="/research"          class="nav-link {% if request.path == '/research' %}active{% endif %}">📄 Research</a>
-      <a href="/vlab"              class="nav-link {% if request.path == '/vlab' %}active{% endif %}">🔬 Virtual Lab</a>
-      <a href="/focus"             class="nav-link {% if request.path == '/focus' %}active{% endif %}">⏱ Focus</a>
-      <a href="/events"            class="nav-link {% if request.path == '/events' %}active{% endif %}">🏆 Events</a>
-      <a href="/career"            class="nav-link {% if request.path == '/career' %}active{% endif %}">🚀 Career</a>
-      <a href="/dashboard"         class="nav-link {% if request.path == '/dashboard' %}active{% endif %}">Progress</a>
+      <a href="/dna"               class="nav-link {% if request.path == '/dna' %}active{% endif %}">My DNA</a>
+      <a href="/compete"           class="nav-link {% if request.path == '/compete' %}active{% endif %}">Compete</a>
+      <a href="/research"          class="nav-link {% if request.path == '/research' %}active{% endif %}">Research</a>
+      <a href="/vlab"              class="nav-link {% if request.path == '/vlab' %}active{% endif %}">Virtual Lab</a>
+      <a href="/focus"             class="nav-link {% if request.path == '/focus' %}active{% endif %}">Focus</a>
+      <a href="/events"            class="nav-link {% if request.path == '/events' %}active{% endif %}">Events</a>
+      <a href="/career"            class="nav-link {% if request.path == '/career' %}active{% endif %}">Career</a>
+      <a href="/community"         class="nav-link {% if request.path == '/community' %}active{% endif %}">Community</a>
     {% endif %}
   </div>
 
   <div class="nav-right">
-    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle Day / Night">🌙</button>
+    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle Day / Night">Night</button>
     <div class="accent-dots">
       <button class="adot" style="background:#00D4FF" onclick="setAccent('#00D4FF','cyan')"   data-k="cyan"   title="Cyan"></button>
       <button class="adot" style="background:#7C3AED" onclick="setAccent('#7C3AED','purple')" data-k="purple" title="Purple"></button>
@@ -80,7 +80,7 @@
   }
 
   var icon = document.getElementById('themeToggle');
-  if (icon) icon.textContent = t === 'day' ? '\u2600\uFE0F' : '\uD83C\uDF19';
+  if (icon) icon.textContent = t === 'day' ? '☀️' : '🌙';
 
   document.querySelectorAll('.adot').forEach(function(d) {
     d.style.outline = d.dataset.k === a ? '2px solid white' : 'none';
@@ -94,7 +94,7 @@ function toggleTheme() {
   document.documentElement.setAttribute('data-theme', next);
   localStorage.setItem('ls_theme', next);
   var icon = document.getElementById('themeToggle');
-  if (icon) icon.textContent = next === 'day' ? '\u2600\uFE0F' : '\uD83C\uDF19';
+  if (icon) icon.textContent = next === 'day' ? '☀️' : '🌙';
   var hljs = document.getElementById('hljs-theme');
   if (hljs) hljs.href = next === 'day'
     ? 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css'

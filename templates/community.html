@@ -1,0 +1,216 @@
+{% extends 'base.html' %}
+{% block title %}Community Hub — LearnSphere{% endblock %}
+
+{% block extra_css %}
+<style>
+.comm-hub { padding: 2rem; max-width:1200px; margin: 0 auto; }
+.comm-header { border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 2rem; }
+.comm-header h1 { font-family: var(--font-serif); font-size: 2rem; color: var(--text1); }
+.comm-header p { color: var(--text2); margin-top: 0.5rem; }
+
+.grid-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+.panel {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    height: 100%;
+}
+
+.panel-title {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: var(--text1);
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Leaderboard */
+.lb-filter { margin-bottom: 1rem; }
+.lb-filter select { background:var(--bg1); border:1px solid var(--border); color:var(--text1); padding:0.5rem; border-radius:6px; outline:none; }
+.lb-row { display:flex; align-items:center; padding: 0.75rem; border-bottom:1px solid rgba(255,255,255,0.05); }
+.lb-row:last-child { border-bottom:none; }
+.lb-rank { font-weight:bold; color:var(--accent); width:30px; }
+.lb-name { flex:1; font-weight:500; display:flex; align-items:center; gap:0.5rem;}
+.lb-score { color:var(--text2); }
+
+/* Groups & Interviews */
+.btn-sm { padding: 0.4rem 0.8rem; font-size: 0.8rem; border-radius: 6px; background:var(--accent); color:#fff; border:none; cursor:pointer;}
+.item-card { background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 8px; margin-bottom:1rem; border:1px solid rgba(255,255,255,0.05); }
+.item-title { font-weight: bold; margin-bottom: 0.25rem; }
+.item-meta { font-size: 0.8rem; color: var(--text2); margin-bottom:0.75rem;}
+
+.public-profile-link { font-size:0.8rem; color:var(--accent); text-decoration:none; margin-left:10px; }
+.public-profile-link:hover { text-decoration:underline; }
+
+form-group { margin-bottom:1rem; display:block; }
+input.comm-input, textarea.comm-input { width:100%; background:var(--bg1); border:1px solid var(--border); padding:0.6rem; color:var(--text1); border-radius:6px; margin-bottom:0.5rem;}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="comm-hub">
+    <div class="comm-header">
+        <h1>Community Hub</h1>
+        <p>Connect with peers, join study groups, and practice mock interviews.</p>
+    </div>
+
+    <div class="grid-cols" style="margin-bottom:2rem;">
+        
+        <!-- Leadeboard -->
+        <div class="panel">
+            <div class="panel-title">🏆 Leaderboard</div>
+            <div class="lb-filter">
+                <select id="lbFilter" onchange="loadLeaderboard()">
+                    <option value="global">Global (All Users)</option>
+                    <option value="college">My College</option>
+                    <option value="region">My Region</option>
+                </select>
+            </div>
+            <div id="lbContent">Loading...</div>
+        </div>
+
+        <!-- Create specific quick forms -->
+        <div style="display:flex; flex-direction:column; gap:2rem;">
+            <!-- P2P Interviews -->
+            <div class="panel">
+                <div class="panel-title">
+                    🤝 Mock Interviews 
+                    <button class="btn-sm" onclick="document.getElementById('interviewForm').style.display='block'">+ Host Slot</button>
+                </div>
+                
+                <div id="interviewForm" style="display:none; margin-bottom:1rem; padding:1rem; background:rgba(255,255,255,0.05); border-radius:8px;">
+                    <input type="text" id="intTopic" class="comm-input" placeholder="Topic (e.g. Python basics)">
+                    <input type="datetime-local" id="intTime" class="comm-input">
+                    <input type="text" id="intLink" class="comm-input" placeholder="Meeting Link (Zoom/Meet)">
+                    <button class="btn-sm" onclick="hostInterview()">Post Availability</button>
+                    <button class="btn-sm" style="background:transparent;border:1px solid var(--border);" onclick="document.getElementById('interviewForm').style.display='none'">Cancel</button>
+                </div>
+
+                <div id="interviewsList">Loading...</div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Study Groups -->
+    <div class="panel" style="margin-bottom:2rem;">
+        <div class="panel-title">
+            📚 Study Groups
+            <button class="btn-sm" onclick="document.getElementById('groupForm').style.display='block'">+ Create Group</button>
+        </div>
+        
+        <div id="groupForm" style="display:none; margin-bottom:1rem; padding:1rem; background:rgba(255,255,255,0.05); border-radius:8px;">
+            <input type="text" id="grpName" class="comm-input" placeholder="Group Name">
+            <input type="text" id="grpDesc" class="comm-input" placeholder="Description">
+            <button class="btn-sm" onclick="createGroup()">Create</button>
+            <button class="btn-sm" style="background:transparent;border:1px solid var(--border);" onclick="document.getElementById('groupForm').style.display='none'">Cancel</button>
+        </div>
+
+        <div id="groupsList" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:1rem;">Loading...</div>
+    </div>
+
+</div>
+
+<script>
+async function loadLeaderboard() {
+    const f = document.getElementById('lbFilter').value;
+    const res = await fetch('/api/community/leaderboard?filter='+f);
+    const data = await res.json();
+    let html = '';
+    data.forEach((r,i) => {
+        html += `<div class="lb-row">
+            <div class="lb-rank">#${i+1}</div>
+            <div class="lb-name">
+                ${r.username} 
+                <a href="/u/${r.username}" class="public-profile-link" target="_blank">[Profile]</a>
+            </div>
+            <div class="lb-score">${r.score} pts</div>
+        </div>`;
+    });
+    if(!html) html = '<p style="color:var(--text2)">No users found for this filter.</p>';
+    document.getElementById('lbContent').innerHTML = html;
+}
+
+async function loadInterviews() {
+    const res = await fetch('/api/community/interviews');
+    const data = await res.json();
+    let html = '';
+    data.forEach(x => {
+        html += `<div class="item-card">
+            <div class="item-title">${x.topic} hosted by ${x.host_name}</div>
+            <div class="item-meta">Starts: ${new Date(x.scheduled_at).toLocaleString()}</div>
+            <button class="btn-sm" onclick="bookInterview('${x.id}')">Book Slot</button>
+            <a href="/u/${x.host_name}" class="public-profile-link" target="_blank">View host</a>
+        </div>`;
+    });
+    if(!html) html = '<p style="color:var(--text2)">No open slots right now. Be the first to host!</p>';
+    document.getElementById('interviewsList').innerHTML = html;
+}
+
+async function loadGroups() {
+    const res = await fetch('/api/community/groups');
+    const data = await res.json();
+    let html = '';
+    data.groups.forEach(g => {
+        const isMember = data.my_groups.includes(g.id);
+        html += `<div class="item-card">
+            <div class="item-title">${g.name}</div>
+            <div class="item-meta">${g.description||'No description'} <br> ${g.count} members</div>
+            ${isMember ? '<span style="color:var(--success);font-size:0.8rem;">✓ Joined</span>' : 
+            `<button class="btn-sm" style="background:var(--bg1);border:1px solid var(--border);" onclick="joinGroup('${g.id}')">Join Group</button>`}
+        </div>`;
+    });
+    if(!html) html = '<p style="color:var(--text2)">No study groups exist yet.</p>';
+    document.getElementById('groupsList').innerHTML = html;
+}
+
+async function hostInterview() {
+    const topic = document.getElementById('intTopic').value; 
+    const at = document.getElementById('intTime').value;
+    const link = document.getElementById('intLink').value;
+    if(!topic || !at || !link) return alert("Fill all fields.");
+    await fetch('/api/community/interviews', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({topic:topic, scheduled_at:at, meeting_url:link})
+    });
+    document.getElementById('interviewForm').style.display='none';
+    loadInterviews();
+}
+
+async function bookInterview(id) {
+    await fetch('/api/community/interviews/'+id+'/book', {method:'POST'});
+    loadInterviews();
+}
+
+async function createGroup() {
+    const n = document.getElementById('grpName').value;
+    const d = document.getElementById('grpDesc').value;
+    if(!n) return;
+    await fetch('/api/community/groups', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({name:n, description:d})
+    });
+    document.getElementById('groupForm').style.display='none';
+    loadGroups();
+}
+
+async function joinGroup(id) {
+    await fetch('/api/community/groups/'+id+'/join', {method:'POST'});
+    loadGroups();
+}
+
+window.onload = () => {
+    loadLeaderboard();
+    loadInterviews();
+    loadGroups();
+};
+</script>
+{% endblock %}

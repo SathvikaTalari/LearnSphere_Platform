@@ -1,129 +1,488 @@
 {% extends "base.html" %}
 {% block title %}Dashboard — LearnSphere{% endblock %}
 {% block content %}
-<div class="page-wrap">
 
-  <div class="page-header">
-    <div>
-      <h1 class="page-title">Welcome back, <span class="accent" id="welcomeName">Learner</span></h1>
-      <p class="page-sub" id="dashSub">Continue your ML learning journey</p>
+<div class="dash-v4">
+  <!-- Header Row -->
+  <div class="dash-header-row">
+    <h1>Dashboard</h1>
+    <div class="dash-search">
+      <input type="text" placeholder="Search courses, topics..." id="dashSearch">
+      <button class="dash-search-btn" title="Search">🔍</button>
     </div>
-    <a href="/student/courses" class="btn btn-primary">Browse Courses →</a>
   </div>
 
-  <!-- Stats -->
-  <div class="stats-row">
-    <div class="stat-card"><div class="stat-icon">📚</div><div><span class="stat-num" id="statEnrolled">—</span><span class="stat-lbl">Enrolled Courses</span></div></div>
-    <div class="stat-card"><div class="stat-icon">✅</div><div><span class="stat-num" id="statCompleted">—</span><span class="stat-lbl">Lectures Done</span></div></div>
-    <div class="stat-card"><div class="stat-icon">🧠</div><div><span class="stat-num" id="statQueries">—</span><span class="stat-lbl">AI Queries</span></div></div>
-    <div class="stat-card"><div class="stat-icon">🏆</div><div><span class="stat-num accent" id="statLevel">—</span><span class="stat-lbl">Level</span></div></div>
-  </div>
+  <div class="dash-v4-grid">
+    <!-- ══════════════════════════════════════════════════════════════
+         LEFT: Main content
+         ══════════════════════════════════════════════════════════════ -->
+    <div class="dash-v4-main">
 
-  <!-- Feature Spotlight row -->
-  <div class="section-header"><h2>🔥 Power Features</h2></div>
-  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-bottom:2rem">
-
-    <a href="/dna" class="feat-card dna-feat">
-      <div class="feat-icon">🧬</div>
-      <div class="feat-body">
-        <div class="feat-title">Learning DNA</div>
-        <div class="feat-desc">AI builds your live intelligence profile — tracks speed, decay, and style</div>
-      </div>
-      <div class="feat-arrow">→</div>
-    </a>
-
-    <a href="/battle" class="feat-card battle-feat">
-      <div class="feat-icon">⚔️</div>
-      <div class="feat-body">
-        <div class="feat-title">Beat the AI</div>
-        <div class="feat-desc">Compete head-to-head in ML quizzes. Can you outscore the machine?</div>
-      </div>
-      <div class="feat-arrow">→</div>
-    </a>
-
-    <a href="/learn" class="feat-card learn-feat">
-      <div class="feat-icon">🔮</div>
-      <div class="feat-body">
-        <div class="feat-title">AI Concept Lab</div>
-        <div class="feat-desc">Ask anything — get explanations, diagrams, code, quizzes instantly</div>
-      </div>
-      <div class="feat-arrow">→</div>
-    </a>
-  </div>
-
-  <!-- My Courses -->
-  <div class="section-header"><h2>My Enrolled Courses</h2><a href="/student/courses" class="link-btn">All Courses →</a></div>
-  <div class="course-grid" id="myCourses">
-    <div class="loading-card"><div class="spinner"></div><p>Loading courses...</p></div>
-  </div>
-
-  <!-- Quick Actions -->
-  <div class="section-header"><h2>Quick Actions</h2></div>
-  <div class="quick-actions">
-    <a href="/learn" class="qa-card"><div class="qa-icon">🧠</div><div><strong>AI Concept Explainer</strong><p>Explain any ML concept instantly</p></div></a>
-    <a href="/code"  class="qa-card"><div class="qa-icon">💻</div><div><strong>Code Lab</strong><p>Generate & analyze ML code</p></div></a>
-    <a href="/dashboard" class="qa-card"><div class="qa-icon">📊</div><div><strong>Progress Tracker</strong><p>View your learning analytics</p></div></a>
-    <a href="/student/courses" class="qa-card"><div class="qa-icon">🎓</div><div><strong>Browse Courses</strong><p>Explore all available courses</p></div></a>
-  </div>
-
-</div>
-
-<style>
-.feat-card {
-  display:flex; align-items:center; gap:1rem;
-  padding:1.25rem 1.35rem; border-radius:var(--radius-lg);
-  background:var(--bg-card); border:1px solid var(--border);
-  text-decoration:none; color:var(--text);
-  transition:all var(--transition); position:relative; overflow:hidden;
-}
-.feat-card:hover { transform:translateY(-3px); box-shadow:var(--shadow); }
-.dna-feat:hover { border-color:rgba(63,185,80,0.4); }
-.battle-feat:hover { border-color:rgba(248,81,73,0.4); }
-.learn-feat:hover { border-color:var(--border-s); }
-.feat-icon { font-size:2rem; flex-shrink:0; }
-.feat-body { flex:1 }
-.feat-title { font-family:var(--font-serif); font-weight:700; font-size:0.95rem; margin-bottom:0.2rem; }
-.feat-desc { font-size:0.75rem; color:var(--text-2); line-height:1.4; }
-.feat-arrow { font-size:1.1rem; color:var(--text-2); transition:transform var(--transition); }
-.feat-card:hover .feat-arrow { transform:translateX(4px); color:var(--accent); }
-</style>
-
-<script>
-async function loadDash() {
-  const [stats, enrollments] = await Promise.all([
-    fetch('/api/student_stats').then(r=>r.json()),
-    fetch('/api/my_enrollments').then(r=>r.json())
-  ]);
-  const name = stats.username || 'Learner';
-  document.getElementById('welcomeName').textContent = name;
-  document.getElementById('dashSub').textContent = `Good to see you, ${name}. Your learning streak continues.`;
-  document.getElementById('statEnrolled').textContent = stats.enrolled_courses || 0;
-  document.getElementById('statCompleted').textContent = stats.completed_lectures || 0;
-  document.getElementById('statQueries').textContent = stats.total_queries || 0;
-  const lvl = stats.level || 'beginner';
-  document.getElementById('statLevel').textContent = lvl.charAt(0).toUpperCase() + lvl.slice(1);
-
-  const grid = document.getElementById('myCourses');
-  if (!enrollments.length) {
-    grid.innerHTML = '<div class="empty-courses"><p>No courses enrolled yet.</p><a href="/student/courses" class="btn btn-primary">Browse Courses</a></div>';
-    return;
-  }
-  grid.innerHTML = enrollments.slice(0,4).map(e => `
-    <a href="/student/course/${e.course_id}" class="course-card">
-      <div class="course-thumb" style="background:linear-gradient(135deg,${e.thumbnail_color}20,transparent);border-color:${e.thumbnail_color}28">
-        <div class="course-icon" style="color:${e.thumbnail_color}">📖</div>
-      </div>
-      <div class="course-info">
-        <div class="course-diff ${e.difficulty}">${e.difficulty}</div>
-        <h3>${e.title}</h3>
-        <p style="font-size:0.78rem;color:var(--text-2)">${e.educator_name}</p>
-        <div class="progress-row">
-          <div class="progress-bar"><div class="progress-fill" style="width:${e.progress||0}%;background:${e.thumbnail_color}"></div></div>
-          <span style="font-size:0.72rem;color:var(--text-2)">${e.progress||0}%</span>
+      <!-- ── 4 Stat Cards ──────────────────────────────────────────── -->
+      <div class="dash-stat-icons">
+        <div class="dsi-card">
+          <div class="dsi-icon blue" style="font-family:var(--font-serif); font-weight:700; font-size:1.4rem;">C</div>
+          <div class="dsi-label">Enrolled Courses</div>
+          <div class="dsi-value" id="dsiCourses">0</div>
+        </div>
+        <div class="dsi-card">
+          <div class="dsi-icon pink" style="font-family:var(--font-serif); font-weight:700; font-size:1.4rem;">I</div>
+          <div class="dsi-label">Active Instructors</div>
+          <div class="dsi-value" id="dsiInstructors">0</div>
+        </div>
+        <div class="dsi-card">
+          <div class="dsi-icon cyan" style="font-family:var(--font-serif); font-weight:700; font-size:1.4rem;">L</div>
+          <div class="dsi-label">Total Lectures</div>
+          <div class="dsi-value" id="dsiLectures">0</div>
+        </div>
+        <div class="dsi-card">
+          <div class="dsi-icon orange" style="font-family:var(--font-serif); font-weight:700; font-size:1.4rem;">Q</div>
+          <div class="dsi-label">AI Queries</div>
+          <div class="dsi-value" id="dsiQueries">0</div>
         </div>
       </div>
-    </a>`).join('');
+
+      <!-- ── Statistics + Course Activities ─────────────────────────── -->
+      <div class="dash-charts-row">
+        <!-- Statistics bar chart -->
+        <div class="dash-chart-card">
+          <div class="dash-chart-head">
+            <h3>Statistics</h3>
+            <div class="sort-pill">
+              Sort by <select id="chartSort">
+                <option value="course">Course</option>
+                <option value="progress">Progress</option>
+              </select>
+            </div>
+          </div>
+          <canvas id="statsBarChart" height="200"></canvas>
+        </div>
+        <!-- Course Activities donut -->
+        <div class="dash-chart-card">
+          <div class="dash-chart-head">
+            <h3>Course Activities</h3>
+          </div>
+          <div class="donut-wrap">
+            <canvas id="donutChart" width="150" height="150"></canvas>
+            <div class="donut-legend" id="donutLegend">
+              <div class="donut-legend-item"><div class="donut-dot" style="background:var(--accent)"></div> Completed</div>
+              <div class="donut-legend-item"><div class="donut-dot" style="background:var(--text2)"></div> In Progress</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Database Table ────────────────────────────────────────── -->
+      <div class="dash-table-card">
+        <div class="dash-table-head">
+          <h3>Database</h3>
+          <div class="dash-table-tabs">
+            <button class="dash-table-tab" onclick="setTableTab(this,'educator')">Educator</button>
+            <button class="dash-table-tab active" onclick="setTableTab(this,'student')">Student</button>
+          </div>
+        </div>
+        <table class="dash-tbl">
+          <thead>
+            <tr>
+              <th>Course</th>
+              <th>Progress</th>
+              <th>Enrolled On</th>
+              <th>Grade</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="dashTableBody">
+            <tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--text2)">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ── Power Features ────────────────────────────────────────── -->
+      <div class="section-header" style="margin-top:.5rem"><h2>Power Features</h2></div>
+      <div class="db-feat-row" style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1rem">
+        <a href="/dna" class="feat-card"><div class="feat-icon" style="font-family:var(--font-serif);font-size:1.2rem;font-weight:700;">D</div><div class="feat-body"><div class="feat-title">Learning DNA</div><div class="feat-desc">AI builds your live intelligence profile</div></div><div class="feat-arrow">→</div></a>
+        <a href="/compete" class="feat-card"><div class="feat-icon" style="font-family:var(--font-serif);font-size:1.2rem;font-weight:700;">C</div><div class="feat-body"><div class="feat-title">Compete</div><div class="feat-desc">Compete head-to-head in ML quizzes</div></div><div class="feat-arrow">→</div></a>
+        <a href="/learn" class="feat-card"><div class="feat-icon" style="font-family:var(--font-serif);font-size:1.2rem;font-weight:700;">L</div><div class="feat-body"><div class="feat-title">AI Concept Lab</div><div class="feat-desc">Get explanations, diagrams, code</div></div><div class="feat-arrow">→</div></a>
+        <a href="/code" class="feat-card"><div class="feat-icon" style="font-family:var(--font-serif);font-size:1.2rem;font-weight:700;">P</div><div class="feat-body"><div class="feat-title">Code Lab</div><div class="feat-desc">Generate & analyze ML code</div></div><div class="feat-arrow">→</div></a>
+      </div>
+
+    </div><!-- /dash-v4-main -->
+
+    <!-- ══════════════════════════════════════════════════════════════
+         RIGHT: Sidebar
+         ══════════════════════════════════════════════════════════════ -->
+    <div class="dash-v4-side">
+
+      <!-- User Profile mini card -->
+      <div class="dash-user-card">
+        <div class="dash-user-avatar" id="sideUserAvatar">?</div>
+        <div class="dash-user-info">
+          <div class="dash-user-name" id="sideUserName">Learner</div>
+          <div class="dash-user-role">Student</div>
+        </div>
+        <span style="margin-left:auto;font-size:.9rem;cursor:pointer" title="Notifications">🔔</span>
+      </div>
+
+      <!-- Calendar -->
+      <div class="dash-calendar-card">
+        <div class="cal-header">
+          <h3 id="calMonthYear">April 2026</h3>
+          <div class="cal-nav">
+            <button class="cal-nav-btn" onclick="changeMonth(-1)">◀</button>
+            <button class="cal-nav-btn" onclick="changeMonth(1)">▶</button>
+          </div>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
+        <div class="cal-events" id="calEvents"></div>
+      </div>
+
+      <!-- Notice Board -->
+      <div class="dash-notice-card">
+        <div class="dash-notice-head">Notice Board</div>
+        <div class="notice-list" id="noticeList">
+          <div class="notice-item">
+            <div class="notice-thumb" style="background:rgba(99,102,241,.12);font-family:var(--font-serif);font-weight:700;font-size:0.9rem;">W</div>
+            <div class="notice-info">
+              <div class="notice-title">Welcome to LearnSphere Platform!</div>
+              <div class="notice-by">By — Admin</div>
+            </div>
+          </div>
+          <div class="notice-item">
+            <div class="notice-thumb" style="background:rgba(16,185,129,.1);font-family:var(--font-serif);font-weight:700;font-size:0.9rem;">C</div>
+            <div class="notice-info">
+              <div class="notice-title">New Compete Mode Available — Challenge yourself now!</div>
+              <div class="notice-by">By — LearnSphere Team</div>
+            </div>
+          </div>
+          <div class="notice-item">
+            <div class="notice-thumb" style="background:rgba(245,158,11,.1);font-family:var(--font-serif);font-weight:700;font-size:0.9rem;">N</div>
+            <div class="notice-info">
+              <div class="notice-title">New courses added: Computer Vision, Generative AI & more</div>
+              <div class="notice-by">By — Prof. Educator</div>
+            </div>
+          </div>
+          <div class="notice-item">
+            <div class="notice-thumb" style="background:rgba(236,72,153,.1);font-family:var(--font-serif);font-weight:700;font-size:0.9rem;">E</div>
+            <div class="notice-info">
+              <div class="notice-title">Complete courses and pass quizzes to earn certificates</div>
+              <div class="notice-by">By — Certification Team</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /dash-v4-side -->
+  </div><!-- /dash-v4-grid -->
+</div><!-- /dash-v4 -->
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════
+   Dashboard V4 — JavaScript
+   ═══════════════════════════════════════════════════════════════════ */
+var calMonth, calYear;
+
+async function loadDash() {
+  var stats, enrollments;
+  try {
+    var results = await Promise.all([
+      fetch('/api/student_stats').then(function(r){ return r.json(); }),
+      fetch('/api/my_enrollments').then(function(r){ return r.json(); })
+    ]);
+    stats = results[0];
+    enrollments = results[1];
+  } catch(e) {
+    stats = {username:'Learner',enrolled_courses:0,completed_lectures:0,total_queries:0,level:'beginner'};
+    enrollments = [];
+  }
+
+  var name = stats.username || 'Learner';
+  var enrolled = stats.enrolled_courses || 0;
+  var completed = stats.completed_lectures || 0;
+  var queries = stats.total_queries || 0;
+
+  // User sidebar
+  document.getElementById('sideUserAvatar').textContent = name.charAt(0).toUpperCase();
+  document.getElementById('sideUserName').textContent = name;
+
+  // Compute unique instructors and total lectures
+  var instructors = {};
+  var totalLecs = 0;
+  enrollments.forEach(function(e) {
+    if (e.educator_name) instructors[e.educator_name] = true;
+    totalLecs += (e.lecture_count || 0);
+  });
+
+  // Stat cards
+  document.getElementById('dsiCourses').textContent = enrolled;
+  document.getElementById('dsiInstructors').textContent = Object.keys(instructors).length || 1;
+  document.getElementById('dsiLectures').textContent = totalLecs || completed;
+  document.getElementById('dsiQueries').textContent = queries;
+
+  // Bar chart
+  drawBarChart(enrollments);
+
+  // Donut chart
+  drawDonut(enrollments);
+
+  // Database table
+  renderTable(enrollments);
+
+  // Calendar
+  var now = new Date();
+  calMonth = now.getMonth();
+  calYear = now.getFullYear();
+  renderCalendar();
+
+  // Notice board - add enrollment-based notices
+  if (enrollments.length > 0) {
+    var nl = document.getElementById('noticeList');
+    var fc = enrollments[0];
+    var noticeHtml = '<div class="notice-item">'
+      + '<div class="notice-thumb" style="background:rgba(0,212,255,.1);font-family:var(--font-serif);font-weight:700;font-size:0.9rem;">C</div>'
+      + '<div class="notice-info">'
+      + '<div class="notice-title">Continue learning: ' + escH(fc.title) + '</div>'
+      + '<div class="notice-by">Progress: ' + (fc.progress||0) + '%</div>'
+      + '</div></div>';
+    nl.insertAdjacentHTML('afterbegin', noticeHtml);
+  }
 }
+
+/* ── Bar Chart ───────────────────────────────────────────────────── */
+function drawBarChart(enrollments) {
+  var canvas = document.getElementById('statsBarChart');
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var dpr = window.devicePixelRatio || 1;
+  var rect = canvas.parentElement.getBoundingClientRect();
+  var w = rect.width - 32;
+  var h = 200;
+  canvas.width = w * dpr; canvas.height = h * dpr;
+  canvas.style.width = w + 'px'; canvas.style.height = h + 'px';
+  ctx.scale(dpr, dpr);
+
+  var items = enrollments.slice(0, 6);
+  if (!items.length) {
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.font = '13px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Enroll in courses to see stats', w/2, h/2);
+    return;
+  }
+
+  var padL = 35, padB = 30, padT = 10;
+  var chartW = w - padL - 10;
+  var chartH = h - padB - padT;
+  var barW = Math.min(40, chartW / items.length - 12);
+  var gap = chartW / items.length;
+
+  // Grid lines
+  ctx.textAlign = 'right';
+  ctx.font = '10px Inter, sans-serif';
+  for (var p = 0; p <= 100; p += 20) {
+    var y = padT + chartH - (p/100 * chartH);
+    ctx.fillStyle = 'rgba(255,255,255,0.25)';
+    ctx.fillText(p, padL - 6, y + 3);
+    ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+    ctx.setLineDash([3,3]);
+    ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(w - 10, y); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // Bars with highlight for max
+  var maxProg = Math.max.apply(null, items.map(function(e){ return e.progress||0; }));
+  items.forEach(function(e, i) {
+    var x = padL + gap * i + (gap - barW) / 2;
+    var pct = e.progress || 0;
+    var barH = Math.max(3, pct/100 * chartH);
+    var by = padT + chartH - barH;
+    var color = e.thumbnail_color || '#00D4FF';
+    var isHighlight = pct === maxProg && pct > 0;
+
+    var grad = ctx.createLinearGradient(x, by, x, padT + chartH);
+    if (isHighlight) {
+      grad.addColorStop(0, '#F59E0B');
+      grad.addColorStop(1, '#D97706');
+    } else {
+      grad.addColorStop(0, color);
+      grad.addColorStop(1, adjustColor(color, -60));
+    }
+    ctx.fillStyle = grad;
+
+    var r = 4;
+    ctx.beginPath();
+    ctx.moveTo(x + r, by);
+    ctx.lineTo(x + barW - r, by);
+    ctx.quadraticCurveTo(x + barW, by, x + barW, by + r);
+    ctx.lineTo(x + barW, padT + chartH);
+    ctx.lineTo(x, padT + chartH);
+    ctx.lineTo(x, by + r);
+    ctx.quadraticCurveTo(x, by, x + r, by);
+    ctx.fill();
+
+    // Value on top
+    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+    ctx.font = 'bold 10px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(pct + '%', x + barW/2, by - 5);
+
+    // Label below
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.font = '9px Inter, sans-serif';
+    var label = (e.title||'').length > 10 ? (e.title||'').substring(0,9) + '…' : (e.title||'');
+    ctx.fillText(label, x + barW/2, h - 8);
+  });
+}
+
+/* ── Donut Chart ─────────────────────────────────────────────────── */
+function drawDonut(enrollments) {
+  var canvas = document.getElementById('donutChart');
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var dpr = window.devicePixelRatio || 1;
+  canvas.width = 150 * dpr; canvas.height = 150 * dpr;
+  canvas.style.width = '150px'; canvas.style.height = '150px';
+  ctx.scale(dpr, dpr);
+
+  var cx = 75, cy = 75, radius = 55, lineW = 18;
+
+  if (!enrollments.length) {
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+    ctx.lineWidth = lineW;
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.font = '12px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('No data', cx, cy + 4);
+    return;
+  }
+
+  var avgProg = Math.round(enrollments.reduce(function(s,e){ return s + (e.progress||0); }, 0) / enrollments.length);
+  var completedPart = avgProg / 100;
+  var inProgressPart = 1 - completedPart;
+
+  // Background ring
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+  ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+  ctx.lineWidth = lineW;
+  ctx.stroke();
+
+  // In progress arc (gray)
+  var startAngle = -Math.PI / 2;
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, startAngle, startAngle + Math.PI * 2 * inProgressPart);
+  ctx.strokeStyle = 'rgba(148,163,184,0.3)';
+  ctx.lineWidth = lineW;
+  ctx.lineCap = 'round';
+  ctx.stroke();
+
+  // Completed arc (accent)
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, startAngle + Math.PI * 2 * inProgressPart, startAngle + Math.PI * 2);
+  ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#00D4FF';
+  ctx.lineWidth = lineW;
+  ctx.lineCap = 'round';
+  ctx.stroke();
+
+  // Center text
+  ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text').trim() || '#E2E8F0';
+  ctx.font = 'bold 26px Merriweather, serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(avgProg + '%', cx, cy + 8);
+
+  // Update legend
+  document.getElementById('donutLegend').innerHTML =
+    '<div class="donut-legend-item"><div class="donut-dot" style="background:' + (getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#00D4FF') + '"></div> Completed (' + avgProg + '%)</div>'
+    + '<div class="donut-legend-item"><div class="donut-dot" style="background:rgba(148,163,184,0.5)"></div> In Progress (' + (100-avgProg) + '%)</div>';
+}
+
+/* ── Database Table ──────────────────────────────────────────────── */
+function renderTable(enrollments) {
+  var tbody = document.getElementById('dashTableBody');
+  if (!enrollments.length) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--text2)">No courses enrolled. <a href="/student/courses" style="color:var(--accent)">Browse courses →</a></td></tr>';
+    return;
+  }
+  tbody.innerHTML = enrollments.map(function(e) {
+    var prog = e.progress || 0;
+    var color = e.thumbnail_color || '#00D4FF';
+    var initial = (e.title||'C')[0].toUpperCase();
+    var gradeClass = prog >= 80 ? 'excellent' : (prog >= 50 ? 'average' : 'poor');
+    var gradeText = prog >= 80 ? 'Excellent' : (prog >= 50 ? 'Average' : 'Beginner');
+    var passClass = prog >= 100 ? 'pass' : (prog > 0 ? 'pass' : 'fail');
+    var passText = prog >= 100 ? 'Completed' : (prog > 0 ? 'Active' : 'New');
+    var enrollDate = e.enrolled_at ? new Date(e.enrolled_at).toLocaleDateString() : 'N/A';
+
+    return '<tr>'
+      + '<td><div class="dash-tbl-name-cell">'
+      + '<div class="dash-tbl-avatar" style="background:' + color + '">' + initial + '</div>'
+      + '<span class="dash-tbl-name">' + escH(e.title) + '</span>'
+      + '</div></td>'
+      + '<td>' + prog + '/100</td>'
+      + '<td>' + enrollDate + '</td>'
+      + '<td><span class="grade-badge ' + gradeClass + '">' + gradeText + '</span></td>'
+      + '<td><span class="pass-badge ' + passClass + '">' + passText + '</span></td>'
+      + '</tr>';
+  }).join('');
+}
+
+function setTableTab(btn, type) {
+  document.querySelectorAll('.dash-table-tab').forEach(function(t){ t.classList.remove('active'); });
+  btn.classList.add('active');
+}
+
+/* ── Calendar ────────────────────────────────────────────────────── */
+function renderCalendar() {
+  var monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  document.getElementById('calMonthYear').textContent = monthNames[calMonth] + ' ' + calYear;
+
+  var grid = document.getElementById('calGrid');
+  var html = dayNames.map(function(d){ return '<div class="cal-day-name">' + d + '</div>'; }).join('');
+
+  var firstDay = new Date(calYear, calMonth, 1).getDay();
+  var daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+  var today = new Date();
+  var isCurrentMonth = today.getMonth() === calMonth && today.getFullYear() === calYear;
+
+  for (var i = 0; i < firstDay; i++) {
+    html += '<div class="cal-day empty"></div>';
+  }
+  for (var d = 1; d <= daysInMonth; d++) {
+    var isToday = isCurrentMonth && d === today.getDate();
+    html += '<div class="cal-day' + (isToday ? ' today' : '') + '">' + d + '</div>';
+  }
+
+  grid.innerHTML = html;
+
+  // Events below calendar
+  var eventsEl = document.getElementById('calEvents');
+  eventsEl.innerHTML =
+    '<div class="cal-event"><div class="cal-event-avatar" style="font-family:var(--font-serif);font-weight:700;">M</div><div><strong style="font-size:.72rem;color:var(--text)">Continue ML</strong><div style="font-size:.65rem;color:var(--text2)">Today</div></div></div>'
+    + '<div class="cal-event"><div class="cal-event-avatar" style="font-family:var(--font-serif);font-weight:700;">D</div><div><strong style="font-size:.72rem;color:var(--text)">DNA Review</strong><div style="font-size:.65rem;color:var(--text2)">10 AM</div></div></div>';
+}
+
+function changeMonth(delta) {
+  calMonth += delta;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  renderCalendar();
+}
+
+/* ── Helpers ─────────────────────────────────────────────────────── */
+function adjustColor(hex, amount) {
+  if (!hex || hex.indexOf('#') !== 0) return hex;
+  hex = hex.replace('#','');
+  if (hex.length === 3) hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
+  var r = Math.max(0, Math.min(255, parseInt(hex.substring(0,2),16) + amount));
+  var g = Math.max(0, Math.min(255, parseInt(hex.substring(2,4),16) + amount));
+  var b = Math.max(0, Math.min(255, parseInt(hex.substring(4,6),16) + amount));
+  return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+}
+function escH(s){ if(s==null)return''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
 loadDash();
 </script>
 {% endblock %}
