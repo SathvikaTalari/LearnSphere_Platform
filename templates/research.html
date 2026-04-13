@@ -3,126 +3,499 @@
 {% block content %}
 
 <style>
-/* ── Research page styles ───────────────────────────────────── */
-.rp-wrap         { max-width:1100px; margin:0 auto; padding:1.75rem 2rem 4rem; }
-.rp-hero         { text-align:center; padding:2rem 1rem 1.6rem; margin-bottom:1.75rem; }
-.rp-hero h1      { font-family:var(--ff-serif); font-size:2rem; font-weight:700; color:var(--text); margin-bottom:.5rem; }
-.rp-hero p       { font-size:.9rem; color:var(--text2); max-width:580px; margin:0 auto; line-height:1.65; }
-.rp-badge        { display:inline-block; background:var(--accent-glow); border:1px solid var(--border2);
-                   color:var(--accent); font-size:.7rem; font-weight:700; padding:.2rem .65rem;
-                   border-radius:20px; letter-spacing:.05em; text-transform:uppercase; margin-bottom:.75rem; }
+  /* ── Research page styles ───────────────────────────────────── */
+  .rp-wrap {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 1.75rem 2rem 4rem;
+  }
 
-/* Search bar */
-.rp-search-card  { background:var(--bg3); border:1px solid var(--border); border-radius:var(--r2);
-                   padding:1.5rem; margin-bottom:1.5rem; }
-.rp-search-row   { display:flex; gap:.75rem; align-items:flex-start; flex-wrap:wrap; margin-bottom:1rem; }
-.rp-input        { flex:1; min-width:240px; padding:.7rem 1rem; border-radius:10px;
-                   background:var(--bg2); border:1px solid var(--border); color:var(--text);
-                   font-family:var(--ff-sans); font-size:.9rem; outline:none; transition:border-color .15s; }
-.rp-input:focus  { border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-glow); }
-.rp-submit       { padding:.7rem 1.5rem; border-radius:10px; background:var(--accent);
-                   border:none; color:#fff; font-family:var(--ff-serif); font-size:.92rem;
-                   font-weight:700; cursor:pointer; white-space:nowrap; transition:filter .15s; }
-.rp-submit:hover { filter:brightness(1.1); }
-.rp-submit:disabled { opacity:.5; cursor:not-allowed; }
+  .rp-hero {
+    text-align: center;
+    padding: 2rem 1rem 1.6rem;
+    margin-bottom: 1.75rem;
+  }
 
-.rp-quick-label  { font-size:.7rem; color:var(--text2); font-weight:700; text-transform:uppercase; letter-spacing:.05em; margin-bottom:.45rem; }
-.rp-quick-chips  { display:flex; flex-wrap:wrap; gap:.35rem; }
-.rp-chip         { padding:.22rem .65rem; border-radius:20px; background:var(--bg2);
-                   border:1px solid var(--border); color:var(--text2); font-size:.74rem;
-                   cursor:pointer; font-family:var(--ff-sans); transition:all .14s; }
-.rp-chip:hover   { border-color:var(--accent); color:var(--accent); background:var(--accent-glow); }
+  .rp-hero h1 {
+    font-family: var(--ff-serif);
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: .5rem;
+  }
 
-/* Empty / loading */
-.rp-empty        { display:flex; flex-direction:column; align-items:center; justify-content:center;
-                   min-height:300px; text-align:center; color:var(--text2); gap:.75rem; }
-.rp-empty h3     { font-family:var(--ff-serif); font-size:1.1rem; color:var(--text); }
-.rp-loading      { display:flex; flex-direction:column; align-items:center; justify-content:center;
-                   min-height:300px; gap:1rem; color:var(--text2); text-align:center; }
+  .rp-hero p {
+    font-size: .9rem;
+    color: var(--text2);
+    max-width: 580px;
+    margin: 0 auto;
+    line-height: 1.65;
+  }
 
-/* Paper card */
-.paper-card      { background:var(--bg3); border:1px solid var(--border); border-radius:var(--r2); overflow:hidden; animation:fadeUp .35s ease both; }
+  .rp-badge {
+    display: inline-block;
+    background: var(--accent-glow);
+    border: 1px solid var(--border2);
+    color: var(--accent);
+    font-size: .7rem;
+    font-weight: 700;
+    padding: .2rem .65rem;
+    border-radius: 20px;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    margin-bottom: .75rem;
+  }
 
-/* Paper header */
-.paper-head      { background:var(--bg2); border-bottom:1px solid var(--border); padding:1.5rem 1.75rem; }
-.paper-journal   { font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--accent); margin-bottom:.45rem; }
-.paper-title     { font-family:var(--ff-serif); font-size:1.45rem; font-weight:700; color:var(--text); line-height:1.3; margin-bottom:.65rem; }
-.paper-meta-row  { display:flex; flex-wrap:wrap; gap:.55rem; align-items:center; }
-.paper-author    { font-size:.78rem; color:var(--text2); }
-.paper-year      { font-size:.72rem; background:var(--bg3); border:1px solid var(--border); color:var(--text2); padding:.1rem .45rem; border-radius:5px; }
-.paper-keywords  { display:flex; flex-wrap:wrap; gap:.3rem; margin-top:.65rem; }
-.paper-kw        { padding:.15rem .5rem; border-radius:20px; background:var(--accent-glow); border:1px solid var(--border2); color:var(--accent); font-size:.68rem; font-weight:600; }
+  /* Search bar */
+  .rp-search-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--r2);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
 
-/* Paper actions */
-.paper-actions   { display:flex; gap:.55rem; padding:.9rem 1.75rem; border-bottom:1px solid var(--border); flex-wrap:wrap; align-items:center; }
-.pa-btn          { padding:.32rem .88rem; border-radius:7px; border:1px solid var(--border);
-                   background:var(--bg2); color:var(--text2); font-size:.78rem; font-weight:600;
-                   cursor:pointer; font-family:var(--ff-sans); transition:all .14s; }
-.pa-btn:hover    { border-color:var(--accent); color:var(--accent); background:var(--accent-glow); }
-.pa-btn.primary  { background:var(--accent); border-color:var(--accent); color:#fff; }
-.pa-btn.primary:hover { filter:brightness(1.1); }
+  .rp-search-row {
+    display: flex;
+    gap: .75rem;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+  }
 
-/* Paper body */
-.paper-body      { padding:1.75rem; }
+  .rp-input {
+    flex: 1;
+    min-width: 240px;
+    padding: .7rem 1rem;
+    border-radius: 10px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--ff-sans);
+    font-size: .9rem;
+    outline: none;
+    transition: border-color .15s;
+  }
 
-/* Section nav */
-.section-nav     { display:flex; flex-wrap:wrap; gap:.3rem; margin-bottom:1.5rem;
-                   padding-bottom:.75rem; border-bottom:1px solid var(--border); }
-.sec-nav-btn     { padding:.28rem .78rem; border-radius:6px; border:1px solid transparent;
-                   background:none; color:var(--text2); font-size:.78rem; font-weight:600;
-                   cursor:pointer; font-family:var(--ff-sans); transition:all .14s; }
-.sec-nav-btn.active { background:var(--accent-glow); border-color:var(--border2); color:var(--accent); }
+  .rp-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
 
-.paper-section   { display:none; animation:fadeUp .22s ease both; }
-.paper-section.active { display:block; }
+  .rp-submit {
+    padding: .7rem 1.5rem;
+    border-radius: 10px;
+    background: var(--accent);
+    border: none;
+    color: #fff;
+    font-family: var(--ff-serif);
+    font-size: .92rem;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: filter .15s;
+  }
 
-/* Section labels */
-.sec-label       { font-size:.67rem; font-weight:700; text-transform:uppercase; letter-spacing:.07em;
-                   color:var(--accent); margin-bottom:.5rem; display:block; }
-.sec-heading     { font-family:var(--ff-serif); font-size:1.15rem; font-weight:700; color:var(--text); margin-bottom:.85rem; border-bottom:2px solid var(--accent-glow); padding-bottom:.45rem; }
-.sec-body        { font-size:.88rem; color:var(--text2); line-height:1.85; }
-.sec-body p      { margin-bottom:.85rem; }
-.sec-body p:last-child { margin-bottom:0; }
+  .rp-submit:hover {
+    filter: brightness(1.1);
+  }
 
-/* References */
-.ref-list        { list-style:none; display:flex; flex-direction:column; gap:.55rem; }
-.ref-item        { display:flex; gap:.65rem; padding:.62rem .75rem; background:var(--bg2);
-                   border-radius:8px; border:1px solid var(--border); font-size:.8rem; color:var(--text2); line-height:1.55; }
-.ref-num         { color:var(--accent); font-weight:700; font-family:var(--ff-mono); font-size:.78rem; flex-shrink:0; }
+  .rp-submit:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+  }
 
-/* Downloads sidebar */
-.rp-grid         { display:grid; grid-template-columns:1fr 300px; gap:1.4rem; align-items:start; }
-.sources-card    { background:var(--bg3); border:1px solid var(--border); border-radius:var(--r2);
-                   padding:1.25rem; position:sticky; top:80px; }
-.sources-card h3 { font-family:var(--ff-serif); font-size:.95rem; font-weight:700; color:var(--text); margin-bottom:.3rem; }
-.sources-sub     { font-size:.73rem; color:var(--text2); margin-bottom:.95rem; line-height:1.4; }
-.source-item     { display:flex; flex-direction:column; gap:.18rem; padding:.65rem .75rem;
-                   border-radius:9px; border:1px solid var(--border); background:var(--bg2);
-                   margin-bottom:.45rem; transition:all .14s; text-decoration:none; }
-.source-item:hover { border-color:var(--border2); background:var(--bg4); }
-.source-name     { font-size:.82rem; font-weight:700; color:var(--text); }
-.source-desc     { font-size:.72rem; color:var(--text2); }
-.source-tag      { display:inline-block; padding:.1rem .42rem; border-radius:5px;
-                   background:var(--accent-glow); border:1px solid var(--border2);
-                   color:var(--accent); font-size:.63rem; font-weight:700; margin-top:.15rem; }
+  .rp-quick-label {
+    font-size: .7rem;
+    color: var(--text2);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    margin-bottom: .45rem;
+  }
 
-@media(max-width:900px){ .rp-grid{ grid-template-columns:1fr; } .sources-card{ position:static; } }
-@media(max-width:700px){ .rp-wrap{ padding:1rem 1rem 3rem; } .paper-head{ padding:1.1rem; } .paper-body{ padding:1.1rem; } }
+  .rp-quick-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .35rem;
+  }
+
+  .rp-chip {
+    padding: .22rem .65rem;
+    border-radius: 20px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    color: var(--text2);
+    font-size: .74rem;
+    cursor: pointer;
+    font-family: var(--ff-sans);
+    transition: all .14s;
+  }
+
+  .rp-chip:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-glow);
+  }
+
+  /* Empty / loading */
+  .rp-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+    text-align: center;
+    color: var(--text2);
+    gap: .75rem;
+  }
+
+  .rp-empty h3 {
+    font-family: var(--ff-serif);
+    font-size: 1.1rem;
+    color: var(--text);
+  }
+
+  .rp-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+    gap: 1rem;
+    color: var(--text2);
+    text-align: center;
+  }
+
+  /* Paper card */
+  .paper-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--r2);
+    overflow: hidden;
+    animation: fadeUp .35s ease both;
+  }
+
+  /* Paper header */
+  .paper-head {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 1.5rem 1.75rem;
+  }
+
+  .paper-journal {
+    font-size: .68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: var(--accent);
+    margin-bottom: .45rem;
+  }
+
+  .paper-title {
+    font-family: var(--ff-serif);
+    font-size: 1.45rem;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.3;
+    margin-bottom: .65rem;
+  }
+
+  .paper-meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .55rem;
+    align-items: center;
+  }
+
+  .paper-author {
+    font-size: .78rem;
+    color: var(--text2);
+  }
+
+  .paper-year {
+    font-size: .72rem;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--text2);
+    padding: .1rem .45rem;
+    border-radius: 5px;
+  }
+
+  .paper-keywords {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .3rem;
+    margin-top: .65rem;
+  }
+
+  .paper-kw {
+    padding: .15rem .5rem;
+    border-radius: 20px;
+    background: var(--accent-glow);
+    border: 1px solid var(--border2);
+    color: var(--accent);
+    font-size: .68rem;
+    font-weight: 600;
+  }
+
+  /* Paper actions */
+  .paper-actions {
+    display: flex;
+    gap: .55rem;
+    padding: .9rem 1.75rem;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .pa-btn {
+    padding: .32rem .88rem;
+    border-radius: 7px;
+    border: 1px solid var(--border);
+    background: var(--bg2);
+    color: var(--text2);
+    font-size: .78rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: var(--ff-sans);
+    transition: all .14s;
+  }
+
+  .pa-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-glow);
+  }
+
+  .pa-btn.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+
+  .pa-btn.primary:hover {
+    filter: brightness(1.1);
+  }
+
+  /* Paper body */
+  .paper-body {
+    padding: 1.75rem;
+  }
+
+  /* Section nav */
+  .section-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .3rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: .75rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .sec-nav-btn {
+    padding: .28rem .78rem;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    background: none;
+    color: var(--text2);
+    font-size: .78rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: var(--ff-sans);
+    transition: all .14s;
+  }
+
+  .sec-nav-btn.active {
+    background: var(--accent-glow);
+    border-color: var(--border2);
+    color: var(--accent);
+  }
+
+  .paper-section {
+    display: none;
+    animation: fadeUp .22s ease both;
+  }
+
+  .paper-section.active {
+    display: block;
+  }
+
+  /* Section labels */
+  .sec-label {
+    font-size: .67rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: var(--accent);
+    margin-bottom: .5rem;
+    display: block;
+  }
+
+  .sec-heading {
+    font-family: var(--ff-serif);
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: .85rem;
+    border-bottom: 2px solid var(--accent-glow);
+    padding-bottom: .45rem;
+  }
+
+  .sec-body {
+    font-size: .88rem;
+    color: var(--text2);
+    line-height: 1.85;
+  }
+
+  .sec-body p {
+    margin-bottom: .85rem;
+  }
+
+  .sec-body p:last-child {
+    margin-bottom: 0;
+  }
+
+  /* References */
+  .ref-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: .55rem;
+  }
+
+  .ref-item {
+    display: flex;
+    gap: .65rem;
+    padding: .62rem .75rem;
+    background: var(--bg2);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    font-size: .8rem;
+    color: var(--text2);
+    line-height: 1.55;
+  }
+
+  .ref-num {
+    color: var(--accent);
+    font-weight: 700;
+    font-family: var(--ff-mono);
+    font-size: .78rem;
+    flex-shrink: 0;
+  }
+
+  /* Downloads sidebar */
+  .rp-grid {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 1.4rem;
+    align-items: start;
+  }
+
+  .sources-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--r2);
+    padding: 1.25rem;
+    position: sticky;
+    top: 80px;
+  }
+
+  .sources-card h3 {
+    font-family: var(--ff-serif);
+    font-size: .95rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: .3rem;
+  }
+
+  .sources-sub {
+    font-size: .73rem;
+    color: var(--text2);
+    margin-bottom: .95rem;
+    line-height: 1.4;
+  }
+
+  .source-item {
+    display: flex;
+    flex-direction: column;
+    gap: .18rem;
+    padding: .65rem .75rem;
+    border-radius: 9px;
+    border: 1px solid var(--border);
+    background: var(--bg2);
+    margin-bottom: .45rem;
+    transition: all .14s;
+    text-decoration: none;
+  }
+
+  .source-item:hover {
+    border-color: var(--border2);
+    background: var(--bg4);
+  }
+
+  .source-name {
+    font-size: .82rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .source-desc {
+    font-size: .72rem;
+    color: var(--text2);
+  }
+
+  .source-tag {
+    display: inline-block;
+    padding: .1rem .42rem;
+    border-radius: 5px;
+    background: var(--accent-glow);
+    border: 1px solid var(--border2);
+    color: var(--accent);
+    font-size: .63rem;
+    font-weight: 700;
+    margin-top: .15rem;
+  }
+
+  @media(max-width:900px) {
+    .rp-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .sources-card {
+      position: static;
+    }
+  }
+
+  @media(max-width:700px) {
+    .rp-wrap {
+      padding: 1rem 1rem 3rem;
+    }
+
+    .paper-head {
+      padding: 1.1rem;
+    }
+
+    .paper-body {
+      padding: 1.1rem;
+    }
+  }
 </style>
 
 <div class="rp-wrap animate-in">
   <div class="rp-hero">
-    <span class="rp-badge">⭐ Research Lab</span>
+    <span class="rp-badge">Research Lab</span>
     <h1>📄 Research Paper Generator</h1>
-    <p>Enter any ML concept and get an IEEE-style academic research paper with abstract, methodology, results, and real references — downloadable as PDF.</p>
+    <p>Enter any ML concept and get an IEEE-style academic research paper with abstract, methodology, results, and real
+      references — downloadable as PDF.</p>
   </div>
 
   <!-- Search -->
   <div class="rp-search-card">
     <div class="rp-search-row">
       <input id="researchInput" class="rp-input"
-             placeholder="e.g. Convolutional Neural Networks, Gradient Descent, Transformers..."
-             onkeydown="if(event.key==='Enter') doResearch()">
+        placeholder="e.g. Convolutional Neural Networks, Gradient Descent, Transformers..."
+        onkeydown="if(event.key==='Enter') doResearch()">
       <button class="rp-submit" id="researchBtn" onclick="doResearch()">
         <span id="rBtnTxt">Generate Paper</span>
       </button>
@@ -146,7 +519,8 @@
       <div class="rp-empty">
         <div style="font-size:3.2rem">📄</div>
         <h3>Your research paper will appear here</h3>
-        <p style="font-size:.83rem">Enter any ML concept above to generate an IEEE-style paper with abstract, introduction, methodology, results, conclusion, and references.</p>
+        <p style="font-size:.83rem">Enter any ML concept above to generate an IEEE-style paper with abstract,
+          introduction, methodology, results, conclusion, and references.</p>
       </div>
     </div>
 
@@ -170,7 +544,8 @@
         <span class="source-desc">Cornell's preprint server — free ML/AI papers including latest research</span>
         <span class="source-tag">Free</span>
       </a>
-      <a href="https://ieeexplore.ieee.org/search/searchresult.jsp?queryText=machine+learning" target="_blank" class="source-item">
+      <a href="https://ieeexplore.ieee.org/search/searchresult.jsp?queryText=machine+learning" target="_blank"
+        class="source-item">
         <span class="source-name">IEEE Xplore</span>
         <span class="source-desc">IEEE & IET publications — authoritative engineering research</span>
         <span class="source-tag">Partial Free</span>
@@ -185,14 +560,17 @@
         <span class="source-desc">Aggregates papers across all publishers — often finds free PDF links</span>
         <span class="source-tag">Free</span>
       </a>
-      <a href="https://www.semanticscholar.org/search?q=machine+learning&sort=Relevance" target="_blank" class="source-item">
+      <a href="https://www.semanticscholar.org/search?q=machine+learning&sort=Relevance" target="_blank"
+        class="source-item">
         <span class="source-name">Semantic Scholar</span>
         <span class="source-desc">AI-powered research tool by Allen Institute — 200M+ papers</span>
         <span class="source-tag">Free</span>
       </a>
 
       <div id="dynamicSourceLink" style="margin-top:.75rem;display:none">
-        <div style="font-size:.7rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.4rem">Search for your topic:</div>
+        <div
+          style="font-size:.7rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.4rem">
+          Search for your topic:</div>
         <div id="topicLinks"></div>
       </div>
     </div>
@@ -200,295 +578,295 @@
 </div>
 
 <script>
-let currentPaper = null;
+  let currentPaper = null;
 
-function setTopic(t) {
-  document.getElementById('researchInput').value = t;
-  doResearch();
-}
+  function setTopic(t) {
+    document.getElementById('researchInput').value = t;
+    doResearch();
+  }
 
-async function doResearch() {
-  const concept = document.getElementById('researchInput').value.trim();
-  if (!concept) { alert('Please enter an ML concept.'); return; }
+  async function doResearch() {
+    const concept = document.getElementById('researchInput').value.trim();
+    if (!concept) { alert('Please enter an ML concept.'); return; }
 
-  const btn  = document.getElementById('researchBtn');
-  const btxt = document.getElementById('rBtnTxt');
-  btn.disabled = true;
-  btxt.innerHTML = '<span style="display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:.4rem"></span>Generating…';
+    const btn = document.getElementById('researchBtn');
+    const btxt = document.getElementById('rBtnTxt');
+    btn.disabled = true;
+    btxt.innerHTML = '<span style="display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:.4rem"></span>Generating…';
 
-  document.getElementById('paperArea').innerHTML =
-    '<div class="rp-loading"><div class="spinner"></div>' +
-    '<p>Generating research paper for: <strong>' + escH(concept) + '</strong><br>' +
-    '<small style="color:var(--text2)">This may take 20–30 seconds…</small></p></div>';
-
-  // Update dynamic search links
-  updateSourceLinks(concept);
-
-  try {
-    const res  = await fetch('/api/research_paper', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({concept})
-    });
-    const data = await res.json();
-    if (data.success) {
-      currentPaper = data.data;
-      renderPaper(data.data, concept);
-    } else {
-      document.getElementById('paperArea').innerHTML =
-        '<div class="error-card"><div style="font-size:2rem">⚠️</div><h3>Generation Failed</h3><p>' + escH(data.error) + '</p>' +
-        '<button onclick="doResearch()" class="btn btn-ghost" style="margin-top:1rem">↺ Try Again</button></div>';
-    }
-  } catch(e) {
     document.getElementById('paperArea').innerHTML =
-      '<div class="error-card"><div style="font-size:2rem">⚠️</div><h3>Network Error</h3><p>' + escH(e.message) + '</p></div>';
+      '<div class="rp-loading"><div class="spinner"></div>' +
+      '<p>Generating research paper for: <strong>' + escH(concept) + '</strong><br>' +
+      '<small style="color:var(--text2)">This may take 20–30 seconds…</small></p></div>';
+
+    // Update dynamic search links
+    updateSourceLinks(concept);
+
+    try {
+      const res = await fetch('/api/research_paper', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ concept })
+      });
+      const data = await res.json();
+      if (data.success) {
+        currentPaper = data.data;
+        renderPaper(data.data, concept);
+      } else {
+        document.getElementById('paperArea').innerHTML =
+          '<div class="error-card"><div style="font-size:2rem">⚠️</div><h3>Generation Failed</h3><p>' + escH(data.error) + '</p>' +
+          '<button onclick="doResearch()" class="btn btn-ghost" style="margin-top:1rem">↺ Try Again</button></div>';
+      }
+    } catch (e) {
+      document.getElementById('paperArea').innerHTML =
+        '<div class="error-card"><div style="font-size:2rem">⚠️</div><h3>Network Error</h3><p>' + escH(e.message) + '</p></div>';
+    }
+
+    btn.disabled = false;
+    btxt.textContent = 'Generate Paper';
   }
 
-  btn.disabled = false;
-  btxt.textContent = 'Generate Paper';
-}
-
-function updateSourceLinks(topic) {
-  const enc = encodeURIComponent(topic);
-  document.getElementById('topicLinks').innerHTML = [
-    ['ResearchGate', 'https://www.researchgate.net/search?q=' + enc],
-    ['arXiv', 'https://arxiv.org/search/?searchtype=all&query=' + enc],
-    ['Google Scholar', 'https://scholar.google.com/scholar?q=' + enc],
-    ['IEEE Xplore', 'https://ieeexplore.ieee.org/search/searchresult.jsp?queryText=' + enc],
-  ].map(function(s){
-    return '<a href="' + s[1] + '" target="_blank" style="display:block;padding:.32rem .6rem;border-radius:6px;border:1px solid var(--border);background:var(--bg2);color:var(--accent);font-size:.76rem;margin-bottom:.3rem;font-weight:600;text-decoration:none">' + s[0] + ' →</a>';
-  }).join('');
-  document.getElementById('dynamicSourceLink').style.display = 'block';
-}
-
-function renderPaper(d, concept) {
-  const sections = [
-    {key:'abstract',     label:'Abstract'},
-    {key:'introduction', label:'I. Introduction'},
-    {key:'methodology',  label:'II. Methodology'},
-    {key:'results',      label:'III. Results'},
-    {key:'conclusion',   label:'IV. Conclusion'},
-    {key:'references',   label:'References'},
-  ];
-
-  const navHtml = sections.map(function(s, i){
-    return '<button class="sec-nav-btn' + (i===0?' active':'') + '" onclick="switchSec(this,\'sec-' + s.key + '\')">' + s.label + '</button>';
-  }).join('');
-
-  function fmtBody(text) {
-    if (!text) return '<p style="color:var(--text2);font-style:italic">No content generated.</p>';
-    return text.split(/\\n\\n|\n\n/).map(function(p){
-      return '<p>' + escH(p.trim()) + '</p>';
+  function updateSourceLinks(topic) {
+    const enc = encodeURIComponent(topic);
+    document.getElementById('topicLinks').innerHTML = [
+      ['ResearchGate', 'https://www.researchgate.net/search?q=' + enc],
+      ['arXiv', 'https://arxiv.org/search/?searchtype=all&query=' + enc],
+      ['Google Scholar', 'https://scholar.google.com/scholar?q=' + enc],
+      ['IEEE Xplore', 'https://ieeexplore.ieee.org/search/searchresult.jsp?queryText=' + enc],
+    ].map(function (s) {
+      return '<a href="' + s[1] + '" target="_blank" style="display:block;padding:.32rem .6rem;border-radius:6px;border:1px solid var(--border);background:var(--bg2);color:var(--accent);font-size:.76rem;margin-bottom:.3rem;font-weight:600;text-decoration:none">' + s[0] + ' →</a>';
     }).join('');
+    document.getElementById('dynamicSourceLink').style.display = 'block';
   }
 
-  const kwHtml = (d.keywords || []).map(function(k){
-    return '<span class="paper-kw">' + escH(k) + '</span>';
-  }).join('');
+  function renderPaper(d, concept) {
+    const sections = [
+      { key: 'abstract', label: 'Abstract' },
+      { key: 'introduction', label: 'I. Introduction' },
+      { key: 'methodology', label: 'II. Methodology' },
+      { key: 'results', label: 'III. Results' },
+      { key: 'conclusion', label: 'IV. Conclusion' },
+      { key: 'references', label: 'References' },
+    ];
 
-  const refHtml = (d.references && d.references.length)
-    ? '<ul class="ref-list">' + d.references.map(function(r, i){
-        return '<li class="ref-item"><span class="ref-num">[' + (i+1) + ']</span><span>' + escH(r) + '</span></li>';
+    const navHtml = sections.map(function (s, i) {
+      return '<button class="sec-nav-btn' + (i === 0 ? ' active' : '') + '" onclick="switchSec(this,\'sec-' + s.key + '\')">' + s.label + '</button>';
+    }).join('');
+
+    function fmtBody(text) {
+      if (!text) return '<p style="color:var(--text2);font-style:italic">No content generated.</p>';
+      return text.split(/\\n\\n|\n\n/).map(function (p) {
+        return '<p>' + escH(p.trim()) + '</p>';
+      }).join('');
+    }
+
+    const kwHtml = (d.keywords || []).map(function (k) {
+      return '<span class="paper-kw">' + escH(k) + '</span>';
+    }).join('');
+
+    const refHtml = (d.references && d.references.length)
+      ? '<ul class="ref-list">' + d.references.map(function (r, i) {
+        return '<li class="ref-item"><span class="ref-num">[' + (i + 1) + ']</span><span>' + escH(r) + '</span></li>';
       }).join('') + '</ul>'
-    : '<p style="color:var(--text2);font-style:italic">No references generated.</p>';
+      : '<p style="color:var(--text2);font-style:italic">No references generated.</p>';
 
-  const sectionsHtml = sections.map(function(s, i){
-    return '<div id="sec-' + s.key + '" class="paper-section' + (i===0?' active':'') + '">'
-      + '<span class="sec-label">' + s.label + '</span>'
-      + (s.key !== 'references'
+    const sectionsHtml = sections.map(function (s, i) {
+      return '<div id="sec-' + s.key + '" class="paper-section' + (i === 0 ? ' active' : '') + '">'
+        + '<span class="sec-label">' + s.label + '</span>'
+        + (s.key !== 'references'
           ? fmtBody(d[s.key])
           : refHtml)
-      + '</div>';
-  }).join('');
+        + '</div>';
+    }).join('');
 
-  document.getElementById('paperArea').innerHTML =
-    '<div class="paper-card">'
+    document.getElementById('paperArea').innerHTML =
+      '<div class="paper-card">'
 
-    // Header
-    + '<div class="paper-head">'
-    + '<div class="paper-journal">LearnSphere Research Lab · IEEE Format · ' + new Date().getFullYear() + '</div>'
-    + '<div class="paper-title">' + escH(d.title || concept) + '</div>'
-    + '<div class="paper-meta-row">'
-    + '<span class="paper-author">AI-Generated Survey Paper</span>'
-    + '<span class="paper-year">' + new Date().getFullYear() + '</span>'
-    + '</div>'
-    + (kwHtml ? '<div class="paper-keywords">' + kwHtml + '</div>' : '')
-    + '</div>'
+      // Header
+      + '<div class="paper-head">'
+      + '<div class="paper-journal">LearnSphere Research Lab · IEEE Format · ' + new Date().getFullYear() + '</div>'
+      + '<div class="paper-title">' + escH(d.title || concept) + '</div>'
+      + '<div class="paper-meta-row">'
+      + '<span class="paper-author">AI-Generated Survey Paper</span>'
+      + '<span class="paper-year">' + new Date().getFullYear() + '</span>'
+      + '</div>'
+      + (kwHtml ? '<div class="paper-keywords">' + kwHtml + '</div>' : '')
+      + '</div>'
 
-    // Actions
-    + '<div class="paper-actions">'
-    + '<button class="pa-btn primary" onclick="downloadPDF()">⬇ Download PDF</button>'
-    + '<button class="pa-btn" onclick="copyText()">📋 Copy Text</button>'
-    + '<button class="pa-btn" onclick="printPaper()">🖨 Print</button>'
-    + '</div>'
+      // Actions
+      + '<div class="paper-actions">'
+      + '<button class="pa-btn primary" onclick="downloadPDF()">⬇ Download PDF</button>'
+      + '<button class="pa-btn" onclick="copyText()">📋 Copy Text</button>'
+      + '<button class="pa-btn" onclick="printPaper()">🖨 Print</button>'
+      + '</div>'
 
-    // Body
-    + '<div class="paper-body">'
-    + '<div class="section-nav">' + navHtml + '</div>'
-    + sectionsHtml
-    + '</div></div>';
-}
+      // Body
+      + '<div class="paper-body">'
+      + '<div class="section-nav">' + navHtml + '</div>'
+      + sectionsHtml
+      + '</div></div>';
+  }
 
-function switchSec(btn, secId) {
-  document.querySelectorAll('.sec-nav-btn').forEach(function(b){ b.classList.remove('active'); });
-  document.querySelectorAll('.paper-section').forEach(function(s){ s.classList.remove('active'); });
-  btn.classList.add('active');
-  const el = document.getElementById(secId);
-  if (el) el.classList.add('active');
-}
+  function switchSec(btn, secId) {
+    document.querySelectorAll('.sec-nav-btn').forEach(function (b) { b.classList.remove('active'); });
+    document.querySelectorAll('.paper-section').forEach(function (s) { s.classList.remove('active'); });
+    btn.classList.add('active');
+    const el = document.getElementById(secId);
+    if (el) el.classList.add('active');
+  }
 
-// ── PDF Generation ─────────────────────────────────────────────────────────
-// Opens a new tab with a COMPLETELY SELF-CONTAINED IEEE paper document.
-// Uses body onload="window.print()" — most reliable cross-browser approach.
-// Nothing from LearnSphere's CSS/JS is included — only the paper content.
-function downloadPDF() {
-  if (!currentPaper) { alert('Please generate a paper first.'); return; }
-  var d    = currentPaper;
-  var year = new Date().getFullYear();
+  // ── PDF Generation ─────────────────────────────────────────────────────────
+  // Opens a new tab with a COMPLETELY SELF-CONTAINED IEEE paper document.
+  // Uses body onload="window.print()" — most reliable cross-browser approach.
+  // Nothing from LearnSphere's CSS/JS is included — only the paper content.
+  function downloadPDF() {
+    if (!currentPaper) { alert('Please generate a paper first.'); return; }
+    var d = currentPaper;
+    var year = new Date().getFullYear();
 
-  // Escape HTML entities safely
-  function e(s) {
+    // Escape HTML entities safely
+    function e(s) {
+      if (s == null) return '';
+      return String(s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    // Build one section block with paragraphs
+    function sec(heading, body) {
+      if (!body || !body.trim()) return '';
+      var ps = body.split(/\n\n|\n/).filter(function (p) { return p.trim(); })
+        .map(function (p) { return '<p>' + e(p.trim()) + '</p>'; }).join('');
+      return '<div class="s"><h2>' + heading + '</h2>' + ps + '</div>';
+    }
+
+    var refs = (d.references && d.references.length)
+      ? '<div class="s"><h2>References</h2><ol class="rl">'
+      + d.references.map(function (r) { return '<li>' + e(r) + '</li>'; }).join('')
+      + '</ol></div>'
+      : '';
+
+    var kws = (d.keywords && d.keywords.length)
+      ? '<p class="kw"><strong>Keywords:</strong> ' + e(d.keywords.join(', ')) + '</p>'
+      : '';
+
+    // Build the complete paper HTML — body onload triggers print dialog
+    var parts = [
+      '<!DOCTYPE html>',
+      '<html lang="en">',
+      '<head>',
+      '<meta charset="UTF-8">',
+      '<meta name="viewport" content="width=device-width,initial-scale=1">',
+      '<title>' + e(d.title || 'Research Paper') + '</title>',
+      '<style>',
+      '*{margin:0;padding:0;box-sizing:border-box}',
+      'body{font-family:"Times New Roman",Times,serif;font-size:10pt;color:#000;background:#fff;line-height:1.5}',
+      '.page{width:210mm;min-height:297mm;margin:0 auto;padding:20mm 18mm}',
+      '.hd{text-align:center;border-bottom:2pt solid #000;padding-bottom:12pt;margin-bottom:14pt}',
+      '.jn{font-size:7pt;text-transform:uppercase;letter-spacing:1.5px;color:#666;margin-bottom:6pt}',
+      '.ti{font-size:16pt;font-weight:bold;line-height:1.25;margin-bottom:7pt}',
+      '.me{font-size:9pt;color:#444}',
+      '.kw{font-size:8.5pt;color:#333;font-style:italic;padding:5pt 0;border-top:.5pt solid #ccc;border-bottom:.5pt solid #ccc;margin:8pt 0 10pt}',
+      '.ab{background:#f9f9f9;border-left:2.5pt solid #555;padding:7pt 10pt;margin-bottom:10pt}',
+      '.ab h2{font-size:9.5pt;font-weight:bold;text-transform:uppercase;margin-bottom:4pt}',
+      '.ab p{font-size:9.5pt;text-align:justify;font-style:italic}',
+      '.body{column-count:2;column-gap:12mm;column-rule:.5pt solid #ccc}',
+      '.s{margin-bottom:10pt;break-inside:avoid-column}',
+      '.s h2{font-size:9.5pt;font-weight:bold;text-transform:uppercase;border-bottom:.75pt solid #000;padding-bottom:2pt;margin-bottom:5pt;margin-top:10pt}',
+      '.s p{text-align:justify;margin-bottom:5pt;font-size:10pt;hyphens:auto}',
+      '.rl{padding-left:14pt;font-size:8.5pt;line-height:1.4}',
+      '.rl li{margin-bottom:3pt;text-align:justify}',
+      '.ft{column-span:all;text-align:center;font-size:7pt;color:#888;border-top:.5pt solid #ccc;margin-top:16pt;padding-top:4pt}',
+      '.btns{position:fixed;top:10px;right:10px;display:flex;gap:8px;z-index:9999}',
+      '.btns button{padding:8px 16px;border:none;border-radius:5px;cursor:pointer;font-size:13px;font-family:Arial;font-weight:600}',
+      '.pb{background:#1a56db;color:#fff}',
+      '.cb{background:#666;color:#fff}',
+      '@media print{.btns{display:none!important} body{-webkit-print-color-adjust:exact} .page{margin:0;padding:15mm;width:100%}}',
+      '</style>',
+      '</head>',
+      // body onload is the most reliable way to trigger print in blob: URLs
+      '<body onload="setTimeout(function(){window.print();},500)">',
+      '<div class="btns">',
+      '  <button class="pb" onclick="window.print()">🖨 Save as PDF</button>',
+      '  <button class="cb" onclick="window.close()">✕ Close</button>',
+      '</div>',
+      '<div class="page">',
+      '  <div class="hd">',
+      '    <div class="jn">LearnSphere Research Lab — IEEE Format — ' + year + '</div>',
+      '    <div class="ti">' + e(d.title || 'Research Paper') + '</div>',
+      '    <div class="me">AI-Generated Survey Paper &nbsp;|&nbsp; ' + year + ' &nbsp;|&nbsp; LearnSphere Academic Module</div>',
+      '  </div>',
+      kws,
+      '  <div class="body">',
+      d.abstract
+        ? '    <div class="ab" style="column-span:all"><h2>Abstract</h2><p>' + e(d.abstract) + '</p></div>'
+        : '',
+      sec('I. Introduction', d.introduction),
+      sec('II. Methodology', d.methodology),
+      sec('III. Results', d.results),
+      sec('IV. Conclusion', d.conclusion),
+      refs,
+      '    <div class="ft">Generated by LearnSphere Research Lab &bull; ' + year + ' &bull; For educational purposes only</div>',
+      '  </div>',
+      '</div>',
+      '</body>',
+      '</html>'
+    ];
+    var html = parts.join('\n');
+
+    // Create blob URL and open in new tab
+    var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var tab = window.open(url, '_blank');
+
+    if (!tab) {
+      // Popup blocked — download as .html file instead
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = (d.title || 'research_paper').replace(/[^\w\s-]/g, '').trim().replace(/\s+/g, '_').slice(0, 50) + '_IEEE.html';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function () { URL.revokeObjectURL(url); }, 5000);
+      alert(
+        'Popup was blocked by your browser.\n\n' +
+        'The paper has been downloaded as an HTML file.\n' +
+        'Open it in your browser, then press Ctrl+P → Save as PDF.'
+      );
+      return;
+    }
+    // Revoke blob URL after the new tab finishes loading
+    setTimeout(function () { URL.revokeObjectURL(url); }, 10000);
+  }
+
+
+  function copyText() {
+    if (!currentPaper) return;
+    const d = currentPaper;
+    const secs = ['abstract', 'introduction', 'methodology', 'results', 'conclusion'];
+    let txt = (d.title || 'Research Paper') + '\n';
+    txt += '='.repeat(70) + '\n\n';
+    if (d.keywords && d.keywords.length) txt += 'Keywords: ' + d.keywords.join(', ') + '\n\n';
+    secs.forEach(function (k) {
+      if (d[k]) { txt += k.toUpperCase() + '\n' + '-'.repeat(40) + '\n' + d[k] + '\n\n'; }
+    });
+    if (d.references && d.references.length) {
+      txt += 'REFERENCES\n' + '-'.repeat(40) + '\n';
+      d.references.forEach(function (r, i) { txt += '[' + (i + 1) + '] ' + r + '\n'; });
+    }
+    navigator.clipboard.writeText(txt).then(function () {
+      var btn = document.querySelector('.pa-btn:nth-child(2)');
+      if (btn) { var orig = btn.textContent; btn.textContent = '✅ Copied!'; setTimeout(function () { btn.textContent = orig; }, 2000); }
+    });
+  }
+
+  function printPaper() {
+    // reuse downloadPDF which opens a clean popup and auto-prints
+    downloadPDF();
+  }
+
+  function escH(s) {
     if (s == null) return '';
-    return String(s)
-      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
-
-  // Build one section block with paragraphs
-  function sec(heading, body) {
-    if (!body || !body.trim()) return '';
-    var ps = body.split(/\n\n|\n/).filter(function(p){ return p.trim(); })
-      .map(function(p){ return '<p>' + e(p.trim()) + '</p>'; }).join('');
-    return '<div class="s"><h2>' + heading + '</h2>' + ps + '</div>';
-  }
-
-  var refs = (d.references && d.references.length)
-    ? '<div class="s"><h2>References</h2><ol class="rl">'
-        + d.references.map(function(r){ return '<li>' + e(r) + '</li>'; }).join('')
-        + '</ol></div>'
-    : '';
-
-  var kws = (d.keywords && d.keywords.length)
-    ? '<p class="kw"><strong>Keywords:</strong> ' + e(d.keywords.join(', ')) + '</p>'
-    : '';
-
-  // Build the complete paper HTML — body onload triggers print dialog
-  var parts = [
-    '<!DOCTYPE html>',
-    '<html lang="en">',
-    '<head>',
-    '<meta charset="UTF-8">',
-    '<meta name="viewport" content="width=device-width,initial-scale=1">',
-    '<title>' + e(d.title || 'Research Paper') + '</title>',
-    '<style>',
-    '*{margin:0;padding:0;box-sizing:border-box}',
-    'body{font-family:"Times New Roman",Times,serif;font-size:10pt;color:#000;background:#fff;line-height:1.5}',
-    '.page{width:210mm;min-height:297mm;margin:0 auto;padding:20mm 18mm}',
-    '.hd{text-align:center;border-bottom:2pt solid #000;padding-bottom:12pt;margin-bottom:14pt}',
-    '.jn{font-size:7pt;text-transform:uppercase;letter-spacing:1.5px;color:#666;margin-bottom:6pt}',
-    '.ti{font-size:16pt;font-weight:bold;line-height:1.25;margin-bottom:7pt}',
-    '.me{font-size:9pt;color:#444}',
-    '.kw{font-size:8.5pt;color:#333;font-style:italic;padding:5pt 0;border-top:.5pt solid #ccc;border-bottom:.5pt solid #ccc;margin:8pt 0 10pt}',
-    '.ab{background:#f9f9f9;border-left:2.5pt solid #555;padding:7pt 10pt;margin-bottom:10pt}',
-    '.ab h2{font-size:9.5pt;font-weight:bold;text-transform:uppercase;margin-bottom:4pt}',
-    '.ab p{font-size:9.5pt;text-align:justify;font-style:italic}',
-    '.body{column-count:2;column-gap:12mm;column-rule:.5pt solid #ccc}',
-    '.s{margin-bottom:10pt;break-inside:avoid-column}',
-    '.s h2{font-size:9.5pt;font-weight:bold;text-transform:uppercase;border-bottom:.75pt solid #000;padding-bottom:2pt;margin-bottom:5pt;margin-top:10pt}',
-    '.s p{text-align:justify;margin-bottom:5pt;font-size:10pt;hyphens:auto}',
-    '.rl{padding-left:14pt;font-size:8.5pt;line-height:1.4}',
-    '.rl li{margin-bottom:3pt;text-align:justify}',
-    '.ft{column-span:all;text-align:center;font-size:7pt;color:#888;border-top:.5pt solid #ccc;margin-top:16pt;padding-top:4pt}',
-    '.btns{position:fixed;top:10px;right:10px;display:flex;gap:8px;z-index:9999}',
-    '.btns button{padding:8px 16px;border:none;border-radius:5px;cursor:pointer;font-size:13px;font-family:Arial;font-weight:600}',
-    '.pb{background:#1a56db;color:#fff}',
-    '.cb{background:#666;color:#fff}',
-    '@media print{.btns{display:none!important} body{-webkit-print-color-adjust:exact} .page{margin:0;padding:15mm;width:100%}}',
-    '</style>',
-    '</head>',
-    // body onload is the most reliable way to trigger print in blob: URLs
-    '<body onload="setTimeout(function(){window.print();},500)">',
-    '<div class="btns">',
-    '  <button class="pb" onclick="window.print()">🖨 Save as PDF</button>',
-    '  <button class="cb" onclick="window.close()">✕ Close</button>',
-    '</div>',
-    '<div class="page">',
-    '  <div class="hd">',
-    '    <div class="jn">LearnSphere Research Lab — IEEE Format — ' + year + '</div>',
-    '    <div class="ti">' + e(d.title || 'Research Paper') + '</div>',
-    '    <div class="me">AI-Generated Survey Paper &nbsp;|&nbsp; ' + year + ' &nbsp;|&nbsp; LearnSphere Academic Module</div>',
-    '  </div>',
-    kws,
-    '  <div class="body">',
-    d.abstract
-      ? '    <div class="ab" style="column-span:all"><h2>Abstract</h2><p>' + e(d.abstract) + '</p></div>'
-      : '',
-    sec('I. Introduction',  d.introduction),
-    sec('II. Methodology',  d.methodology),
-    sec('III. Results',     d.results),
-    sec('IV. Conclusion',   d.conclusion),
-    refs,
-    '    <div class="ft">Generated by LearnSphere Research Lab &bull; ' + year + ' &bull; For educational purposes only</div>',
-    '  </div>',
-    '</div>',
-    '</body>',
-    '</html>'
-  ];
-  var html = parts.join('\n');
-
-  // Create blob URL and open in new tab
-  var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-  var url  = URL.createObjectURL(blob);
-  var tab  = window.open(url, '_blank');
-
-  if (!tab) {
-    // Popup blocked — download as .html file instead
-    var a    = document.createElement('a');
-    a.href   = url;
-    a.download = (d.title || 'research_paper').replace(/[^\w\s-]/g, '').trim().replace(/\s+/g,'_').slice(0,50) + '_IEEE.html';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setTimeout(function(){ URL.revokeObjectURL(url); }, 5000);
-    alert(
-      'Popup was blocked by your browser.\n\n' +
-      'The paper has been downloaded as an HTML file.\n' +
-      'Open it in your browser, then press Ctrl+P → Save as PDF.'
-    );
-    return;
-  }
-  // Revoke blob URL after the new tab finishes loading
-  setTimeout(function(){ URL.revokeObjectURL(url); }, 10000);
-}
-
-
-function copyText() {
-  if (!currentPaper) return;
-  const d = currentPaper;
-  const secs = ['abstract','introduction','methodology','results','conclusion'];
-  let txt = (d.title || 'Research Paper') + '\n';
-  txt += '='.repeat(70) + '\n\n';
-  if (d.keywords && d.keywords.length) txt += 'Keywords: ' + d.keywords.join(', ') + '\n\n';
-  secs.forEach(function(k){
-    if (d[k]) { txt += k.toUpperCase() + '\n' + '-'.repeat(40) + '\n' + d[k] + '\n\n'; }
-  });
-  if (d.references && d.references.length) {
-    txt += 'REFERENCES\n' + '-'.repeat(40) + '\n';
-    d.references.forEach(function(r, i){ txt += '[' + (i+1) + '] ' + r + '\n'; });
-  }
-  navigator.clipboard.writeText(txt).then(function(){
-    var btn = document.querySelector('.pa-btn:nth-child(2)');
-    if (btn) { var orig = btn.textContent; btn.textContent = '✅ Copied!'; setTimeout(function(){ btn.textContent = orig; }, 2000); }
-  });
-}
-
-function printPaper() {
-  // reuse downloadPDF which opens a clean popup and auto-prints
-  downloadPDF();
-}
-
-function escH(s) {
-  if (s == null) return '';
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
 </script>
 {% endblock %}
