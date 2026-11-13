@@ -521,8 +521,9 @@
 
         <!-- ── Left: Video Showcase Panel ──────────────────────── -->
         <div class="video-panel">
-            <video autoplay muted loop playsinline>
-                <source src="{{ url_for('static', filename='videos/Learnsphere Video.mp4') }}?v={{ range(100000) | random }}" type="video/mp4">
+            <video id="bgVideo" autoplay muted loop playsinline preload="auto" poster="{{ url_for('static', filename='images/video-poster.jpg') }}">
+                <source src="{{ url_for('static', filename='videos/learnsphere.mp4') }}" type="video/mp4">
+                <source src="{{ url_for('static', filename='videos/Learnsphere Video.mp4') }}" type="video/mp4">
             </video>
 
             <!-- Floating stats -->
@@ -683,6 +684,28 @@
             }
             btn.disabled = false; btn.textContent = 'Create Account';
         }
+
+        // Background video playback reliability handler
+        document.addEventListener('DOMContentLoaded', () => {
+            const vid = document.getElementById('bgVideo');
+            if (vid) {
+                vid.muted = true;
+                const playPromise = vid.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch(() => {
+                        // If autoplay is blocked by low-power mode or browser policy,
+                        // retry playing on first user interaction
+                        const startOnInteraction = () => {
+                            vid.play().catch(() => {});
+                            window.removeEventListener('click', startOnInteraction);
+                            window.removeEventListener('touchstart', startOnInteraction);
+                        };
+                        window.addEventListener('click', startOnInteraction, { once: true });
+                        window.addEventListener('touchstart', startOnInteraction, { once: true });
+                    });
+                }
+            }
+        });
     </script>
 </body>
 
