@@ -4,6 +4,12 @@ import json, os, sqlite3, hashlib, uuid, random
 from datetime import datetime, timedelta
 from functools import wraps
 
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'learnsphere_secret_2024_xyz_dev_only')
 
