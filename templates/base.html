@@ -46,18 +46,70 @@
   </div>
 
   <div class="nav-right">
-    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle Day / Night">Night</button>
-    <div class="accent-dots">
-      <button class="adot" style="background:#00D4FF" onclick="setAccent('#00D4FF','cyan')"   data-k="cyan"   title="Cyan"></button>
-      <button class="adot" style="background:#7C3AED" onclick="setAccent('#7C3AED','purple')" data-k="purple" title="Purple"></button>
-      <button class="adot" style="background:#10B981" onclick="setAccent('#10B981','green')"  data-k="green"  title="Green"></button>
-      <button class="adot" style="background:#F59E0B" onclick="setAccent('#F59E0B','amber')"  data-k="amber"  title="Amber"></button>
+    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle Light / Dark Mode">🌙</button>
+
+    <!-- Sleek Corner User Profile with Dropdown -->
+    <div class="user-menu-wrap" id="userMenuWrap">
+      <button class="user-profile-btn" onclick="toggleUserDropdown(event)" aria-expanded="false" id="userProfileBtn" title="Account Menu">
+        <div class="user-avatar-badge">
+          <span>{{ session.get('username','?')[0]|upper }}</span>
+          <span class="user-status-dot"></span>
+        </div>
+        <div class="user-meta">
+          <span class="user-name">{{ session.get('username','User') }}</span>
+          <span class="user-role">{{ role|capitalize or 'Student' }}</span>
+        </div>
+        <svg class="chevron-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </button>
+
+      <!-- Dropdown Menu -->
+      <div class="user-dropdown" id="userDropdown">
+        <div class="user-dropdown-header">
+          <div class="dropdown-avatar">{{ session.get('username','?')[0]|upper }}</div>
+          <div class="dropdown-info">
+            <div class="dropdown-name">{{ session.get('username','User') }}</div>
+            <div class="dropdown-role-badge">{{ role|capitalize or 'Student' }}</div>
+          </div>
+        </div>
+        <div class="dropdown-divider"></div>
+
+        {% if role == 'educator' %}
+          <a href="/educator/dashboard" class="dropdown-item">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg>
+            <span>Educator Dashboard</span>
+          </a>
+          <a href="/educator/courses" class="dropdown-item">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+            <span>My Courses</span>
+          </a>
+        {% else %}
+          <a href="/student/dashboard" class="dropdown-item">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg>
+            <span>Student Dashboard</span>
+          </a>
+          <a href="/student/courses" class="dropdown-item">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+            <span>Enrolled Courses</span>
+          </a>
+          <a href="/dna" class="dropdown-item">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="m4.93 4.93 4.24 4.24"></path><path d="m14.83 9.17 4.24-4.24"></path><path d="m14.83 14.83 4.24 4.24"></path><path d="m9.17 14.83-4.24 4.24"></path></svg>
+            <span>Learning DNA</span>
+          </a>
+          <a href="/career" class="dropdown-item">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+            <span>Career Portfolio</span>
+          </a>
+        {% endif %}
+
+        <div class="dropdown-divider"></div>
+        <a href="/logout" class="dropdown-item logout-item">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+          <span>Sign Out</span>
+        </a>
+      </div>
     </div>
-    <div class="nav-user">
-      <span class="nav-avatar">{{ session.get('username','?')[0]|upper }}</span>
-      <span class="nav-username">{{ session.get('username','') }}</span>
-    </div>
-    <a href="/logout" class="logout-btn">Logout</a>
   </div>
 </nav>
 
@@ -81,11 +133,6 @@
 
   var icon = document.getElementById('themeToggle');
   if (icon) icon.textContent = t === 'day' ? '☀️' : '🌙';
-
-  document.querySelectorAll('.adot').forEach(function(d) {
-    d.style.outline = d.dataset.k === a ? '2px solid white' : 'none';
-    d.style.outlineOffset = '1px';
-  });
 })();
 
 function toggleTheme() {
@@ -101,17 +148,27 @@ function toggleTheme() {
     : 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css';
 }
 
-function setAccent(hex, key) {
-  document.documentElement.style.setProperty('--accent', hex);
-  document.documentElement.style.setProperty('--accent-glow', hex + '22');
-  document.documentElement.style.setProperty('--accent-strong', hex + '44');
-  document.documentElement.setAttribute('data-accent', key);
-  localStorage.setItem('ls_accent', key);
-  document.querySelectorAll('.adot').forEach(function(d) {
-    d.style.outline = d.dataset.k === key ? '2px solid white' : 'none';
-    d.style.outlineOffset = '1px';
-  });
+function toggleUserDropdown(e) {
+  if (e) {
+    e.stopPropagation();
+    e.preventDefault();
+  }
+  var menu = document.getElementById('userDropdown');
+  var btn = document.getElementById('userProfileBtn');
+  if (!menu) return;
+  var isOpen = menu.classList.toggle('show');
+  if (btn) btn.setAttribute('aria-expanded', isOpen);
 }
+
+document.addEventListener('click', function(e) {
+  var wrap = document.getElementById('userMenuWrap');
+  var menu = document.getElementById('userDropdown');
+  var btn = document.getElementById('userProfileBtn');
+  if (menu && wrap && !wrap.contains(e.target)) {
+    menu.classList.remove('show');
+    if (btn) btn.setAttribute('aria-expanded', 'false');
+  }
+});
 </script>
 {% block extra_js %}{% endblock %}
 </body>
