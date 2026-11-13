@@ -90,14 +90,8 @@ def ask_groq_json(prompt, system="You are LearnSphere, an expert ML tutor. Alway
     text = ask_groq(prompt, system=system, temperature=temperature)
     return clean_and_parse_json(text)
 
-# On Render free tier the working directory may be read-only;
-# /tmp is always writable. Use DB_PATH env var to override for local dev.
-DB_PATH = os.environ.get('DB_PATH', '/tmp/learnsphere.db')
-
-def get_db():
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    return conn
+# Database adapter (Supports PostgreSQL in production and SQLite in local development)
+from db_adapter import get_db, DB_PATH
 
 def init_db():
     conn = get_db()
@@ -145,7 +139,7 @@ def init_db():
         next_review TEXT,
         ease_factor REAL DEFAULT 2.5,
         interval_days INTEGER DEFAULT 1,
-        style_pref TEXT DEFAULT "balanced",
+        style_pref TEXT DEFAULT 'balanced',
         UNIQUE(user_id, concept))''')
 
     # Battle mode scores
