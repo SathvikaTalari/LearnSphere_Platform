@@ -80,3 +80,4 @@ git push origin main
    - Seed the default student demo account (`student@learnsphere.com` / `student123`).
    - Populate the initial courses and lecture curriculum.
 3. Every new user registration, quiz score, and course enrollment is now permanently stored in the cloud and will **never** disappear!
+

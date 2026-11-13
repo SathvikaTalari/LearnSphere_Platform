@@ -4,21 +4,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login — LearnSphere</title>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap"
-        rel="stylesheet">
+    <title>Sign In &bull; LearnSphere</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #020817;
-            --card: #0F1F35;
-            --border: rgba(0, 212, 255, 0.15);
+            --bg: #030712;
+            --bg-card: rgba(15, 23, 42, 0.72);
+            --border: rgba(255, 255, 255, 0.08);
+            --border-hover: rgba(0, 212, 255, 0.35);
+            --border-focus: #00D4FF;
             --accent: #00D4FF;
-            --accent2: #7C3AED;
-            --text: #E2E8F0;
-            --muted: #64748B;
+            --accent-glow: rgba(0, 212, 255, 0.28);
+            --accent-gradient: linear-gradient(135deg, #00D4FF 0%, #0284C7 100%);
+            --text: #F8FAFC;
+            --muted: #94A3B8;
+            --subtle: #64748B;
             --success: #10B981;
             --danger: #EF4444;
+            --font-main: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
         }
 
         * {
@@ -30,9 +36,11 @@
         body {
             background: var(--bg);
             color: var(--text);
-            font-family: 'Space Grotesk', sans-serif;
+            font-family: var(--font-main);
             min-height: 100vh;
-            overflow: hidden;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         /* ── Split Layout Container ─────────────────────────── */
@@ -45,9 +53,14 @@
         /* ── Left Panel — Video Showcase ─────────────────────── */
         .video-panel {
             position: relative;
-            flex: 1;
+            flex: 1.25;
             min-height: 100vh;
             overflow: hidden;
+            background: #020617;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 3rem;
         }
 
         .video-panel video {
@@ -60,148 +73,183 @@
             height: auto;
             transform: translate(-50%, -50%);
             object-fit: cover;
+            z-index: 0;
         }
 
-        /* Gradient fade on the right edge so video blends into form panel */
-        .video-panel::after {
-            content: '';
+        /* Ambient gradient overlays for contrast and smooth blend */
+        .video-overlay {
             position: absolute;
             inset: 0;
-            background: linear-gradient(to right, transparent 0%, transparent 60%, var(--bg) 100%);
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(0, 212, 255, 0.08) 0%, transparent 50%),
+                linear-gradient(to right, rgba(3, 7, 18, 0.3) 0%, rgba(3, 7, 18, 0.5) 60%, var(--bg) 100%),
+                linear-gradient(to top, rgba(3, 7, 18, 0.95) 0%, rgba(3, 7, 18, 0.3) 50%, rgba(3, 7, 18, 0.4) 100%);
             pointer-events: none;
+            z-index: 1;
         }
 
-        /* Brand info overlay on the video */
-        .video-brand {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
+        /* Top Brand Pill */
+        .video-top {
+            position: relative;
             z-index: 2;
-            padding: 2.5rem 3rem;
-            background: linear-gradient(to top, rgba(2, 8, 23, 0.85) 0%, rgba(2, 8, 23, 0.4) 60%, transparent 100%);
         }
 
-        .video-brand h2 {
-            font-family: 'Syne', sans-serif;
-            font-size: 2rem;
-            font-weight: 800;
+        .brand-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.5rem 1rem;
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 9999px;
+            font-size: 0.8rem;
+            font-weight: 600;
             color: var(--text);
-            margin-bottom: 0.5rem;
-            line-height: 1.2;
+            letter-spacing: 0.02em;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
         }
 
-        .video-brand h2 span {
-            color: var(--accent);
+        .badge-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 10px var(--accent);
+            animation: pulseDot 2s infinite;
         }
 
-        .video-brand p {
-            color: var(--muted);
-            font-size: 0.9rem;
-            max-width: 400px;
-            line-height: 1.6;
+        @keyframes pulseDot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.85); }
         }
 
-        /* Floating stat badges */
-        .video-stats {
-            position: absolute;
-            top: 2rem;
-            left: 2rem;
+        /* Bottom Hero Typography */
+        .video-bottom {
+            position: relative;
             z-index: 2;
+            max-width: 620px;
+        }
+
+        .hero-title {
+            font-size: 2.75rem;
+            font-weight: 800;
+            line-height: 1.15;
+            letter-spacing: -0.035em;
+            color: #FFFFFF;
+            margin-bottom: 1rem;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #00D4FF 0%, #38BDF8 50%, #A78BFA 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-desc {
+            font-size: 1.05rem;
+            line-height: 1.6;
+            color: var(--muted);
+            margin-bottom: 2rem;
+            font-weight: 400;
+        }
+
+        .hero-features {
             display: flex;
-            flex-direction: column;
+            flex-wrap: wrap;
             gap: 0.75rem;
         }
 
-        .stat-badge {
-            display: flex;
+        .feature-chip {
+            display: inline-flex;
             align-items: center;
-            gap: 0.6rem;
-            background: rgba(2, 8, 23, 0.6);
+            gap: 0.5rem;
+            padding: 0.45rem 0.9rem;
+            background: rgba(15, 23, 42, 0.55);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(0, 212, 255, 0.12);
-            border-radius: 12px;
-            padding: 0.6rem 1rem;
-            animation: fadeSlideIn 0.6s ease both;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: #CBD5E1;
+            transition: all 0.25s ease;
         }
 
-        .stat-badge:nth-child(2) {
-            animation-delay: 0.15s;
+        .feature-chip:hover {
+            border-color: rgba(0, 212, 255, 0.3);
+            background: rgba(0, 212, 255, 0.08);
+            transform: translateY(-1px);
         }
 
-        .stat-badge:nth-child(3) {
-            animation-delay: 0.3s;
-        }
-
-        .stat-badge .stat-icon {
-            font-size: 1.1rem;
-        }
-
-        .stat-badge .stat-text {
-            font-size: 0.78rem;
-            color: var(--muted);
-        }
-
-        .stat-badge .stat-text strong {
-            color: var(--text);
-            font-weight: 600;
-        }
-
-        @keyframes fadeSlideIn {
-            from {
-                opacity: 0;
-                transform: translateX(-20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        /* ── Right Panel — Auth Form ────────────────────────── */
+        /* ── Right Panel — Modern Auth Card ──────────────────── */
         .auth-panel {
-            width: 480px;
-            min-width: 420px;
+            flex: 0 0 500px;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 2rem 2.5rem;
+            padding: 2.5rem;
             background: var(--bg);
             position: relative;
-            z-index: 1;
+            z-index: 3;
         }
 
-        /* Subtle left-edge glow */
         .auth-panel::before {
             content: '';
             position: absolute;
             left: 0;
-            top: 0;
-            bottom: 0;
+            top: 10%;
+            bottom: 10%;
             width: 1px;
-            background: linear-gradient(to bottom, transparent, var(--accent), transparent);
-            opacity: 0.25;
+            background: linear-gradient(to bottom, transparent, rgba(0, 212, 255, 0.2), transparent);
         }
 
         .auth-wrap {
             width: 100%;
-            max-width: 380px;
+            max-width: 410px;
+            animation: fadeIn 0.4s ease-out;
         }
 
-        .logo {
-            text-align: center;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Header Logo */
+        .logo-box {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.85rem;
             margin-bottom: 2rem;
         }
 
+        .logo-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.15), rgba(124, 58, 237, 0.15));
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent);
+            box-shadow: 0 0 25px rgba(0, 212, 255, 0.2);
+        }
+
+        .logo-text {
+            text-align: left;
+        }
+
         .logo-title {
-            font-family: 'Syne', sans-serif;
-            font-size: 2rem;
+            font-size: 1.65rem;
             font-weight: 800;
-            color: var(--text);
+            letter-spacing: -0.03em;
+            color: #FFFFFF;
+            line-height: 1.1;
         }
 
         .logo-title span {
@@ -210,224 +258,273 @@
 
         .logo-sub {
             color: var(--muted);
-            font-size: 0.82rem;
-            margin-top: 0.35rem;
-            letter-spacing: 0.02em;
+            font-size: 0.78rem;
+            font-weight: 500;
+            letter-spacing: 0.03em;
+            margin-top: 0.2rem;
         }
 
+        /* Card Container */
         .auth-card {
-            background: rgba(15, 31, 53, 0.55);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            background: var(--bg-card);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
             border: 1px solid var(--border);
             border-radius: 20px;
             padding: 2rem;
-            box-shadow: 0 0 60px rgba(0, 212, 255, 0.06), 0 8px 32px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), 0 0 40px rgba(0, 212, 255, 0.04);
         }
 
+        /* Segmented Navigation Tabs */
         .tabs {
             display: flex;
-            margin-bottom: 1.75rem;
-            background: rgba(0, 0, 0, 0.35);
-            border-radius: 10px;
+            background: rgba(2, 6, 23, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
             padding: 4px;
+            margin-bottom: 1.75rem;
+            gap: 4px;
         }
 
         .tab {
             flex: 1;
-            padding: 0.6rem;
+            padding: 0.65rem 1rem;
             border-radius: 8px;
-            background: none;
+            background: transparent;
             border: none;
-            color: #64748B;
-            font-size: 0.9rem;
+            color: var(--subtle);
+            font-size: 0.88rem;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.25s ease;
-            font-family: 'Space Grotesk', sans-serif;
-        }
-
-        .tab.active {
-            background: rgba(0, 212, 255, 0.15);
-            color: var(--accent);
+            transition: all 0.2s ease;
+            font-family: var(--font-main);
         }
 
         .tab:hover:not(.active) {
-            color: var(--text);
+            color: #E2E8F0;
         }
 
+        .tab.active {
+            background: rgba(0, 212, 255, 0.12);
+            color: var(--accent);
+            border: 1px solid rgba(0, 212, 255, 0.25);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Form Controls */
         .form-group {
-            margin-bottom: 1rem;
+            margin-bottom: 1.2rem;
         }
 
         label {
             display: block;
-            font-size: 0.78rem;
-            color: #94A3B8;
+            font-size: 0.75rem;
             font-weight: 600;
-            margin-bottom: 0.4rem;
+            color: #CBD5E1;
+            margin-bottom: 0.45rem;
+            letter-spacing: 0.03em;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
         }
 
-        input,
-        select {
+        .input-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        input, select {
             width: 100%;
-            padding: 0.75rem 1rem;
+            height: 44px;
+            padding: 0 1rem;
+            background: rgba(2, 6, 23, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 10px;
-            background: rgba(0, 0, 0, 0.4);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            color: var(--text);
-            font-size: 0.9rem;
-            font-family: 'Space Grotesk', sans-serif;
+            color: #FFFFFF;
+            font-size: 0.92rem;
+            font-family: var(--font-main);
             outline: none;
-            transition: border-color 0.25s, box-shadow 0.25s;
+            transition: all 0.2s ease;
         }
 
-        input:focus,
-        select:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.08);
+        input:hover, select:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        input:focus, select:focus {
+            border-color: var(--border-focus);
+            background: rgba(2, 6, 23, 0.85);
+            box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.15);
         }
 
         input::placeholder {
-            color: rgba(148, 163, 184, 0.5);
+            color: #475569;
         }
 
-        select option {
-            background: #0F1F35;
+        .input-toggle-pw {
+            position: absolute;
+            right: 0.75rem;
+            background: none;
+            border: none;
+            color: var(--subtle);
+            cursor: pointer;
+            padding: 0.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.2s;
         }
 
-        .role-select {
+        .input-toggle-pw:hover {
+            color: var(--text);
+        }
+
+        /* Role Selector Cards */
+        .role-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 0.5rem;
+            gap: 0.75rem;
         }
 
-        .role-option {
-            padding: 0.75rem;
-            border-radius: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            background: rgba(0, 0, 0, 0.3);
-            cursor: pointer;
-            text-align: center;
-            transition: all 0.25s;
-        }
-
-        .role-option.active {
-            border-color: var(--accent);
-            background: rgba(0, 212, 255, 0.1);
-        }
-
-        .role-option:hover:not(.active) {
-            border-color: rgba(255, 255, 255, 0.15);
-        }
-
-        .role-option .ri {
-            font-size: 1.4rem;
-            margin-bottom: 0.3rem;
-        }
-
-        .role-option span {
-            display: block;
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-
-        .btn {
-            width: 100%;
+        .role-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.4rem;
             padding: 0.85rem;
             border-radius: 10px;
-            background: linear-gradient(135deg, var(--accent), #0099CC);
-            border: none;
-            color: #000;
-            font-size: 1rem;
-            font-weight: 700;
+            background: rgba(2, 6, 23, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             cursor: pointer;
-            font-family: 'Space Grotesk', sans-serif;
-            transition: all 0.25s;
-            margin-top: 0.75rem;
-            position: relative;
-            overflow: hidden;
+            transition: all 0.2s ease;
+            text-align: center;
         }
 
-        .btn::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(135deg, transparent, rgba(255, 255, 255, 0.15), transparent);
-            transform: translateX(-100%);
-            transition: transform 0.5s;
+        .role-card:hover:not(.active) {
+            border-color: rgba(255, 255, 255, 0.2);
+            background: rgba(2, 6, 23, 0.75);
         }
 
-        .btn:hover::before {
-            transform: translateX(100%);
+        .role-card.active {
+            border-color: var(--accent);
+            background: rgba(0, 212, 255, 0.08);
+            box-shadow: 0 0 16px rgba(0, 212, 255, 0.12);
         }
 
-        .btn:hover {
-            box-shadow: 0 0 25px rgba(0, 212, 255, 0.4);
+        .role-icon {
+            font-size: 1.4rem;
+        }
+
+        .role-title {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        /* Submit Button */
+        .btn-primary {
+            width: 100%;
+            height: 46px;
+            border-radius: 10px;
+            background: var(--accent-gradient);
+            border: none;
+            color: #020817;
+            font-size: 0.95rem;
+            font-weight: 700;
+            font-family: var(--font-main);
+            letter-spacing: 0.01em;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-top: 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 20px rgba(0, 212, 255, 0.3);
+        }
+
+        .btn-primary:hover {
             transform: translateY(-1px);
+            box-shadow: 0 6px 25px rgba(0, 212, 255, 0.45);
+            filter: brightness(1.06);
         }
 
-        .btn:disabled {
-            opacity: 0.6;
-            cursor: default;
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
             transform: none;
+            box-shadow: none;
         }
 
-        .btn:disabled::before {
-            display: none;
-        }
-
+        /* Error Notification */
         .error-msg {
             background: rgba(239, 68, 68, 0.1);
             border: 1px solid rgba(239, 68, 68, 0.3);
-            border-radius: 8px;
-            padding: 0.65rem 1rem;
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
             color: #FCA5A5;
             font-size: 0.85rem;
             margin-top: 1rem;
             display: none;
+            animation: shake 0.3s ease;
         }
 
-        .demo-accounts {
-            margin-top: 1.25rem;
-            padding-top: 1rem;
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-4px); }
+            75% { transform: translateX(4px); }
+        }
+
+        /* Quick Demo Accounts */
+        .demo-section {
+            margin-top: 1.5rem;
+            padding-top: 1.25rem;
             border-top: 1px solid rgba(255, 255, 255, 0.06);
         }
 
-        .demo-title {
+        .demo-heading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
             font-size: 0.72rem;
-            color: var(--muted);
-            text-align: center;
-            margin-bottom: 0.75rem;
+            font-weight: 600;
+            color: var(--subtle);
             text-transform: uppercase;
-            letter-spacing: 0.06em;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.75rem;
         }
 
-        .demo-btns {
+        .demo-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 0.5rem;
+            gap: 0.6rem;
         }
 
-        .demo-btn {
-            padding: 0.5rem 0.75rem;
+        .demo-chip {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            padding: 0.55rem 0.75rem;
             border-radius: 8px;
+            background: rgba(2, 6, 23, 0.4);
             border: 1px solid rgba(255, 255, 255, 0.08);
-            background: rgba(0, 0, 0, 0.3);
-            color: #94A3B8;
+            color: #CBD5E1;
             font-size: 0.78rem;
+            font-weight: 600;
             cursor: pointer;
-            text-align: center;
-            transition: all 0.25s;
-            font-family: 'Space Grotesk', sans-serif;
+            transition: all 0.2s ease;
+            font-family: var(--font-main);
         }
 
-        .demo-btn:hover {
+        .demo-chip:hover {
             border-color: var(--accent);
             color: var(--accent);
-            background: rgba(0, 212, 255, 0.05);
+            background: rgba(0, 212, 255, 0.06);
+            transform: translateY(-1px);
         }
 
         .panel {
@@ -438,12 +535,12 @@
             display: block;
         }
 
-        /* Footer links */
+        /* Footer */
         .auth-footer {
+            margin-top: 1.75rem;
             text-align: center;
-            margin-top: 1.5rem;
-            color: var(--muted);
-            font-size: 0.76rem;
+            font-size: 0.78rem;
+            color: var(--subtle);
         }
 
         .auth-footer a {
@@ -456,56 +553,37 @@
             text-decoration: underline;
         }
 
-        /* ── Form entry animation ─────────────────────────────── */
-        .auth-panel .auth-wrap {
-            animation: panelSlideUp 0.5s ease both;
-        }
-
-        @keyframes panelSlideUp {
-            from {
-                opacity: 0;
-                transform: translateY(24px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* ── Responsive — stack on small screens ─────────────── */
-        @media(max-width:900px) {
+        /* Responsive Breakpoints */
+        @media(max-width: 1024px) {
             .login-container {
                 flex-direction: column;
             }
 
             .video-panel {
-                min-height: 35vh;
+                min-height: 42vh;
                 flex: none;
+                padding: 2rem;
             }
 
-            .video-panel::after {
-                background: linear-gradient(to bottom, transparent 40%, var(--bg) 100%);
+            .video-overlay {
+                background: 
+                    linear-gradient(to bottom, rgba(3, 7, 18, 0.3) 0%, rgba(3, 7, 18, 0.7) 70%, var(--bg) 100%);
             }
 
-            .video-brand {
-                padding: 1.5rem;
+            .hero-title {
+                font-size: 1.85rem;
             }
 
-            .video-brand h2 {
-                font-size: 1.4rem;
-            }
-
-            .video-stats {
-                top: 1rem;
-                left: 1rem;
+            .hero-desc {
+                font-size: 0.92rem;
+                margin-bottom: 1rem;
             }
 
             .auth-panel {
+                flex: 1;
                 width: 100%;
-                min-width: unset;
                 min-height: auto;
-                padding: 1.5rem;
+                padding: 2rem 1.5rem 3rem;
             }
 
             .auth-panel::before {
@@ -525,102 +603,150 @@
                 <source src="{{ url_for('static', filename='videos/learnsphere.mp4') }}" type="video/mp4">
                 <source src="{{ url_for('static', filename='videos/Learnsphere Video.mp4') }}" type="video/mp4">
             </video>
+            <div class="video-overlay"></div>
 
-            <!-- Floating stats -->
-            <div class="video-stats">
-                <div class="stat-badge">
-                    <span class="stat-icon">🎓</span>
-                    <span class="stat-text"><strong>10K+</strong> Active Learners</span>
-                </div>
-                <div class="stat-badge">
-                    <span class="stat-icon">📚</span>
-                    <span class="stat-text"><strong>500+</strong> STEM Courses</span>
-                </div>
-                <div class="stat-badge">
-                    <span class="stat-icon">🏆</span>
-                    <span class="stat-text"><strong>95%</strong> Completion Rate</span>
+            <!-- Top Pill -->
+            <div class="video-top">
+                <div class="brand-badge">
+                    <span class="badge-dot"></span>
+                    <span>AI-Powered Learning Platform</span>
                 </div>
             </div>
 
-            <!-- Brand messaging at bottom of video -->
-            <div class="video-brand">
-                <h2>Unlock Your <span>Machine Learning</span> Potential</h2>
-                <p>Explore AI-powered courses, virtual labs, and competitive challenges — all in one immersive learning
-                    platform.</p>
+            <!-- Bottom Hero Content -->
+            <div class="video-bottom">
+                <h1 class="hero-title">Unlock Your <span class="gradient-text">Machine Learning</span> Potential</h1>
+                <p class="hero-desc">Interactive virtual labs, personalized AI tutoring, and hands-on coding challenges designed for real-world mastery.</p>
+                <div class="hero-features">
+                    <div class="feature-chip">⚡ GPU Virtual Labs</div>
+                    <div class="feature-chip">🧠 AI Learning DNA</div>
+                    <div class="feature-chip">⚔️ Live ML Battles</div>
+                    <div class="feature-chip">📜 Verified Certifications</div>
+                </div>
             </div>
         </div>
 
         <!-- ── Right: Auth Form Panel ──────────────────────────── -->
         <div class="auth-panel">
             <div class="auth-wrap">
-                <div class="logo">
-                    <div class="logo-title">Learn<span>Sphere</span></div>
-                    <div class="logo-sub">AI-Powered Machine Learning Platform</div>
+                
+                <!-- Logo -->
+                <div class="logo-box">
+                    <div class="logo-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                            <path d="M2 17l10 5 10-5"></path>
+                            <path d="M2 12l10 5 10-5"></path>
+                        </svg>
+                    </div>
+                    <div class="logo-text">
+                        <div class="logo-title">Learn<span>Sphere</span></div>
+                        <div class="logo-sub">Intelligent Education &bull; Global Scale</div>
+                    </div>
                 </div>
+
+                <!-- Form Card -->
                 <div class="auth-card">
+                    
+                    <!-- Tabs -->
                     <div class="tabs">
-                        <button class="tab active" onclick="switchTab('login')">Sign In</button>
-                        <button class="tab" onclick="switchTab('register')">Register</button>
+                        <button class="tab active" data-tab="login" onclick="switchTab('login')">Sign In</button>
+                        <button class="tab" data-tab="register" onclick="switchTab('register')">Create Account</button>
                     </div>
 
-                    <!-- Login -->
+                    <!-- Sign In Panel -->
                     <div class="panel active" id="login-panel">
                         <div class="form-group">
-                            <label>Email</label>
-                            <input type="email" id="loginEmail" placeholder="your@email.com">
+                            <label for="loginEmail">Email Address</label>
+                            <div class="input-wrap">
+                                <input type="email" id="loginEmail" placeholder="name@domain.com" autocomplete="email">
+                            </div>
                         </div>
+
                         <div class="form-group">
-                            <label>Password</label>
-                            <input type="password" id="loginPw" placeholder="••••••••"
-                                onkeydown="if(event.key==='Enter')doLogin()">
+                            <label for="loginPw">Password</label>
+                            <div class="input-wrap">
+                                <input type="password" id="loginPw" placeholder="••••••••" autocomplete="current-password"
+                                    onkeydown="if(event.key==='Enter')doLogin()">
+                                <button type="button" class="input-toggle-pw" onclick="togglePassword('loginPw', this)" title="Show/Hide Password">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                        <circle cx="12" cy="12" r="3"></circle>
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
+
                         <div class="error-msg" id="loginError"></div>
-                        <button class="btn" onclick="doLogin()" id="loginBtn">Sign In</button>
-                        <div class="demo-accounts">
-                            <div class="demo-title">Demo Accounts</div>
-                            <div class="demo-btns">
-                                <button class="demo-btn"
-                                    onclick="fillDemo('student@learnsphere.com','student123')">👨‍🎓 Student
-                                    Demo</button>
-                                <button class="demo-btn" onclick="fillDemo('educator@learnsphere.com','admin123')">👩‍🏫
-                                    Educator Demo</button>
+
+                        <button class="btn-primary" onclick="doLogin()" id="loginBtn">Sign In to Platform</button>
+
+                        <!-- Quick Demo Accounts -->
+                        <div class="demo-section">
+                            <div class="demo-heading">⚡ One-Click Demo Access</div>
+                            <div class="demo-grid">
+                                <button type="button" class="demo-chip" onclick="fillDemo('student@learnsphere.com','student123')">
+                                    <span>👨‍🎓</span> Student Demo
+                                </button>
+                                <button type="button" class="demo-chip" onclick="fillDemo('educator@learnsphere.com','admin123')">
+                                    <span>👩‍🏫</span> Educator Demo
+                                </button>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Register -->
+                    <!-- Register Panel -->
                     <div class="panel" id="register-panel">
                         <div class="form-group">
-                            <label>Full Name</label>
-                            <input type="text" id="regName" placeholder="Your Name">
+                            <label for="regName">Full Name</label>
+                            <div class="input-wrap">
+                                <input type="text" id="regName" placeholder="Dr. Alex Rivera" autocomplete="name">
+                            </div>
                         </div>
+
                         <div class="form-group">
-                            <label>Email</label>
-                            <input type="email" id="regEmail" placeholder="your@email.com">
+                            <label for="regEmail">Email Address</label>
+                            <div class="input-wrap">
+                                <input type="email" id="regEmail" placeholder="name@domain.com" autocomplete="email">
+                            </div>
                         </div>
+
                         <div class="form-group">
-                            <label>Password</label>
-                            <input type="password" id="regPw" placeholder="••••••••">
+                            <label for="regPw">Password</label>
+                            <div class="input-wrap">
+                                <input type="password" id="regPw" placeholder="Create strong password" autocomplete="new-password">
+                                <button type="button" class="input-toggle-pw" onclick="togglePassword('regPw', this)" title="Show/Hide Password">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                        <circle cx="12" cy="12" r="3"></circle>
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
+
                         <div class="form-group">
-                            <label>I am a...</label>
-                            <div class="role-select">
-                                <div class="role-option active" id="role-student" onclick="setRole('student')">
-                                    <div class="ri">👨‍🎓</div>
-                                    <span>Student</span>
+                            <label>Account Role</label>
+                            <div class="role-grid">
+                                <div class="role-card active" id="role-student" onclick="setRole('student')">
+                                    <span class="role-icon">👨‍🎓</span>
+                                    <span class="role-title">Student</span>
                                 </div>
-                                <div class="role-option" id="role-educator" onclick="setRole('educator')">
-                                    <div class="ri">👩‍🏫</div>
-                                    <span>Educator</span>
+                                <div class="role-card" id="role-educator" onclick="setRole('educator')">
+                                    <span class="role-icon">👩‍🏫</span>
+                                    <span class="role-title">Educator</span>
                                 </div>
                             </div>
                         </div>
+
                         <div class="error-msg" id="regError"></div>
-                        <button class="btn" onclick="doRegister()" id="regBtn">Create Account</button>
+
+                        <button class="btn-primary" onclick="doRegister()" id="regBtn">Create Account</button>
                     </div>
+
                 </div>
+
                 <div class="auth-footer">
-                    Powered by <a href="#">LearnSphere</a> &bull; AI-Driven Education
+                    Powered by <a href="/">LearnSphere</a> &bull; AI-Driven Education
                 </div>
             </div>
         </div>
@@ -633,8 +759,12 @@
         function switchTab(tab) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-            event.target.classList.add('active');
-            document.getElementById(tab + '-panel').classList.add('active');
+            
+            const activeTab = document.querySelector(`.tab[data-tab="${tab}"]`);
+            if (activeTab) activeTab.classList.add('active');
+            
+            const activePanel = document.getElementById(tab + '-panel');
+            if (activePanel) activePanel.classList.add('active');
         }
 
         function setRole(role) {
@@ -643,46 +773,108 @@
             document.getElementById('role-educator').classList.toggle('active', role === 'educator');
         }
 
+        function togglePassword(inputId, btn) {
+            const input = document.getElementById(inputId);
+            if (!input) return;
+            if (input.type === 'password') {
+                input.type = 'text';
+                btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
+            } else {
+                input.type = 'password';
+                btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+            }
+        }
+
         function fillDemo(email, pw) {
-            document.getElementById('loginEmail').value = email;
-            document.getElementById('loginPw').value = pw;
+            const emailEl = document.getElementById('loginEmail');
+            const pwEl = document.getElementById('loginPw');
+            if (emailEl) emailEl.value = email;
+            if (pwEl) pwEl.value = pw;
+            
+            // Brief visual highlight
+            [emailEl, pwEl].forEach(el => {
+                if (el) {
+                    el.style.borderColor = 'var(--accent)';
+                    setTimeout(() => { el.style.borderColor = ''; }, 300);
+                }
+            });
         }
 
         async function doLogin() {
             const btn = document.getElementById('loginBtn');
             const errEl = document.getElementById('loginError');
-            btn.disabled = true; btn.textContent = 'Signing in...';
+            btn.disabled = true; 
+            btn.textContent = 'Authenticating...';
             errEl.style.display = 'none';
-            const res = await fetch('/api/auth/login', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: document.getElementById('loginEmail').value, password: document.getElementById('loginPw').value })
-            });
-            const data = await res.json();
-            if (data.success) {
-                window.location = data.role === 'educator' ? '/educator/dashboard' : '/student/dashboard';
-            } else {
-                errEl.textContent = data.error; errEl.style.display = 'block';
-                btn.disabled = false; btn.textContent = 'Sign In';
+
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        email: document.getElementById('loginEmail').value, 
+                        password: document.getElementById('loginPw').value 
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    window.location = data.role === 'educator' ? '/educator/dashboard' : '/student/dashboard';
+                } else {
+                    errEl.textContent = data.error || 'Invalid credentials'; 
+                    errEl.style.display = 'block';
+                    btn.disabled = false; 
+                    btn.textContent = 'Sign In to Platform';
+                }
+            } catch (err) {
+                errEl.textContent = 'Network or server error. Please try again.';
+                errEl.style.display = 'block';
+                btn.disabled = false; 
+                btn.textContent = 'Sign In to Platform';
             }
         }
 
         async function doRegister() {
             const btn = document.getElementById('regBtn');
             const errEl = document.getElementById('regError');
-            btn.disabled = true; btn.textContent = 'Creating...'; errEl.style.display = 'none';
-            const res = await fetch('/api/auth/register', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username: document.getElementById('regName').value, email: document.getElementById('regEmail').value, password: document.getElementById('regPw').value, role: selectedRole })
-            });
-            const data = await res.json();
-            if (data.success) {
-                errEl.style.background = 'rgba(16,185,129,0.1)'; errEl.style.borderColor = 'rgba(16,185,129,0.3)'; errEl.style.color = '#6EE7B7';
-                errEl.textContent = 'Account created! Please sign in.'; errEl.style.display = 'block';
-                setTimeout(() => switchTab('login'), 1500);
-            } else {
-                errEl.textContent = data.error; errEl.style.display = 'block';
+            btn.disabled = true; 
+            btn.textContent = 'Creating Account...'; 
+            errEl.style.display = 'none';
+
+            try {
+                const res = await fetch('/api/auth/register', {
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        username: document.getElementById('regName').value, 
+                        email: document.getElementById('regEmail').value, 
+                        password: document.getElementById('regPw').value, 
+                        role: selectedRole 
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    errEl.style.background = 'rgba(16, 185, 129, 0.1)'; 
+                    errEl.style.borderColor = 'rgba(16, 185, 129, 0.3)'; 
+                    errEl.style.color = '#6EE7B7';
+                    errEl.textContent = 'Account created successfully! Redirecting to login...'; 
+                    errEl.style.display = 'block';
+                    setTimeout(() => switchTab('login'), 1200);
+                } else {
+                    errEl.style.background = 'rgba(239, 68, 68, 0.1)';
+                    errEl.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+                    errEl.style.color = '#FCA5A5';
+                    errEl.textContent = data.error || 'Registration failed'; 
+                    errEl.style.display = 'block';
+                }
+            } catch (err) {
+                errEl.style.background = 'rgba(239, 68, 68, 0.1)';
+                errEl.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+                errEl.style.color = '#FCA5A5';
+                errEl.textContent = 'Network or server error. Please try again.';
+                errEl.style.display = 'block';
             }
-            btn.disabled = false; btn.textContent = 'Create Account';
+            btn.disabled = false; 
+            btn.textContent = 'Create Account';
         }
 
         // Background video playback reliability handler
@@ -693,8 +885,6 @@
                 const playPromise = vid.play();
                 if (playPromise !== undefined) {
                     playPromise.catch(() => {
-                        // If autoplay is blocked by low-power mode or browser policy,
-                        // retry playing on first user interaction
                         const startOnInteraction = () => {
                             vid.play().catch(() => {});
                             window.removeEventListener('click', startOnInteraction);
