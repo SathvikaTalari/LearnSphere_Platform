@@ -1,282 +1,1057 @@
 {% extends "base.html" %}
-{% block title %}Events & Opportunities — LearnSphere{% endblock %}
+{% block title %}Events & Hackathons — LearnSphere{% endblock %}
 {% block content %}
+
 <style>
-.ev-wrap        { max-width:1180px; margin:0 auto; padding:1.75rem 2rem 4rem; }
-.ev-hero        { text-align:center; padding:1.5rem 1rem 1.4rem; margin-bottom:1.6rem; }
-.ev-hero h1     { font-family:var(--ff-serif); font-size:1.9rem; font-weight:700; color:var(--text); margin-bottom:.4rem; }
-.ev-hero p      { font-size:.88rem; color:var(--text2); max-width:580px; margin:0 auto; line-height:1.65; }
-.ev-badge       { display:inline-block; background:rgba(16,185,129,.1); border:1px solid rgba(16,185,129,.3);
-                  color:var(--success); font-size:.7rem; font-weight:700; padding:.2rem .65rem;
-                  border-radius:20px; letter-spacing:.05em; text-transform:uppercase; margin-bottom:.65rem; }
+/* ==========================================================================
+   EVENTS & HACKATHONS — Modern, Professional, Clean & Simple
+   ========================================================================== */
 
-/* ── Filter / toolbar ── */
-.ev-toolbar     { display:flex; gap:.65rem; align-items:center; flex-wrap:wrap; margin-bottom:1.4rem; }
-.ev-filter-btn  { padding:.3rem .85rem; border-radius:20px; border:1px solid var(--border);
-                  background:var(--bg3); color:var(--text2); font-size:.78rem; font-weight:600;
-                  cursor:pointer; font-family:var(--ff-sans); transition:all .14s; }
-.ev-filter-btn:hover,
-.ev-filter-btn.active { border-color:var(--success); color:var(--success); background:rgba(16,185,129,.08); }
-.ev-search      { flex:1; min-width:200px; padding:.42rem .85rem; border-radius:20px;
-                  background:var(--bg3); border:1px solid var(--border); color:var(--text);
-                  font-family:var(--ff-sans); font-size:.83rem; outline:none; transition:border-color .15s; }
-.ev-search:focus { border-color:var(--success); }
-.ai-rec-btn     { padding:.4rem 1.1rem; border-radius:20px; background:var(--accent);
-                  border:none; color:#fff; font-size:.8rem; font-weight:700;
-                  cursor:pointer; font-family:var(--ff-sans); white-space:nowrap; transition:filter .15s; }
-.ai-rec-btn:hover { filter:brightness(1.1); }
-.ai-rec-btn:disabled { opacity:.5; cursor:not-allowed; }
+.ev-page-wrap {
+  max-width: 1220px;
+  margin: 0 auto;
+  padding: 1.8rem 1.6rem 4.5rem;
+}
 
-/* ── Grid ── */
-.ev-layout      { display:grid; grid-template-columns:1fr 320px; gap:1.4rem; align-items:start; }
-.ev-grid        { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:1rem; }
+/* ── Hero Banner ────────────────────────────────────────────────────────── */
+.ev-hero-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--r2);
+  padding: 2.2rem 2.4rem;
+  margin-bottom: 1.6rem;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
+}
 
-/* ── Event card ── */
-.ev-card        { background:var(--bg3); border:1px solid var(--border); border-radius:var(--r2);
-                  overflow:hidden; transition:border-color .18s,transform .18s;
-                  display:flex; flex-direction:column; }
-.ev-card:hover  { border-color:var(--border2); transform:translateY(-2px); }
-.ev-card-head   { padding:.85rem 1rem .55rem; }
-.ev-platform    { display:inline-block; font-size:.64rem; font-weight:700; text-transform:uppercase;
-                  letter-spacing:.06em; padding:.12rem .48rem; border-radius:4px; margin-bottom:.45rem; }
-.plt-Unstop     { background:rgba(16,185,129,.12); color:var(--success); }
-.plt-GeeksforGeeks { background:rgba(0,212,255,.1); color:var(--accent); }
-.plt-Kaggle     { background:rgba(20,184,166,.12); color:#14b8a6; }
-.plt-LeetCode   { background:rgba(245,158,11,.1); color:var(--warn); }
-.plt-Devpost    { background:rgba(124,58,237,.1); color:#7c3aed; }
-.plt-Google     { background:rgba(239,68,68,.08); color:#ef4444; }
-.plt-HackerRank { background:rgba(16,185,129,.1); color:var(--success); }
-.plt-Codeforces { background:rgba(239,68,68,.08); color:#ef4444; }
-.plt-MLH        { background:rgba(124,58,237,.1); color:#7c3aed; }
-.plt-Topcoder   { background:rgba(245,158,11,.1); color:var(--warn); }
-.plt-ICPC       { background:rgba(0,212,255,.1); color:var(--accent); }
-.plt-Devfolio   { background:rgba(124,58,237,.1); color:#7c3aed; }
-.plt-default    { background:var(--bg2); color:var(--text2); }
+.ev-hero-title {
+  font-family: var(--ff-display);
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 0.4rem;
+}
 
-.ev-type-badge  { float:right; font-size:.62rem; font-weight:700; text-transform:uppercase;
-                  padding:.1rem .4rem; border-radius:4px; }
-.type-hackathon  { background:rgba(124,58,237,.1); color:#7c3aed; }
-.type-contest    { background:rgba(0,212,255,.1); color:var(--accent); }
-.type-competition{ background:rgba(245,158,11,.1); color:var(--warn); }
-.type-challenge  { background:rgba(16,185,129,.1); color:var(--success); }
+.ev-hero-sub {
+  font-size: 0.92rem;
+  color: var(--text2);
+  max-width: 620px;
+  line-height: 1.6;
+  margin-bottom: 1.25rem;
+}
 
-.ev-title       { font-family:var(--ff-serif); font-size:.98rem; font-weight:700; color:var(--text);
-                  line-height:1.3; margin-bottom:.35rem; }
-.ev-desc        { font-size:.78rem; color:var(--text2); line-height:1.5; margin-bottom:.65rem; }
-.ev-meta        { display:flex; gap:.6rem; flex-wrap:wrap; font-size:.71rem; color:var(--text2); margin-bottom:.65rem; }
-.ev-meta span   { display:flex; align-items:center; gap:.22rem; }
-.ev-tags        { display:flex; flex-wrap:wrap; gap:.3rem; padding:.65rem 1rem; border-top:1px solid var(--border); }
-.ev-tag         { padding:.1rem .42rem; border-radius:4px; font-size:.63rem; font-weight:600;
-                  background:var(--bg2); border:1px solid var(--border); color:var(--text2); }
-.ev-link        { display:block; text-align:center; padding:.55rem 1rem; background:var(--success);
-                  color:#fff; font-size:.8rem; font-weight:700; text-decoration:none;
-                  transition:filter .15s; }
-.ev-link:hover  { filter:brightness(1.1); }
+.ev-metrics-row {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
 
-/* ── AI Recommendation panel ── */
-.ai-panel-card  { background:var(--bg3); border:1px solid var(--border); border-radius:var(--r2);
-                  overflow:hidden; position:sticky; top:80px; }
-.ai-panel-head  { padding:.85rem 1.1rem; border-bottom:1px solid var(--border);
-                  background:linear-gradient(135deg,rgba(0,212,255,.06),rgba(0,212,255,.01)); }
-.ai-panel-head h3 { font-family:var(--ff-serif); font-size:.95rem; font-weight:700; color:var(--text); }
-.ai-panel-head p  { font-size:.73rem; color:var(--text2); margin-top:.2rem; }
-.ai-panel-body  { padding:1rem; }
-.ai-rec-loading { text-align:center; padding:1.5rem; font-size:.82rem; color:var(--text2); }
-.ai-rec-empty   { text-align:center; padding:1.5rem; font-size:.82rem; color:var(--text2);
-                  font-style:italic; }
-.rec-card       { background:var(--bg2); border:1px solid var(--border); border-radius:9px;
-                  padding:.75rem; margin-bottom:.65rem; transition:border-color .15s; }
-.rec-card:last-child { margin-bottom:0; }
-.rec-card:hover { border-color:var(--accent); }
-.rec-card-title { font-size:.85rem; font-weight:700; color:var(--text); margin-bottom:.2rem; }
-.rec-platform   { font-size:.65rem; color:var(--accent); font-weight:700; text-transform:uppercase;
-                  letter-spacing:.05em; margin-bottom:.35rem; }
-.rec-reason     { font-size:.76rem; color:var(--text2); line-height:1.5; margin-bottom:.5rem; }
-.rec-diff       { display:inline-block; font-size:.63rem; font-weight:700; padding:.1rem .4rem;
-                  border-radius:4px; }
-.diff-beginner      { background:rgba(16,185,129,.12); color:var(--success); }
-.diff-intermediate  { background:rgba(245,158,11,.1); color:var(--warn); }
-.diff-advanced      { background:rgba(239,68,68,.08); color:var(--danger); }
-.rec-link       { display:inline-flex; align-items:center; gap:.3rem; font-size:.73rem;
-                  color:var(--accent); font-weight:600; text-decoration:none; float:right; }
-.rec-link:hover { text-decoration:underline; }
+.ev-metric-item {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text2);
+}
 
-/* Source note */
-.source-note    { font-size:.7rem; color:var(--text2); text-align:center; padding:.65rem 1rem;
-                  border-top:1px solid var(--border); line-height:1.5; }
+.ev-metric-item strong {
+  color: var(--text);
+  font-weight: 800;
+}
 
-/* Empty / loading states */
-.ev-loading     { grid-column:1/-1; text-align:center; padding:2.5rem; color:var(--text2); }
-.ev-none        { grid-column:1/-1; text-align:center; padding:2.5rem; color:var(--text2); font-style:italic; }
+/* ── Filter / Toolbar ───────────────────────────────────────────────────── */
+.ev-toolbar-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--r2);
+  padding: 1.1rem 1.4rem;
+  margin-bottom: 1.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
 
-@media(max-width:960px){ .ev-layout{ grid-template-columns:1fr; } .ai-panel-card{ position:static; } }
-@media(max-width:700px){ .ev-wrap{ padding:1rem 1rem 3rem; } }
+.ev-search-row {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  flex-wrap: wrap;
+}
+
+.ev-search-input-wrap {
+  flex: 1;
+  min-width: 260px;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.ev-search-icon {
+  position: absolute;
+  left: 1rem;
+  color: var(--text3);
+  pointer-events: none;
+}
+
+.ev-search-input {
+  width: 100%;
+  padding: 0.65rem 1rem 0.65rem 2.45rem;
+  border-radius: 10px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: var(--ff-sans);
+  font-size: 0.88rem;
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.ev-search-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.ev-ai-match-btn {
+  padding: 0.65rem 1.25rem;
+  border-radius: 10px;
+  background: var(--accent);
+  border: none;
+  color: #fff;
+  font-family: var(--ff-sans);
+  font-size: 0.86rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  box-shadow: 0 3px 12px var(--accent-glow);
+}
+
+.ev-ai-match-btn:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+.ev-ai-match-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Category Filter Tabs */
+.ev-filter-tabs-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.ev-tabs-group {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.ev-tab-btn {
+  padding: 0.38rem 0.85rem;
+  border-radius: 8px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  font-family: var(--ff-sans);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.ev-tab-btn:hover {
+  border-color: var(--border2);
+  color: var(--text);
+  background: var(--bg4, var(--bg2));
+}
+
+.ev-tab-btn.active {
+  background: var(--accent-glow);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.ev-secondary-filters {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.ev-select-filter {
+  padding: 0.38rem 0.75rem;
+  border-radius: 8px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: var(--ff-sans);
+  font-size: 0.78rem;
+  outline: none;
+  cursor: pointer;
+}
+
+.ev-select-filter:focus {
+  border-color: var(--accent);
+}
+
+/* ── Main Layout: Grid + Sidebar ────────────────────────────────────────── */
+.ev-main-layout {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 1.6rem;
+  align-items: start;
+}
+
+.ev-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+  gap: 1.15rem;
+}
+
+/* ── Event Card ─────────────────────────────────────────────────────────── */
+.ev-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--r2);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: all 0.18s ease;
+  position: relative;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.ev-card:hover {
+  border-color: var(--border2);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.ev-card-inner {
+  padding: 1.25rem 1.35rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Card Header Badges */
+.ev-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.85rem;
+}
+
+.ev-platform-badge {
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+/* Platform-specific dynamic badges */
+.plt-kaggle { background: rgba(32, 190, 255, 0.12); color: #20BEFF; border: 1px solid rgba(32, 190, 255, 0.25); }
+.plt-majorleaguehacking, .plt-mlh { background: rgba(255, 79, 100, 0.12); color: #FF4F64; border: 1px solid rgba(255, 79, 100, 0.25); }
+.plt-devpost { background: rgba(0, 150, 255, 0.12); color: #0096FF; border: 1px solid rgba(0, 150, 255, 0.25); }
+.plt-leetcode { background: rgba(255, 161, 22, 0.12); color: #FFA116; border: 1px solid rgba(255, 161, 22, 0.25); }
+.plt-codeforces { background: rgba(239, 68, 68, 0.12); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.25); }
+.plt-googleopensource, .plt-google { background: rgba(52, 168, 83, 0.12); color: #34A853; border: 1px solid rgba(52, 168, 83, 0.25); }
+.plt-geeksforgeeks { background: rgba(47, 141, 70, 0.12); color: #2F8D46; border: 1px solid rgba(47, 141, 70, 0.25); }
+.plt-hackerrank { background: rgba(16, 185, 129, 0.12); color: #10B981; border: 1px solid rgba(16, 185, 129, 0.25); }
+.plt-devfolio { background: rgba(124, 58, 237, 0.12); color: #8B5CF6; border: 1px solid rgba(124, 58, 237, 0.25); }
+.plt-unstop { background: rgba(59, 130, 246, 0.12); color: #3B82F6; border: 1px solid rgba(59, 130, 246, 0.25); }
+.plt-default { background: var(--bg3); color: var(--text2); border: 1px solid var(--border); }
+
+.ev-format-pill {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.18rem 0.5rem;
+  border-radius: 4px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text3);
+}
+
+.ev-card-title {
+  font-family: var(--ff-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.35;
+  margin-bottom: 0.45rem;
+}
+
+.ev-card-desc {
+  font-size: 0.8rem;
+  color: var(--text2);
+  line-height: 1.55;
+  margin-bottom: 1rem;
+  flex: 1;
+}
+
+/* Metadata highlights */
+.ev-meta-box {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.75rem 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin-bottom: 0.9rem;
+}
+
+.ev-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.55rem;
+  font-size: 0.78rem;
+  color: var(--text2);
+  padding: 0.2rem 0;
+}
+
+.ev-meta-lbl {
+  color: var(--text3);
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.ev-meta-val {
+  color: var(--text);
+  font-weight: 600;
+  text-align: right;
+}
+
+/* Tags */
+.ev-tags-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+}
+
+.ev-tag-chip {
+  font-size: 0.66rem;
+  font-weight: 600;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text3);
+}
+
+/* Card Actions */
+.ev-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--border);
+}
+
+.ev-open-btn {
+  flex: 1;
+  padding: 0.55rem 0.9rem;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-decoration: none;
+  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  transition: all 0.15s ease;
+}
+
+.ev-open-btn:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+.ev-bookmark-btn {
+  padding: 0.5rem 0.85rem;
+  border-radius: 8px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-family: var(--ff-sans);
+}
+
+.ev-bookmark-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.ev-bookmark-btn.saved {
+  background: var(--accent-glow);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ── Sidebar / AI Matchmaker ────────────────────────────────────────────── */
+.ev-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.ev-smart-panel {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--r2);
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 80px;
+}
+
+.ev-smart-head {
+  padding: 1.15rem 1.35rem;
+  background: var(--bg3);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ev-smart-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--ff-display);
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.ev-smart-body {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.ev-profile-box {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+}
+
+.ev-profile-title {
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text3);
+  margin-bottom: 0.35rem;
+}
+
+.ev-profile-val {
+  font-size: 0.84rem;
+  color: var(--text);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.ev-rec-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.ev-rec-item {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.9rem;
+  transition: all 0.15s ease;
+}
+
+.ev-rec-item:hover {
+  border-color: var(--accent);
+}
+
+.ev-rec-name {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 0.25rem;
+  line-height: 1.35;
+}
+
+.ev-rec-plt {
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--accent);
+  margin-bottom: 0.4rem;
+}
+
+.ev-rec-reason {
+  font-size: 0.77rem;
+  color: var(--text2);
+  line-height: 1.5;
+  margin-bottom: 0.6rem;
+}
+
+.ev-rec-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.ev-rec-badge {
+  font-size: 0.64rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  padding: 0.12rem 0.45rem;
+  border-radius: 4px;
+}
+
+.badge-beginner { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+.badge-intermediate { background: rgba(245, 158, 11, 0.15); color: var(--warn); }
+.badge-advanced { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+
+.ev-rec-link {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--accent);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.ev-rec-link:hover {
+  text-decoration: underline;
+}
+
+/* Empty & Loading states */
+.ev-state-box {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 3.5rem 1.5rem;
+  color: var(--text3);
+}
+
+.ev-state-emoji {
+  font-size: 2.6rem;
+  margin-bottom: 0.5rem;
+}
+
+.ev-state-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 0.3rem;
+}
+
+.ev-state-sub {
+  font-size: 0.86rem;
+  color: var(--text2);
+  max-width: 420px;
+  margin: 0 auto;
+  line-height: 1.55;
+}
+
+@media (max-width: 980px) {
+  .ev-main-layout {
+    grid-template-columns: 1fr;
+  }
+  .ev-smart-panel {
+    position: static;
+  }
+}
+
+@media (max-width: 640px) {
+  .ev-page-wrap {
+    padding: 1.2rem 1rem 3rem;
+  }
+  .ev-hero-card {
+    padding: 1.6rem 1.4rem;
+  }
+  .ev-hero-card::after {
+    display: none;
+  }
+  .ev-grid {
+    grid-template-columns: 1fr;
+  }
+}
 </style>
 
-<div class="ev-wrap animate-in">
-  <div class="ev-hero">
-    <span class="ev-badge">🔥 Live Opportunities</span>
-    <h1>🏆 Events & Hackathons</h1>
-    <p>Curated hackathons, contests, and challenges from GeeksforGeeks, Unstop, Kaggle, LeetCode and more. AI recommends the best ones for your skill level.</p>
+<div class="ev-page-wrap animate-in">
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       HERO BANNER
+       ══════════════════════════════════════════════════════════════════════ -->
+  <div class="ev-hero-card">
+    <h1 class="ev-hero-title">Developer & AI Opportunities</h1>
+    <p class="ev-hero-sub">
+      Curated active challenges, global hackathons, and ranked coding duels across Kaggle, Major League Hacking, LeetCode, Google, and Devpost.
+    </p>
+
+    <div class="ev-metrics-row">
+      <div class="ev-metric-item">
+        <strong id="totalEvCount">16</strong> Real Events
+      </div>
+      <div class="ev-metric-item">
+        <strong>Global & Virtual</strong> Formats
+      </div>
+      <div class="ev-metric-item">
+        <strong>Verified Cash & Badges</strong>
+      </div>
+      <div class="ev-metric-item">
+        <strong>Curriculum Alignment</strong>
+      </div>
+    </div>
   </div>
 
-  <!-- Toolbar -->
-  <div class="ev-toolbar">
-    <input class="ev-search" id="evSearch" placeholder="Search events…" oninput="filterEvents()">
-    <button class="ev-filter-btn active" onclick="setFilter('all',this)">All</button>
-    <button class="ev-filter-btn" onclick="setFilter('hackathon',this)">Hackathons</button>
-    <button class="ev-filter-btn" onclick="setFilter('contest',this)">Contests</button>
-    <button class="ev-filter-btn" onclick="setFilter('competition',this)">Competitions</button>
-    <button class="ev-filter-btn" onclick="setFilter('challenge',this)">Challenges</button>
-    <button class="ai-rec-btn" id="aiRecBtn" onclick="loadAIRecs()">🤖 AI Recommend For Me</button>
+  <!-- ══════════════════════════════════════════════════════════════════════
+       TOOLBAR & FILTERS
+       ══════════════════════════════════════════════════════════════════════ -->
+  <div class="ev-toolbar-card">
+    <div class="ev-search-row">
+      <div class="ev-search-input-wrap">
+        <svg class="ev-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input 
+          type="text" 
+          id="evSearchInput" 
+          class="ev-search-input" 
+          placeholder="Search by topic, tech stack, platform, or prize (e.g. Kaggle, PyTorch, Hackathon)..."
+          oninput="applyFilters()"
+        >
+      </div>
+
+      <button class="ev-ai-match-btn" id="aiRecTriggerBtn" onclick="requestSmartRecommendations()">
+        <span id="aiBtnText">Match With My Skills</span>
+      </button>
+    </div>
+
+    <div class="ev-filter-tabs-row">
+      <div class="ev-tabs-group">
+        <button class="ev-tab-btn active" data-type="all" onclick="selectTypeTab('all', this)">
+          All Opportunities
+        </button>
+        <button class="ev-tab-btn" data-type="competition" onclick="selectTypeTab('competition', this)">
+          Competitions
+        </button>
+        <button class="ev-tab-btn" data-type="hackathon" onclick="selectTypeTab('hackathon', this)">
+          Hackathons
+        </button>
+        <button class="ev-tab-btn" data-type="contest" onclick="selectTypeTab('contest', this)">
+          Contests
+        </button>
+        <button class="ev-tab-btn" data-type="fellowship" onclick="selectTypeTab('fellowship', this)">
+          Fellowships & Certs
+        </button>
+        <button class="ev-tab-btn" data-type="saved" onclick="selectTypeTab('saved', this)">
+          Saved (<span id="savedCountBadge">0</span>)
+        </button>
+      </div>
+
+      <div class="ev-secondary-filters">
+        <select id="platformSelect" class="ev-select-filter" onchange="applyFilters()">
+          <option value="all">All Platforms</option>
+          <option value="Kaggle">Kaggle</option>
+          <option value="Major League Hacking">Major League Hacking (MLH)</option>
+          <option value="Devpost">Devpost</option>
+          <option value="LeetCode">LeetCode</option>
+          <option value="Codeforces">Codeforces</option>
+          <option value="Google">Google Open Source</option>
+          <option value="HackerRank">HackerRank</option>
+          <option value="GeeksforGeeks">GeeksforGeeks</option>
+          <option value="SIH">Smart India Hackathon</option>
+        </select>
+
+        <select id="diffSelect" class="ev-select-filter" onchange="applyFilters()">
+          <option value="all">All Difficulties</option>
+          <option value="Beginner">Beginner Friendly</option>
+          <option value="Intermediate">Intermediate</option>
+          <option value="Advanced">Advanced</option>
+        </select>
+      </div>
+    </div>
   </div>
 
-  <div class="ev-layout">
-    <!-- Events grid -->
-    <div>
-      <div class="ev-grid" id="evGrid">
-        <div class="ev-loading"><div class="spinner"></div><p style="margin-top:.75rem">Loading events…</p></div>
+  <!-- ══════════════════════════════════════════════════════════════════════
+       MAIN CONTENT: EVENTS GRID + AI RECOMMENDATION SIDEBAR
+       ══════════════════════════════════════════════════════════════════════ -->
+  <div class="ev-main-layout">
+
+    <!-- Events Grid -->
+    <div class="ev-grid" id="eventsGrid">
+      <div class="ev-state-box">
+        <div class="spinner" style="margin:0 auto 1rem"></div>
+        <div class="ev-state-title">Loading Authentic Events...</div>
+        <p class="ev-state-sub">Fetching verified competitions, hackathons, and coding contests.</p>
       </div>
     </div>
 
-    <!-- AI Recommendation panel -->
-    <div class="ai-panel-card">
-      <div class="ai-panel-head">
-        <h3>🤖 AI Smart Recommendations</h3>
-        <p>Personalised to your learning profile</p>
-      </div>
-      <div class="ai-panel-body" id="aiRecBody">
-        <div class="ai-rec-empty">
-          Click <strong>"AI Recommend For Me"</strong> above to get personalised contest recommendations based on your studied topics and skill level.
+    <!-- AI Matchmaker & Saved Sidebar -->
+    <div class="ev-sidebar">
+      <div class="ev-smart-panel">
+        <div class="ev-smart-head">
+          <div class="ev-smart-title">
+            Skills Recommendation
+          </div>
+          <span style="font-size:0.7rem;font-weight:700;color:var(--accent);text-transform:uppercase">Active Path</span>
+        </div>
+
+        <div class="ev-smart-body">
+          <div class="ev-profile-box">
+            <div class="ev-profile-title">Learning Profile</div>
+            <div class="ev-profile-val">
+              <span id="profileRoleBadge">Student</span> · 
+              <span id="profileLevelText">Beginner</span>
+            </div>
+          </div>
+
+          <div id="aiRecContainer" class="ev-rec-list">
+            <div style="text-align:center;padding:1.4rem 0.5rem;color:var(--text3)">
+              <p style="font-size:0.82rem;color:var(--text2);line-height:1.6;margin:0">
+                Click <strong>"Match With My Skills"</strong> to receive personalized contest recommendations tailored to the topics you've studied.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="source-note">
-        Events sourced from Unstop, GeeksforGeeks, Kaggle, LeetCode, Devpost &amp; more.<br>
-        Click any card to visit the platform directly.
-      </div>
     </div>
+
   </div>
+
 </div>
 
 <script>
-let allEvents   = [];
-let currentFilter = 'all';
+/* ==========================================================================
+   EVENTS CONTROLLER — Real Events, Clean Filtering, AI Matching
+   ========================================================================== */
 
-async function loadEvents() {
+let rawEvents = [];
+let activeTypeFilter = 'all';
+let savedEventIds = new Set(JSON.parse(localStorage.getItem('learnsphere_saved_events') || '[]'));
+
+function updateSavedBadge() {
+  const el = document.getElementById('savedCountBadge');
+  if (el) el.textContent = savedEventIds.size;
+}
+
+async function loadEventsData() {
   try {
-    const res  = await fetch('/api/events');
+    const res = await fetch('/api/events');
     const data = await res.json();
-    if (data.success) {
-      allEvents = data.events;
-      renderEvents(allEvents);
-    }
-  } catch(e) {
-    document.getElementById('evGrid').innerHTML =
-      '<div class="ev-none">Failed to load events. Please refresh.</div>';
-  }
-}
-
-function setFilter(type, btn) {
-  currentFilter = type;
-  document.querySelectorAll('.ev-filter-btn').forEach(function(b){ b.classList.remove('active'); });
-  btn.classList.add('active');
-  filterEvents();
-}
-
-function filterEvents() {
-  const q = document.getElementById('evSearch').value.toLowerCase();
-  const filtered = allEvents.filter(function(ev) {
-    const matchType = currentFilter === 'all' || ev.event_type === currentFilter;
-    const matchQ    = !q ||
-      (ev.title||'').toLowerCase().includes(q) ||
-      (ev.platform||'').toLowerCase().includes(q) ||
-      (ev.description||'').toLowerCase().includes(q) ||
-      (ev.tags||'').toLowerCase().includes(q);
-    return matchType && matchQ;
-  });
-  renderEvents(filtered);
-}
-
-function renderEvents(events) {
-  const grid = document.getElementById('evGrid');
-  if (!events.length) {
-    grid.innerHTML = '<div class="ev-none">No events match your filter. Try clearing the search.</div>';
-    return;
-  }
-  grid.innerHTML = events.map(function(ev) {
-    const tags = parseTags(ev.tags);
-    const pltClass = 'plt-' + (ev.platform || 'default').replace(/\s/g,'');
-    const typeClass = 'type-' + (ev.event_type || 'hackathon');
-    return '<div class="ev-card">'
-      + '<div class="ev-card-head">'
-      + '<span class="ev-platform ' + pltClass + '">' + escH(ev.platform||'') + '</span>'
-      + '<span class="ev-type-badge ' + typeClass + '">' + escH(ev.event_type||'') + '</span>'
-      + '<div class="ev-title">' + escH(ev.title) + '</div>'
-      + '<div class="ev-desc">' + escH(ev.description||'') + '</div>'
-      + '<div class="ev-meta">'
-      + (ev.deadline ? '<span>📅 ' + escH(ev.deadline) + '</span>' : '')
-      + (ev.prize    ? '<span>🏆 ' + escH(ev.prize)    + '</span>' : '')
-      + '</div>'
-      + '</div>'
-      + (tags.length ? '<div class="ev-tags">' + tags.map(function(t){ return '<span class="ev-tag">' + escH(t) + '</span>'; }).join('') + '</div>' : '')
-      + '<a class="ev-link" href="' + escH(ev.url||'#') + '" target="_blank" rel="noopener">Visit Platform →</a>'
-      + '</div>';
-  }).join('');
-}
-
-function parseTags(raw) {
-  if (!raw) return [];
-  try { return JSON.parse(raw); } catch(e) { return []; }
-}
-
-async function loadAIRecs() {
-  const btn = document.getElementById('aiRecBtn');
-  btn.disabled = true;
-  btn.textContent = '⏳ Analysing…';
-  document.getElementById('aiRecBody').innerHTML =
-    '<div class="ai-rec-loading"><div class="spinner"></div><p style="margin-top:.65rem">AI is analysing your profile…</p></div>';
-
-  try {
-    const res  = await fetch('/api/events/recommend', {method:'POST', headers:{'Content-Type':'application/json'}, body:'{}'});
-    const data = await res.json();
-    if (data.success && data.data && data.data.recommendations) {
-      renderAIRecs(data.data.recommendations);
+    if (data.success && data.events) {
+      rawEvents = data.events;
+      const countEl = document.getElementById('totalEvCount');
+      if (countEl) countEl.textContent = rawEvents.length;
+      applyFilters();
     } else {
-      document.getElementById('aiRecBody').innerHTML =
-        '<div class="ai-rec-empty">Could not generate recommendations. Study a few topics in AI Learn first!</div>';
+      showEmptyState('Could not retrieve events from catalog. Please refresh.');
     }
-  } catch(e) {
-    document.getElementById('aiRecBody').innerHTML =
-      '<div class="ai-rec-empty">Network error. Please try again.</div>';
+  } catch (err) {
+    showEmptyState('Unable to reach events service. Please check your connection.');
   }
-
-  btn.disabled = false;
-  btn.textContent = '🤖 AI Recommend For Me';
 }
 
-function renderAIRecs(recs) {
-  if (!recs || !recs.length) {
-    document.getElementById('aiRecBody').innerHTML = '<div class="ai-rec-empty">No recommendations yet.</div>';
+function selectTypeTab(type, btn) {
+  activeTypeFilter = type;
+  document.querySelectorAll('.ev-tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  applyFilters();
+}
+
+function applyFilters() {
+  const query = (document.getElementById('evSearchInput').value || '').trim().toLowerCase();
+  const selectedPlatform = document.getElementById('platformSelect').value;
+  const selectedDiff = document.getElementById('diffSelect').value.toLowerCase();
+
+  const filtered = rawEvents.filter(ev => {
+    // 1. Saved Tab Filter
+    if (activeTypeFilter === 'saved') {
+      if (!savedEventIds.has(ev.id)) return false;
+    } else if (activeTypeFilter !== 'all') {
+      // Type Tab Filter
+      if (activeTypeFilter === 'fellowship') {
+        if (ev.event_type !== 'fellowship' && ev.event_type !== 'challenge') return false;
+      } else if (ev.event_type !== activeTypeFilter) {
+        return false;
+      }
+    }
+
+    // 2. Platform Filter
+    if (selectedPlatform !== 'all') {
+      const p = (ev.platform || '').toLowerCase();
+      const target = selectedPlatform.toLowerCase();
+      if (!p.includes(target) && !(target === 'sih' && p.includes('ministry'))) return false;
+    }
+
+    // 3. Difficulty Filter
+    if (selectedDiff !== 'all') {
+      const d = (ev.difficulty || '').toLowerCase();
+      if (!d.includes(selectedDiff)) return false;
+    }
+
+    // 4. Keyword Query Filter
+    if (query) {
+      const title = (ev.title || '').toLowerCase();
+      const desc = (ev.description || '').toLowerCase();
+      const platform = (ev.platform || '').toLowerCase();
+      const tags = (ev.tags || '').toLowerCase();
+      const prize = (ev.prize || '').toLowerCase();
+      if (!title.includes(query) && !desc.includes(query) && !platform.includes(query) && !tags.includes(query) && !prize.includes(query)) {
+        return false;
+      }
+    }
+
+    return true;
+  });
+
+  renderEventsGrid(filtered);
+}
+
+function renderEventsGrid(events) {
+  const container = document.getElementById('eventsGrid');
+  if (!events || events.length === 0) {
+    if (activeTypeFilter === 'saved') {
+      container.innerHTML = `
+        <div class="ev-state-box">
+          <div class="ev-state-title">No Saved Events Yet</div>
+          <p class="ev-state-sub">Save any competition or hackathon to bookmark it for quick access.</p>
+        </div>`;
+    } else {
+      container.innerHTML = `
+        <div class="ev-state-box">
+          <div class="ev-state-title">No Matching Opportunities</div>
+          <p class="ev-state-sub">Try broadening your search query or switching your platform/difficulty filters.</p>
+        </div>`;
+    }
     return;
   }
-  document.getElementById('aiRecBody').innerHTML = recs.map(function(r) {
-    const diffClass = 'diff-' + (r.difficulty || 'beginner');
-    return '<div class="rec-card">'
-      + '<div class="rec-card-title">' + escH(r.title||'') + '</div>'
-      + '<div class="rec-platform">' + escH(r.platform||'') + '</div>'
-      + '<div class="rec-reason">' + escH(r.reason||'') + '</div>'
-      + '<span class="rec-diff ' + diffClass + '">' + escH(r.difficulty||'') + '</span>'
-      + (r.url ? '<a class="rec-link" href="' + escH(r.url) + '" target="_blank" rel="noopener">Open →</a>' : '')
-      + '<div style="clear:both"></div>'
-      + '</div>';
+
+  container.innerHTML = events.map(ev => {
+    const isSaved = savedEventIds.has(ev.id);
+    const tags = parseJsonArray(ev.tags);
+    const cleanPltClass = 'plt-' + (ev.platform || 'default').toLowerCase().replace(/[^a-z0-9]/g, '');
+    const cleanMode = ev.mode || 'Online / Global';
+    const cleanDiff = ev.difficulty || 'All Levels';
+
+    return `
+      <div class="ev-card">
+        <div class="ev-card-inner">
+          <div class="ev-card-header">
+            <span class="ev-platform-badge ${cleanPltClass}">
+              ${escapeHtml(ev.platform || 'Platform')}
+            </span>
+            <span class="ev-format-pill">${escapeHtml(cleanMode)}</span>
+          </div>
+
+          <h3 class="ev-card-title">${escapeHtml(ev.title)}</h3>
+          <p class="ev-card-desc">${escapeHtml(ev.description || '')}</p>
+
+          <div class="ev-meta-box">
+            <div class="ev-meta-row">
+              <span class="ev-meta-lbl">Deadline</span>
+              <span class="ev-meta-val">${escapeHtml(ev.deadline || 'Rolling')}</span>
+            </div>
+            <div class="ev-meta-row">
+              <span class="ev-meta-lbl">Reward</span>
+              <span class="ev-meta-val">${escapeHtml(ev.prize || 'Certificates & Points')}</span>
+            </div>
+            <div class="ev-meta-row">
+              <span class="ev-meta-lbl">Level</span>
+              <span class="ev-meta-val">${escapeHtml(cleanDiff)}</span>
+            </div>
+          </div>
+
+          ${tags.length ? `
+            <div class="ev-tags-wrap">
+              ${tags.slice(0, 4).map(t => `<span class="ev-tag-chip">${escapeHtml(t)}</span>`).join('')}
+            </div>
+          ` : ''}
+
+          <div class="ev-card-actions">
+            <a 
+              href="${escapeHtml(ev.url || '#')}" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              class="ev-open-btn"
+            >
+              <span>Visit &amp; Register</span>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+            </a>
+
+            <button 
+              class="ev-bookmark-btn ${isSaved ? 'saved' : ''}" 
+              onclick="toggleBookmark('${escapeHtml(ev.id)}')" 
+              title="${isSaved ? 'Remove from Saved' : 'Save Event'}"
+            >
+              ${isSaved ? 'Saved' : 'Save'}
+            </button>
+          </div>
+        </div>
+      </div>`;
   }).join('');
 }
 
-function escH(s) {
-  if (s == null) return '';
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function toggleBookmark(id) {
+  if (savedEventIds.has(id)) {
+    savedEventIds.delete(id);
+  } else {
+    savedEventIds.add(id);
+  }
+  localStorage.setItem('learnsphere_saved_events', JSON.stringify(Array.from(savedEventIds)));
+  updateSavedBadge();
+  applyFilters();
 }
 
-loadEvents();
+// ── AI Matchmaker Controller ─────────────────────────────────────────────
+async function requestSmartRecommendations() {
+  const btn = document.getElementById('aiRecTriggerBtn');
+  const btnText = document.getElementById('aiBtnText');
+  const container = document.getElementById('aiRecContainer');
+
+  btn.disabled = true;
+  btnText.textContent = 'Matching...';
+  container.innerHTML = `
+    <div style="text-align:center;padding:1.8rem;color:var(--text3)">
+      <div class="spinner" style="margin:0 auto 0.75rem"></div>
+      <p style="font-size:0.8rem;color:var(--text2);margin:0">Analyzing your curriculum progress &amp; skill graph...</p>
+    </div>`;
+
+  try {
+    const res = await fetch('/api/events/recommend', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({})
+    });
+    const data = await res.json();
+
+    if (data.success && data.data && data.data.recommendations) {
+      renderRecommendations(data.data.recommendations);
+    } else {
+      container.innerHTML = `
+        <div style="text-align:center;padding:1.2rem;color:var(--text3)">
+          <p style="font-size:0.8rem;color:var(--text2);margin:0">Explore a few lessons in AI Learn to unlock deeper tailored recommendations.</p>
+        </div>`;
+    }
+  } catch (err) {
+    container.innerHTML = `
+      <div style="text-align:center;padding:1.2rem;color:var(--text3)">
+        <p style="font-size:0.8rem;color:var(--danger);margin:0">Recommendation service unavailable. Please retry.</p>
+      </div>`;
+  } finally {
+    btn.disabled = false;
+    btnText.textContent = 'AI Match For Me';
+  }
+}
+
+function renderRecommendations(recs) {
+  const container = document.getElementById('aiRecContainer');
+  if (!recs || !recs.length) {
+    container.innerHTML = '<p style="text-align:center;color:var(--text3);padding:1rem;font-size:0.8rem">No recommendations returned.</p>';
+    return;
+  }
+
+  container.innerHTML = recs.map(r => {
+    const diff = (r.difficulty || 'beginner').toLowerCase();
+    const badgeClass = diff.includes('adv') ? 'badge-advanced' : (diff.includes('int') ? 'badge-intermediate' : 'badge-beginner');
+    return `
+      <div class="ev-rec-item">
+        <div class="ev-rec-name">${escapeHtml(r.title || '')}</div>
+        <div class="ev-rec-plt">${escapeHtml(r.platform || '')}</div>
+        <div class="ev-rec-reason">${escapeHtml(r.reason || '')}</div>
+        <div class="ev-rec-foot">
+          <span class="ev-rec-badge ${badgeClass}">${escapeHtml(r.difficulty || 'All Levels')}</span>
+          ${r.url ? `
+            <a href="${escapeHtml(r.url)}" target="_blank" rel="noopener noreferrer" class="ev-rec-link">
+              <span>View Challenge</span>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+            </a>
+          ` : ''}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function showEmptyState(msg) {
+  const container = document.getElementById('eventsGrid');
+  container.innerHTML = `
+    <div class="ev-state-box">
+      <div class="ev-state-title">Notice</div>
+      <p class="ev-state-sub">${escapeHtml(msg)}</p>
+    </div>`;
+}
+
+function parseJsonArray(raw) {
+  if (!raw) return [];
+  try {
+    const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function escapeHtml(text) {
+  if (!text) return '';
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+// Boot up
+updateSavedBadge();
+loadEventsData();
 </script>
+
 {% endblock %}

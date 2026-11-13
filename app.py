@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, session, redirect, url_for
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for, make_response
 from groq import Groq
 import json, os, sqlite3, hashlib, uuid, random
 from datetime import datetime, timedelta
@@ -6,11 +6,13 @@ from functools import wraps
 
 try:
     from dotenv import load_dotenv
-    _env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env')
-    if os.path.exists(_env_path):
-        load_dotenv(_env_path)
-    else:
-        load_dotenv()
+    # Load from LearnSphere_Platform/.env and parent c:\LearnSPhere\.env
+    _cur_env = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env')
+    _parent_env = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '.env')
+    if os.path.exists(_cur_env):
+        load_dotenv(_cur_env, override=True)
+    if os.path.exists(_parent_env):
+        load_dotenv(_parent_env, override=False)
 except ImportError:
     pass
 
@@ -19,22 +21,67 @@ app.secret_key = os.environ.get('SECRET_KEY', 'learnsphere_secret_2024_xyz_dev_o
 
 # ─── GROQ API SETUP (Free & Fast) ─────────────────────────────────────────
 # Get free API key at: https://console.groq.com
-GROQ_API_KEY = os.environ.get('GROQ_API_KEY', 'YOUR_GROQ_API_KEY')
-groq_client = Groq(api_key=GROQ_API_KEY)
-GROQ_MODEL = 'llama-3.3-70b-versatile'   # Fast, free, powerful
+CANDIDATE_GROQ_MODELS = [
+    'openai/gpt-oss-120b',
+    'qwen/qwen3.8-27b',
+    'openai/gpt-oss-20b',
+    'llama-3.3-70b-versatile',
+    'llama-3.1-70b-versatile'
+]
+GROQ_MODEL = 'openai/gpt-oss-120b'
+
+groq_client = None
+
+def get_groq_client():
+    global groq_client
+    key = os.environ.get('GROQ_API_KEY', '').strip()
+    if not key or key == 'YOUR_GROQ_API_KEY':
+        for p in [
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env'),
+            os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '.env')
+        ]:
+            if os.path.exists(p):
+                try:
+                    with open(p, 'r', encoding='utf-8') as f:
+                        for line in f:
+                            if line.strip().startswith('GROQ_API_KEY='):
+                                candidate = line.strip().split('=', 1)[1].strip()
+                                if candidate and not candidate.startswith('YOUR_'):
+                                    os.environ['GROQ_API_KEY'] = candidate
+                                    key = candidate
+                                    break
+                except Exception:
+                    pass
+    if key and not key.startswith('YOUR_'):
+        if groq_client is None or getattr(groq_client, '_api_key', None) != key:
+            groq_client = Groq(api_key=key)
+        return groq_client
+    return None
 
 def ask_groq(prompt, system="You are LearnSphere, an expert ML tutor.", temperature=0.7, max_tokens=8192):
-    """Call Groq API and return response text."""
-    response = groq_client.chat.completions.create(
-        model=GROQ_MODEL,
-        messages=[
-            {"role": "system", "content": system},
-            {"role": "user",   "content": prompt}
-        ],
-        temperature=temperature,
-        max_tokens=max_tokens,
-    )
-    return response.choices[0].message.content
+    """Call Groq API with automatic model fallback."""
+    client = get_groq_client()
+    if not client:
+        return "Please configure a valid GROQ_API_KEY in .env to enable AI features."
+
+    for m in CANDIDATE_GROQ_MODELS:
+        try:
+            response = client.chat.completions.create(
+                model=m,
+                messages=[
+                    {"role": "system", "content": system},
+                    {"role": "user",   "content": prompt}
+                ],
+                temperature=temperature,
+                max_tokens=max_tokens,
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            err_str = str(e)
+            if 'model_not_found' in err_str or '404' in err_str:
+                continue
+            raise e
+    raise RuntimeError("No available Groq model succeeded")
 
 def clean_and_parse_json(text):
     """
@@ -114,13 +161,17 @@ def init_db():
     c.execute('''CREATE TABLE IF NOT EXISTS courses (
         id TEXT PRIMARY KEY, title TEXT NOT NULL, description TEXT, category TEXT,
         difficulty TEXT DEFAULT 'beginner', educator_id TEXT NOT NULL, educator_name TEXT,
-        thumbnail_color TEXT DEFAULT '#00D4FF', created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        thumbnail_color TEXT DEFAULT '#10B981', created_at TEXT DEFAULT CURRENT_TIMESTAMP,
         is_published INTEGER DEFAULT 1, FOREIGN KEY (educator_id) REFERENCES users(id))''')
     c.execute('''CREATE TABLE IF NOT EXISTS lectures (
         id TEXT PRIMARY KEY, course_id TEXT NOT NULL, title TEXT NOT NULL,
         content TEXT, lecture_type TEXT DEFAULT 'text', video_url TEXT, code_example TEXT,
-        order_num INTEGER DEFAULT 0, duration_mins INTEGER DEFAULT 10,
+        diagram_svg TEXT, order_num INTEGER DEFAULT 0, duration_mins INTEGER DEFAULT 10,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (course_id) REFERENCES courses(id))''')
+    try:
+        c.execute("ALTER TABLE lectures ADD COLUMN diagram_svg TEXT")
+    except Exception:
+        pass
     c.execute('''CREATE TABLE IF NOT EXISTS enrollments (
         id TEXT PRIMARY KEY, student_id TEXT NOT NULL, course_id TEXT NOT NULL,
         enrolled_at TEXT DEFAULT CURRENT_TIMESTAMP, progress INTEGER DEFAULT 0,
@@ -307,6 +358,10 @@ def init_db():
         "ALTER TABLE courses ADD COLUMN duration_hours REAL DEFAULT 0.0",
         "ALTER TABLE users ADD COLUMN college TEXT DEFAULT ''",
         "ALTER TABLE users ADD COLUMN region TEXT DEFAULT ''",
+        "ALTER TABLE users ADD COLUMN bio TEXT DEFAULT ''",
+        "ALTER TABLE users ADD COLUMN headline TEXT DEFAULT ''",
+        "ALTER TABLE users ADD COLUMN interests TEXT DEFAULT ''",
+        "ALTER TABLE users ADD COLUMN preferences TEXT DEFAULT '{}'",
     ]:
         try: c.execute(col_sql)
         except Exception: pass
@@ -326,7 +381,7 @@ def init_db():
                      VALUES (?,?,?,?,?,?,?,?)""",
                   (cid,'Machine Learning Fundamentals',
                    'A complete beginner-friendly course covering core ML concepts from linear regression to neural networks.',
-                   'Machine Learning','beginner',admin_id,'Prof. Educator','#00D4FF'))
+                   'Machine Learning','beginner',admin_id,'Prof. Educator','#10B981'))
 
         lectures_data = [
             (1,'Introduction to Machine Learning','text',15,
@@ -1393,7 +1448,7 @@ import numpy as np
 # Create sample data
 categories = ["ML", "Deep Learning", "NLP", "Data Science", "Computer Vision"]
 scores = [85, 72, 90, 78, 65]
-colors = ["#00D4FF", "#7C3AED", "#10B981", "#F59E0B", "#EC4899"]
+colors = ["#10B981", "#7C3AED", "#059669", "#F59E0B", "#EC4899"]
 
 # Bar chart
 fig, axes = plt.subplots(1, 2, figsize=(12, 5))
@@ -1407,7 +1462,7 @@ axes[0].set_xlim(0, 100)
 np.random.seed(42)
 study_hours = np.random.uniform(1, 10, 30)
 exam_scores = 30 + 6 * study_hours + np.random.normal(0, 5, 30)
-axes[1].scatter(study_hours, exam_scores, c="#00D4FF", alpha=0.7, s=60)
+axes[1].scatter(study_hours, exam_scores, c="#10B981", alpha=0.7, s=60)
 axes[1].set_xlabel("Study Hours")
 axes[1].set_ylabel("Exam Score")
 axes[1].set_title("Study Hours vs Exam Score")
@@ -2136,6 +2191,12 @@ pipeline.report()'''),
     except Exception:
         pass
 
+    try:
+        from events_catalog import init_events_db
+        init_events_db(conn)
+    except Exception:
+        pass
+
     conn.commit()
     conn.close()
 
@@ -2214,6 +2275,181 @@ def register():
 def logout():
     session.clear()
     return redirect(url_for('index'))
+
+@app.route('/profile')
+@app.route('/student/profile')
+@login_required
+def user_profile():
+    return render_template('student_profile.html')
+
+@app.route('/api/user/profile', methods=['GET', 'POST', 'PUT'])
+@login_required
+def api_user_profile():
+    conn = get_db()
+    uid = session.get('user_id')
+    if not uid:
+        conn.close()
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+
+    if request.method in ['POST', 'PUT']:
+        data = request.json or {}
+        new_username = (data.get('username') or session.get('username', '')).strip()
+        headline = (data.get('headline') or '').strip()
+        college = (data.get('college') or '').strip()
+        region = (data.get('region') or '').strip()
+        level = (data.get('level') or 'beginner').strip().lower()
+        interests = (data.get('interests') or '').strip()
+        bio = (data.get('bio') or '').strip()
+
+        if not new_username:
+            conn.close()
+            return jsonify({'success': False, 'error': 'Username cannot be empty'}), 400
+
+        existing = conn.execute("SELECT id FROM users WHERE username=? AND id!=?", (new_username, uid)).fetchone()
+        if existing:
+            conn.close()
+            return jsonify({'success': False, 'error': 'Username is already taken by another account'}), 400
+
+        conn.execute("""
+            UPDATE users 
+            SET username=?, headline=?, college=?, region=?, level=?, interests=?, bio=?
+            WHERE id=?
+        """, (new_username, headline, college, region, level, interests, bio, uid))
+        conn.commit()
+        session['username'] = new_username
+        session['level'] = level
+
+    user = conn.execute("""
+        SELECT id, username, email, role, level, college, region, bio, headline, interests, created_at, total_queries, correct_attempts
+        FROM users WHERE id=?
+    """, (uid,)).fetchone()
+
+    enrolled_count = conn.execute("SELECT COUNT(*) FROM enrollments WHERE student_id=?", (uid,)).fetchone()[0]
+    completed_lecs = conn.execute("SELECT COUNT(DISTINCT lecture_id) FROM completed_lectures WHERE student_id=?", (uid,)).fetchone()[0]
+    certs = conn.execute("""
+        SELECT id, course_id, course_title, cert_code, issued_at 
+        FROM certificates 
+        WHERE student_id=? 
+        ORDER BY issued_at DESC
+    """, (uid,)).fetchall()
+
+    conn.close()
+
+    return jsonify({
+        'success': True,
+        'profile': dict(user) if user else {},
+        'stats': {
+            'enrolled_courses': enrolled_count,
+            'completed_lectures': completed_lecs,
+            'certificates_count': len(certs)
+        },
+        'certificates': [dict(c) for c in certs]
+    })
+
+@app.route('/settings')
+@login_required
+def user_settings_page():
+    return render_template('settings.html')
+
+@app.route('/api/user/settings', methods=['GET', 'POST'])
+@login_required
+def api_user_settings():
+    conn = get_db()
+    uid = session.get('user_id')
+    if not uid:
+        conn.close()
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+
+    if request.method == 'POST':
+        data = request.json or {}
+        action = data.get('action')
+
+        if action == 'change_password':
+            curr_pw = data.get('current_password', '')
+            new_pw = data.get('new_password', '')
+            if not curr_pw or not new_pw:
+                conn.close()
+                return jsonify({'success': False, 'error': 'Current and new password are required'}), 400
+            if len(new_pw) < 6:
+                conn.close()
+                return jsonify({'success': False, 'error': 'New password must be at least 6 characters long'}), 400
+
+            user = conn.execute("SELECT password FROM users WHERE id=?", (uid,)).fetchone()
+            if not user or user['password'] != hash_password(curr_pw):
+                conn.close()
+                return jsonify({'success': False, 'error': 'Current password is incorrect'}), 400
+
+            conn.execute("UPDATE users SET password=? WHERE id=?", (hash_password(new_pw), uid))
+            conn.commit()
+            conn.close()
+            return jsonify({'success': True, 'message': 'Password updated successfully'})
+
+        elif action == 'update_preferences':
+            prefs = {
+                'daily_goal_mins': int(data.get('daily_goal_mins', 30)),
+                'ai_tutor_style': str(data.get('ai_tutor_style', 'balanced')),
+                'study_reminders': bool(data.get('study_reminders', True)),
+                'email_updates': bool(data.get('email_updates', True)),
+                'preferred_theme': str(data.get('preferred_theme', 'day'))
+            }
+            conn.execute("UPDATE users SET preferences=? WHERE id=?", (json.dumps(prefs), uid))
+            conn.commit()
+            conn.close()
+            return jsonify({'success': True, 'message': 'Preferences saved successfully', 'preferences': prefs})
+
+    # GET request: fetch current settings
+    user = conn.execute("SELECT username, email, role, preferences FROM users WHERE id=?", (uid,)).fetchone()
+    conn.close()
+
+    prefs = {}
+    if user and user['preferences']:
+        try:
+            prefs = json.loads(user['preferences'])
+        except Exception:
+            prefs = {}
+
+    default_prefs = {
+        'daily_goal_mins': 30,
+        'ai_tutor_style': 'balanced',
+        'study_reminders': True,
+        'email_updates': True,
+        'preferred_theme': 'day'
+    }
+    default_prefs.update(prefs)
+
+    return jsonify({
+        'success': True,
+        'email': user['email'] if user else '',
+        'username': user['username'] if user else '',
+        'role': user['role'] if user else 'student',
+        'preferences': default_prefs
+    })
+
+@app.route('/api/user/export_data')
+@login_required
+def api_user_export_data():
+    conn = get_db()
+    uid = session.get('user_id')
+    user = conn.execute("SELECT id, username, email, role, level, college, region, bio, headline, interests, created_at FROM users WHERE id=?", (uid,)).fetchone()
+    enrollments = conn.execute("SELECT e.*, c.title as course_title FROM enrollments e JOIN courses c ON e.course_id = c.id WHERE e.student_id=?", (uid,)).fetchall()
+    completed = conn.execute("SELECT * FROM completed_lectures WHERE student_id=?", (uid,)).fetchall()
+    certs = conn.execute("SELECT * FROM certificates WHERE student_id=?", (uid,)).fetchall()
+    battles = conn.execute("SELECT * FROM battle_scores WHERE user_id=?", (uid,)).fetchall()
+    conn.close()
+
+    export_obj = {
+        'platform': 'LearnSphere',
+        'exported_at': datetime.now().isoformat(),
+        'profile': dict(user) if user else {},
+        'enrolled_courses': [dict(e) for e in enrollments],
+        'completed_lectures': [dict(cl) for cl in completed],
+        'certificates': [dict(c) for c in certs],
+        'battle_history': [dict(b) for b in battles]
+    }
+    resp = make_response(json.dumps(export_obj, indent=2))
+    resp.headers['Content-Type'] = 'application/json'
+    resp.headers['Content-Disposition'] = f'attachment; filename=learnsphere_data_{session.get("username", "user")}.json'
+    return resp
 
 @app.route('/student/dashboard')
 @login_required
@@ -2334,7 +2570,7 @@ def create_course():
     cid = str(uuid.uuid4())
     conn.execute("INSERT INTO courses (id,title,description,category,difficulty,educator_id,educator_name,thumbnail_color) VALUES (?,?,?,?,?,?,?,?)",
                  (cid,data['title'],data.get('description',''),data.get('category','ML'),data.get('difficulty','beginner'),
-                  session['user_id'],session['username'],data.get('thumbnail_color','#00D4FF')))
+                  session['user_id'],session['username'],data.get('thumbnail_color','#10B981')))
     conn.commit(); conn.close()
     return jsonify({'success':True,'id':cid})
 
@@ -2362,7 +2598,7 @@ def update_course(course_id):
     conn = get_db()
     conn.execute("UPDATE courses SET title=?,description=?,category=?,difficulty=?,thumbnail_color=? WHERE id=? AND educator_id=?",
                  (data['title'],data.get('description',''),data.get('category','ML'),data.get('difficulty','beginner'),
-                  data.get('thumbnail_color','#00D4FF'),course_id,session['user_id']))
+                  data.get('thumbnail_color','#10B981'),course_id,session['user_id']))
     conn.commit(); conn.close()
     return jsonify({'success':True})
 
@@ -2441,20 +2677,99 @@ def enroll(course_id):
 @login_required
 def complete_lecture(lecture_id):
     conn = get_db()
-    try:
-        conn.execute("INSERT INTO completed_lectures (id,student_id,lecture_id) VALUES (?,?,?)",
-                     (str(uuid.uuid4()),session['user_id'],lecture_id))
-        lec = conn.execute("SELECT course_id FROM lectures WHERE id=?",(lecture_id,)).fetchone()
-        if lec:
-            total = conn.execute("SELECT COUNT(*) FROM lectures WHERE course_id=?",(lec['course_id'],)).fetchone()[0]
-            done = conn.execute("""SELECT COUNT(*) FROM completed_lectures cl JOIN lectures l ON cl.lecture_id=l.id
-                                   WHERE cl.student_id=? AND l.course_id=?""",(session['user_id'],lec['course_id'])).fetchone()[0]
+    conn.execute("INSERT OR IGNORE INTO completed_lectures (id,student_id,lecture_id) VALUES (?,?,?)",
+                 (str(uuid.uuid4()), session['user_id'], lecture_id))
+    lec = conn.execute("SELECT course_id FROM lectures WHERE id=?", (lecture_id,)).fetchone()
+    progress_pct = 0
+    course_completed = False
+    if lec:
+        cid = lec['course_id']
+        total = conn.execute("SELECT COUNT(*) FROM lectures WHERE course_id=?", (cid,)).fetchone()[0]
+        done = conn.execute("""SELECT COUNT(DISTINCT cl.lecture_id) FROM completed_lectures cl 
+                               JOIN lectures l ON cl.lecture_id=l.id
+                               WHERE cl.student_id=? AND l.course_id=?""", (session['user_id'], cid)).fetchone()[0]
+        progress_pct = int(round(done / total * 100)) if total else 0
+        
+        # Ensure enrollment exists and update progress
+        enrolled = conn.execute("SELECT id FROM enrollments WHERE student_id=? AND course_id=?", (session['user_id'], cid)).fetchone()
+        if not enrolled:
+            conn.execute("INSERT INTO enrollments (id, student_id, course_id, progress) VALUES (?,?,?,?)",
+                         (str(uuid.uuid4()), session['user_id'], cid, progress_pct))
+        else:
             conn.execute("UPDATE enrollments SET progress=? WHERE student_id=? AND course_id=?",
-                         (int(done/total*100) if total else 0, session['user_id'], lec['course_id']))
-        conn.commit()
-    except sqlite3.IntegrityError: pass
+                         (progress_pct, session['user_id'], cid))
+            
+        # Check course completion
+        if done >= total and total > 0:
+            course_completed = True
+            cert = conn.execute("SELECT id FROM certificates WHERE student_id=? AND course_id=?", (session['user_id'], cid)).fetchone()
+            if not cert:
+                user = conn.execute("SELECT username FROM users WHERE id=?", (session['user_id'],)).fetchone()
+                course = conn.execute("SELECT title FROM courses WHERE id=?", (cid,)).fetchone()
+                uname = user['username'] if user else 'Student'
+                ctitle = course['title'] if course else 'Course'
+                code = 'CERT-' + uuid.uuid4().hex[:8].upper()
+                conn.execute("""INSERT INTO certificates (id, student_id, course_id, student_name, course_title, cert_code)
+                                VALUES (?,?,?,?,?,?)""", (str(uuid.uuid4()), session['user_id'], cid, uname, ctitle, code))
+                conn.execute("""INSERT INTO career_entries (id, user_id, title, entry_type, description)
+                                VALUES (?,?,?,?,?)""",
+                             (str(uuid.uuid4()), session['user_id'], f"Completed Course: {ctitle}",
+                              "certificate", f"Successfully completed all lectures and curriculum in {ctitle}."))
+    conn.commit()
     conn.close()
-    return jsonify({'success':True})
+    return jsonify({'success': True, 'progress': progress_pct, 'course_completed': course_completed})
+
+@app.route('/api/toggle_lecture/<lecture_id>', methods=['POST'])
+@login_required
+def toggle_lecture(lecture_id):
+    conn = get_db()
+    existing = conn.execute("SELECT id FROM completed_lectures WHERE student_id=? AND lecture_id=?",
+                            (session['user_id'], lecture_id)).fetchone()
+    if existing:
+        conn.execute("DELETE FROM completed_lectures WHERE id=?", (existing['id'],))
+        is_done = False
+    else:
+        conn.execute("INSERT OR IGNORE INTO completed_lectures (id,student_id,lecture_id) VALUES (?,?,?)",
+                     (str(uuid.uuid4()), session['user_id'], lecture_id))
+        is_done = True
+        
+    lec = conn.execute("SELECT course_id FROM lectures WHERE id=?", (lecture_id,)).fetchone()
+    progress_pct = 0
+    course_completed = False
+    if lec:
+        cid = lec['course_id']
+        total = conn.execute("SELECT COUNT(*) FROM lectures WHERE course_id=?", (cid,)).fetchone()[0]
+        done = conn.execute("""SELECT COUNT(DISTINCT cl.lecture_id) FROM completed_lectures cl 
+                               JOIN lectures l ON cl.lecture_id=l.id
+                               WHERE cl.student_id=? AND l.course_id=?""", (session['user_id'], cid)).fetchone()[0]
+        progress_pct = int(round(done / total * 100)) if total else 0
+        
+        enrolled = conn.execute("SELECT id FROM enrollments WHERE student_id=? AND course_id=?", (session['user_id'], cid)).fetchone()
+        if not enrolled:
+            conn.execute("INSERT INTO enrollments (id, student_id, course_id, progress) VALUES (?,?,?,?)",
+                         (str(uuid.uuid4()), session['user_id'], cid, progress_pct))
+        else:
+            conn.execute("UPDATE enrollments SET progress=? WHERE student_id=? AND course_id=?",
+                         (progress_pct, session['user_id'], cid))
+            
+        if done >= total and total > 0:
+            course_completed = True
+            cert = conn.execute("SELECT id FROM certificates WHERE student_id=? AND course_id=?", (session['user_id'], cid)).fetchone()
+            if not cert:
+                user = conn.execute("SELECT username FROM users WHERE id=?", (session['user_id'],)).fetchone()
+                course = conn.execute("SELECT title FROM courses WHERE id=?", (cid,)).fetchone()
+                uname = user['username'] if user else 'Student'
+                ctitle = course['title'] if course else 'Course'
+                code = 'CERT-' + uuid.uuid4().hex[:8].upper()
+                conn.execute("""INSERT INTO certificates (id, student_id, course_id, student_name, course_title, cert_code)
+                                VALUES (?,?,?,?,?,?)""", (str(uuid.uuid4()), session['user_id'], cid, uname, ctitle, code))
+                conn.execute("""INSERT INTO career_entries (id, user_id, title, entry_type, description)
+                                VALUES (?,?,?,?,?)""",
+                             (str(uuid.uuid4()), session['user_id'], f"Completed Course: {ctitle}",
+                              "certificate", f"Successfully completed all lectures and curriculum in {ctitle}."))
+    conn.commit()
+    conn.close()
+    return jsonify({'success': True, 'completed': is_done, 'progress': progress_pct, 'course_completed': course_completed})
 
 @app.route('/api/save_note', methods=['POST'])
 @login_required
@@ -2474,18 +2789,67 @@ def save_note():
 @login_required
 def my_enrollments():
     conn = get_db()
-    rows = conn.execute("""SELECT e.*,c.title,c.description,c.difficulty,c.thumbnail_color,c.educator_name
-                           FROM enrollments e JOIN courses c ON e.course_id=c.id
-                           WHERE e.student_id=? ORDER BY e.enrolled_at DESC""",(session['user_id'],)).fetchall()
+    rows = conn.execute("""
+        SELECT 
+            e.id AS enrollment_id,
+            c.id AS course_id,
+            c.id AS id,
+            c.title,
+            c.description,
+            c.category,
+            c.difficulty,
+            c.thumbnail_color,
+            c.educator_name,
+            e.enrolled_at,
+            e.progress AS stored_progress,
+            COUNT(DISTINCT l.id) AS total_lectures,
+            COUNT(DISTINCT cl.lecture_id) AS completed_lectures,
+            CASE 
+                WHEN COUNT(DISTINCT l.id) > 0 
+                THEN CAST(ROUND(COUNT(DISTINCT cl.lecture_id) * 100.0 / COUNT(DISTINCT l.id)) AS INTEGER)
+                ELSE 0 
+            END AS real_progress
+        FROM enrollments e
+        JOIN courses c ON e.course_id = c.id
+        LEFT JOIN lectures l ON l.course_id = c.id
+        LEFT JOIN completed_lectures cl ON cl.lecture_id = l.id AND cl.student_id = e.student_id
+        WHERE e.student_id = ?
+        GROUP BY e.id, c.id
+        ORDER BY e.enrolled_at DESC
+    """, (session['user_id'],)).fetchall()
+    
+    result = []
+    for r in rows:
+        d = dict(r)
+        real_prog = d['real_progress']
+        d['progress'] = real_prog
+        if d['stored_progress'] != real_prog:
+            conn.execute("UPDATE enrollments SET progress=? WHERE id=?", (real_prog, d['enrollment_id']))
+        if real_prog == 100 and d['total_lectures'] > 0:
+            cert = conn.execute("SELECT id FROM certificates WHERE student_id=? AND course_id=?", 
+                                (session['user_id'], d['course_id'])).fetchone()
+            if not cert:
+                user = conn.execute("SELECT username FROM users WHERE id=?", (session['user_id'],)).fetchone()
+                uname = user['username'] if user else 'Student'
+                code = 'CERT-' + uuid.uuid4().hex[:8].upper()
+                conn.execute("""INSERT INTO certificates (id, student_id, course_id, student_name, course_title, cert_code)
+                                VALUES (?,?,?,?,?,?)""", 
+                             (str(uuid.uuid4()), session['user_id'], d['course_id'], uname, d['title'], code))
+                conn.execute("""INSERT INTO career_entries (id, user_id, title, entry_type, description)
+                                VALUES (?,?,?,?,?)""",
+                             (str(uuid.uuid4()), session['user_id'], f"Completed Course: {d['title']}",
+                              "certificate", f"Successfully completed all lectures and curriculum in {d['title']}."))
+        result.append(d)
+    conn.commit()
     conn.close()
-    return jsonify([dict(r) for r in rows])
+    return jsonify(result)
 
 @app.route('/api/student_stats')
 @login_required
 def student_stats():
     conn = get_db()
     enrolled = conn.execute("SELECT COUNT(*) FROM enrollments WHERE student_id=?",(session['user_id'],)).fetchone()[0]
-    completed = conn.execute("SELECT COUNT(*) FROM completed_lectures WHERE student_id=?",(session['user_id'],)).fetchone()[0]
+    completed = conn.execute("SELECT COUNT(DISTINCT lecture_id) FROM completed_lectures WHERE student_id=?",(session['user_id'],)).fetchone()[0]
     user = conn.execute("SELECT * FROM users WHERE id=?",(session['user_id'],)).fetchone()
     conn.close()
     return jsonify({'enrolled_courses':enrolled,'completed_lectures':completed,
@@ -2573,10 +2937,13 @@ def update_profile(topic, success=True):
 @app.route('/api/explain', methods=['POST'])
 @login_required
 def explain():
-    data = request.json
-    concept = data.get('concept', '')
+    data = request.json or {}
+    concept = data.get('concept', '').strip()
     mode = data.get('mode', 'full')
-    level = get_user_profile()['level']
+    level = get_user_profile().get('level', 'beginner')
+
+    if not concept:
+        return jsonify({'success': False, 'error': 'Please enter a concept to explain.'})
 
     if mode == 'simple':
         prompt = f'''Explain the ML concept "{concept}" in the simplest possible way for a complete beginner.
@@ -2595,11 +2962,22 @@ For the code_example field, write Python code on a single conceptual line using 
 
 {{"title":"{concept}","simple_explanation":"1-2 plain English sentences","detailed_explanation":"3-4 paragraphs for {level} level learner. Use \\n\\n between paragraphs.","real_world_example":"one concrete real-world use case","formula":"math formula as plain text string, or null","key_points":["key point 1","key point 2","key point 3","key point 4"],"code_example":"import numpy as np\\nfrom sklearn.cluster import KMeans\\n\\n# Example code here\\nX = np.array([[1,2],[3,4]])\\nmodel = KMeans(n_clusters=2)\\nmodel.fit(X)","visual_description":"describe in words how to visualize this concept","difficulty":"beginner","related_topics":["related topic 1","related topic 2","related topic 3"],"quiz_question":"A good multiple choice question about {concept}?","quiz_options":["A) first option","B) second option","C) third option","D) fourth option"],"quiz_answer":"A"}}'''
 
+    result = None
     try:
         result = ask_groq_json(prompt)
-        # Post-process: convert \\n back to real newlines in code_example only
-        if 'code_example' in result and isinstance(result['code_example'], str):
-            result['code_example'] = result['code_example'].replace('\\n', '\n').replace('\\t', '\t')
+        if result and isinstance(result, dict):
+            if 'code_example' in result and isinstance(result['code_example'], str):
+                result['code_example'] = result['code_example'].replace('\\n', '\n').replace('\\t', '\t')
+    except Exception:
+        # Fall back to curated curriculum and dynamic engine
+        from ml_knowledge import get_fallback_explanation
+        result = get_fallback_explanation(concept, mode=mode, level=level)
+
+    if not result:
+        from ml_knowledge import get_fallback_explanation
+        result = get_fallback_explanation(concept, mode=mode, level=level)
+
+    try:
         p = get_user_profile()
         p['history'].append({'type': 'concept', 'topic': concept, 'time': datetime.now().isoformat()})
         if len(p['history']) > 50:
@@ -2609,9 +2987,302 @@ For the code_example field, write Python code on a single conceptual line using 
         update_profile(concept)
         # Also update learning_dna so DNA page shows real concept tracking
         _write_dna_entry(concept, correct=True, resp_ms=2000, style='balanced')
-        return jsonify({'success': True, 'data': result})
+    except Exception:
+        pass
+
+    return jsonify({'success': True, 'data': result})
+
+
+# ─── CODE LAB EXECUTION & CHALLENGE API ──────────────────────────────────────
+
+@app.route('/api/run_code', methods=['POST'])
+@login_required
+def run_code_endpoint():
+    import sys, subprocess, time
+    data = request.json or {}
+    code_text = data.get('code', '').strip()
+    if not code_text:
+        return jsonify({'success': False, 'error': 'No code provided to execute.'})
+
+    forbidden = ['subprocess', 'os.system', 'os.popen', 'shutil.rmtree', '__import__("os").system']
+    for bad in forbidden:
+        if bad in code_text:
+            return jsonify({
+                'success': False,
+                'error': f'Security policy: {bad} is restricted in Code Lab.',
+                'stdout': '',
+                'stderr': '',
+                'elapsed_ms': 0,
+                'plots': []
+            })
+
+    wrapper = '''
+import sys, io, base64
+try:
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    _has_mpl = True
+except ImportError:
+    _has_mpl = False
+
+_plots = []
+def _custom_show(*args, **kwargs):
+    if _has_mpl and plt.get_fignums():
+        buf = io.BytesIO()
+        plt.tight_layout()
+        plt.savefig(buf, format='png', dpi=100)
+        buf.seek(0)
+        _plots.append(base64.b64encode(buf.read()).decode())
+        plt.close()
+
+if _has_mpl:
+    plt.show = _custom_show
+
+# User code starts
+''' + code_text + '''
+# User code ends
+
+if _has_mpl and plt.get_fignums():
+    _custom_show()
+
+for _p in _plots:
+    print('__PLOT_B64__:' + _p)
+'''
+
+    t0 = time.time()
+    try:
+        res = subprocess.run([sys.executable, '-c', wrapper], capture_output=True, text=True, timeout=7)
+        elapsed = round((time.time() - t0) * 1000, 1)
+
+        stdout = res.stdout or ''
+        stderr = res.stderr or ''
+        plots = []
+        clean_lines = []
+        for line in stdout.splitlines():
+            if line.startswith('__PLOT_B64__:'):
+                plots.append(line.replace('__PLOT_B64__:', '').strip())
+            else:
+                clean_lines.append(line)
+
+        return jsonify({
+            'success': True,
+            'stdout': '\n'.join(clean_lines),
+            'stderr': stderr,
+            'elapsed_ms': elapsed,
+            'plots': plots
+        })
+    except subprocess.TimeoutExpired:
+        return jsonify({
+            'success': False,
+            'error': 'Execution timed out (7s limit reached). Check for infinite loops or long computation.',
+            'stdout': '',
+            'stderr': '',
+            'elapsed_ms': 7000,
+            'plots': []
+        })
     except Exception as e:
-        return jsonify({'success': False, 'error': f'AI parsing error: {str(e)}. Please try again.'})
+        return jsonify({
+            'success': False,
+            'error': f'Execution failed: {str(e)}',
+            'stdout': '',
+            'stderr': '',
+            'elapsed_ms': 0,
+            'plots': []
+        })
+
+
+@app.route('/api/run_challenge', methods=['POST'])
+@login_required
+def run_challenge_endpoint():
+    import sys, subprocess, time
+    data = request.json or {}
+    challenge_id = data.get('challenge_id', '').strip()
+    user_code = data.get('code', '').strip()
+    if not challenge_id or not user_code:
+        return jsonify({'success': False, 'error': 'Challenge ID and code are required.'})
+
+    test_harnesses = {
+        'softmax': '''
+import numpy as np
+try:
+    s1 = softmax(np.array([1.0, 2.0, 3.0]))
+    assert np.isclose(np.sum(s1), 1.0), "Test 1 Failed: Probabilities must sum to 1.0"
+    assert s1[2] > s1[1] > s1[0], "Test 1 Failed: Higher inputs must yield higher probabilities"
+    s2 = softmax(np.array([1000.0, 1001.0, 1002.0]))
+    assert not np.isnan(s2).any(), "Test 2 Failed: Numerical overflow! Subtract max(z) for stability"
+    assert np.isclose(np.sum(s2), 1.0), "Test 2 Failed: Must sum to 1.0 with large inputs"
+    s3 = softmax(np.array([[1.0, 2.0], [3.0, 4.0]]))
+    assert s3.shape == (2, 2), "Test 3 Failed: Should support 2D batch dimension"
+    assert np.allclose(np.sum(s3, axis=-1), [1.0, 1.0]), "Test 3 Failed: Each batch item must sum to 1.0"
+    print("__CHALLENGE_PASSED__")
+except AssertionError as ae:
+    print(f"__CHALLENGE_FAILED__: {str(ae)}")
+except Exception as ex:
+    print(f"__CHALLENGE_ERROR__: {type(ex).__name__}: {str(ex)}")
+''',
+        'mse_loss': '''
+import numpy as np
+try:
+    yt = np.array([1.0, 2.0, 3.0])
+    yp = np.array([1.5, 2.5, 2.0])
+    loss, grad = mse_and_grad(yt, yp)
+    assert np.isclose(loss, 0.5), f"Test 1 Failed: Expected MSE 0.5, got {loss}"
+    exp_grad = (2.0 / 3.0) * (yp - yt)
+    assert np.allclose(grad, exp_grad), f"Test 2 Failed: Expected gradient {exp_grad}, got {grad}"
+    yt2 = np.array([5.0])
+    yp2 = np.array([5.0])
+    l2, g2 = mse_and_grad(yt2, yp2)
+    assert np.isclose(l2, 0.0) and np.isclose(g2[0], 0.0), "Test 3 Failed: Zero error must give zero loss and grad"
+    print("__CHALLENGE_PASSED__")
+except AssertionError as ae:
+    print(f"__CHALLENGE_FAILED__: {str(ae)}")
+except Exception as ex:
+    print(f"__CHALLENGE_ERROR__: {type(ex).__name__}: {str(ex)}")
+''',
+        'bce_loss': '''
+import numpy as np
+try:
+    yt = np.array([1.0, 0.0, 1.0])
+    yp = np.array([0.9, 0.1, 0.8])
+    loss = binary_cross_entropy(yt, yp)
+    assert loss > 0, "Test 1 Failed: BCE Loss must be positive"
+    loss_extreme = binary_cross_entropy(np.array([1.0]), np.array([0.0]))
+    assert not np.isnan(loss_extreme) and not np.isinf(loss_extreme), "Test 2 Failed: Output contains NaN/Inf! Clip predictions to [eps, 1-eps]"
+    print("__CHALLENGE_PASSED__")
+except AssertionError as ae:
+    print(f"__CHALLENGE_FAILED__: {str(ae)}")
+except Exception as ex:
+    print(f"__CHALLENGE_ERROR__: {type(ex).__name__}: {str(ex)}")
+''',
+        'pairwise_dist': '''
+import numpy as np
+try:
+    A = np.array([[0.0, 0.0], [3.0, 4.0]])
+    B = np.array([[0.0, 0.0], [0.0, 4.0]])
+    D = euclidean_distances(A, B)
+    assert D.shape == (2, 2), f"Test 1 Failed: Expected shape (2, 2), got {D.shape}"
+    assert np.isclose(D[0, 0], 0.0), "Test 2 Failed: Distance to itself must be 0"
+    assert np.isclose(D[0, 1], 4.0), "Test 3 Failed: Distance from (0,0) to (0,4) must be 4.0"
+    assert np.isclose(D[1, 0], 5.0), "Test 4 Failed: Distance from (3,4) to (0,0) must be 5.0"
+    print("__CHALLENGE_PASSED__")
+except AssertionError as ae:
+    print(f"__CHALLENGE_FAILED__: {str(ae)}")
+except Exception as ex:
+    print(f"__CHALLENGE_ERROR__: {type(ex).__name__}: {str(ex)}")
+''',
+        'one_hot': '''
+import numpy as np
+try:
+    labels = np.array([0, 2, 1])
+    mat = one_hot_encode(labels, 3)
+    assert mat.shape == (3, 3), f"Test 1 Failed: Expected shape (3, 3), got {mat.shape}"
+    assert np.array_equal(mat, [[1, 0, 0], [0, 0, 1], [0, 1, 0]]), "Test 2 Failed: Encoding mismatch"
+    labels2 = np.array([1, 1, 0])
+    mat2 = one_hot_encode(labels2, 2)
+    assert np.array_equal(mat2, [[0, 1], [0, 1], [1, 0]]), "Test 3 Failed: Binary one-hot mismatch"
+    print("__CHALLENGE_PASSED__")
+except AssertionError as ae:
+    print(f"__CHALLENGE_FAILED__: {str(ae)}")
+except Exception as ex:
+    print(f"__CHALLENGE_ERROR__: {type(ex).__name__}: {str(ex)}")
+''',
+        'mini_batch': '''
+import numpy as np
+try:
+    X = np.arange(20).reshape(10, 2)
+    y = np.arange(10)
+    batches = list(get_batches(X, y, 4))
+    assert len(batches) == 3, f"Test 1 Failed: 10 items in batches of 4 should yield 3 batches, got {len(batches)}"
+    assert batches[0][0].shape == (4, 2), "Test 2 Failed: Batch 0 X shape should be (4, 2)"
+    assert batches[-1][0].shape == (2, 2), "Test 3 Failed: Final batch should contain remaining 2 items"
+    print("__CHALLENGE_PASSED__")
+except AssertionError as ae:
+    print(f"__CHALLENGE_FAILED__: {str(ae)}")
+except Exception as ex:
+    print(f"__CHALLENGE_ERROR__: {type(ex).__name__}: {str(ex)}")
+'''
+    }
+
+    harness = test_harnesses.get(challenge_id)
+    if not harness:
+        return jsonify({'success': False, 'error': f'Challenge "{challenge_id}" not found.'})
+
+    full_code = user_code + '\n' + harness
+    t0 = time.time()
+    try:
+        res = subprocess.run([sys.executable, '-c', full_code], capture_output=True, text=True, timeout=6)
+        elapsed = round((time.time() - t0) * 1000, 1)
+
+        stdout = res.stdout or ''
+        stderr = res.stderr or ''
+
+        passed = '__CHALLENGE_PASSED__' in stdout
+        feedback = ''
+        if passed:
+            feedback = 'All unit tests passed successfully!'
+            try:
+                _write_dna_entry('code_challenge_' + challenge_id, correct=True, resp_ms=int(elapsed), style='practical')
+            except Exception:
+                pass
+        elif '__CHALLENGE_FAILED__:' in stdout:
+            feedback = stdout.split('__CHALLENGE_FAILED__:')[1].strip()
+        elif '__CHALLENGE_ERROR__:' in stdout:
+            feedback = stdout.split('__CHALLENGE_ERROR__:')[1].strip()
+        elif stderr:
+            feedback = stderr.strip().splitlines()[-1] if stderr.strip() else 'Runtime error occurred.'
+        else:
+            feedback = 'Tests did not complete. Check function signature and returns.'
+
+        return jsonify({
+            'success': True,
+            'passed': passed,
+            'feedback': feedback,
+            'elapsed_ms': elapsed,
+            'stdout': stdout.replace('__CHALLENGE_PASSED__', '').strip(),
+            'stderr': stderr
+        })
+    except subprocess.TimeoutExpired:
+        return jsonify({
+            'success': False,
+            'passed': False,
+            'feedback': 'Execution timed out (6s limit). Check for infinite loops.',
+            'elapsed_ms': 6000
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'passed': False,
+            'feedback': f'Execution failed: {str(e)}',
+            'elapsed_ms': 0
+        })
+
+
+@app.route('/api/explain_code', methods=['POST'])
+@login_required
+def explain_code_endpoint():
+    data = request.json or {}
+    code_text = data.get('code', '').strip()
+    if not code_text:
+        return jsonify({'success': False, 'error': 'No code provided to explain.'})
+
+    prompt = (
+        'You are an expert Python ML educator.\n'
+        'Analyze this code and explain it clearly for a student.\n'
+        'Return ONLY valid JSON with no markdown:\n'
+        '{"summary":"1-2 sentence high-level overview of what this script accomplishes.",'
+        '"time_complexity":"Time complexity with Big-O notation and explanation.",'
+        '"space_complexity":"Space complexity with Big-O notation.",'
+        '"line_by_line":[{"step":"Imports & Data Prep","detail":"..."},{"step":"Model Training / Logic","detail":"..."},{"step":"Evaluation / Output","detail":"..."}],'
+        '"edge_cases":["Edge case 1 to watch out for","Edge case 2 to watch out for"]}\n\n'
+        f'Code:\n"""\n{code_text}\n"""'
+    )
+
+    try:
+        explanation = ask_groq_json(prompt)
+        return jsonify({'success': True, 'data': explanation})
+    except Exception as e:
+        return jsonify({'success': False, 'error': f'Code explanation failed: {str(e)}'})
 
 @app.route('/api/generate_code', methods=['POST'])
 @login_required
@@ -2732,35 +3403,59 @@ def analyze_code():
 @app.route('/api/generate_diagram', methods=['POST'])
 @login_required
 def generate_diagram():
-    data=request.json; concept=data.get('concept',''); vd=data.get('visual_description','')
-    prompt=f'''Create a diagram data structure for the ML concept "{concept}".
+    data = request.json or {}
+    concept = data.get('concept', '')
+    vd = data.get('visual_description', '')
+    prompt = f'''Create a diagram data structure for the ML concept "{concept}".
 Visual description hint: {vd}
 
 Return ONLY valid JSON, no markdown fences. Use x values between 80-720 and y values between 60-360:
-{{"type":"flowchart","title":"diagram title","nodes":[{{"id":"1","label":"Node Label","x":200,"y":150,"color":"#00D4FF"}},{{"id":"2","label":"Node 2","x":400,"y":150,"color":"#7C3AED"}}],"edges":[{{"from":"1","to":"2","label":"connection"}}],"description":"what this diagram illustrates"}}
+{{"type":"flowchart","title":"diagram title","nodes":[{{"id":"1","label":"Node Label","x":200,"y":150,"color":"#10B981"}},{{"id":"2","label":"Node 2","x":400,"y":150,"color":"#7C3AED"}}],"edges":[{{"from":"1","to":"2","label":"connection"}}],"description":"what this diagram illustrates"}}
 
 Create at least 4 nodes and meaningful connections that explain {concept} visually.'''
     try:
         result = ask_groq_json(prompt)
-        return jsonify({'success':True,'data':result})
-    except Exception as e: return jsonify({'success':False,'error':str(e)})
+        if result and isinstance(result, dict) and 'nodes' in result and len(result['nodes']) > 0:
+            return jsonify({'success': True, 'data': result})
+    except Exception:
+        pass
+    
+    from ml_knowledge import get_fallback_diagram
+    return jsonify({'success': True, 'data': get_fallback_diagram(concept, vd)})
 
 @app.route('/api/chat', methods=['POST'])
 @login_required
 def chat():
-    data=request.json; message=data.get('message',''); history=data.get('history',[]); p=get_user_profile()
-    system = f"You are LearnSphere, a friendly and expert ML tutor. The student is at {p['level']} level. Topics they've studied: {', '.join(p['topics_learned'][-5:]) or 'none yet'}. Give concise, helpful, encouraging answers. Use examples when helpful."
-    # Build messages list with history
+    data = request.json or {}
+    message = data.get('message', '').strip()
+    history = data.get('history', [])
+    p = get_user_profile()
+    if not message:
+        return jsonify({'success': False, 'error': 'Message cannot be empty.'})
+
+    system = f"You are LearnSphere, a friendly and expert ML tutor. The student is at {p.get('level', 'beginner')} level. Topics they've studied: {', '.join(p.get('topics_learned', [])[-5:]) or 'none yet'}. Give concise, helpful, encouraging answers. Use examples when helpful."
     messages = [{"role": "system", "content": system}]
     for h in history[-6:]:
-        messages.append({"role": h['role'], "content": h['content']})
+        messages.append({"role": h.get('role', 'user'), "content": h.get('content', '')})
     messages.append({"role": "user", "content": message})
     try:
-        response = groq_client.chat.completions.create(
-            model=GROQ_MODEL, messages=messages, temperature=0.7, max_tokens=1024
-        )
-        return jsonify({'success':True,'response':response.choices[0].message.content})
-    except Exception as e: return jsonify({'success':False,'error':str(e)})
+        client = get_groq_client()
+        if client:
+            for m in CANDIDATE_GROQ_MODELS:
+                try:
+                    response = client.chat.completions.create(
+                        model=m, messages=messages, temperature=0.7, max_tokens=1024
+                    )
+                    return jsonify({'success': True, 'response': response.choices[0].message.content})
+                except Exception as me:
+                    if 'model_not_found' in str(me) or '404' in str(me):
+                        continue
+                    raise me
+        raise RuntimeError("No Groq client available")
+    except Exception:
+        from ml_knowledge import get_fallback_chat
+        reply = get_fallback_chat(message, history, level=p.get('level', 'beginner'), topics_learned=p.get('topics_learned', []))
+        return jsonify({'success': True, 'response': reply})
 
 @app.route('/api/profile')
 @login_required
@@ -2769,37 +3464,73 @@ def get_profile(): return jsonify(get_user_profile())
 @app.route('/api/quiz_check', methods=['POST'])
 @login_required
 def quiz_check():
-    data=request.json; ans=data.get('answer',''); correct=data.get('correct',''); topic=data.get('topic','')
-    ok=ans.upper()==correct.upper(); update_profile(topic,ok)
-    return jsonify({'correct':ok,'message':'Correct! Great job!' if ok else f'Not quite. Answer is {correct}.'})
+    data = request.json or {}
+    ans = str(data.get('answer', '')).strip().upper()
+    correct = str(data.get('correct', '')).strip().upper()
+    topic = data.get('topic', '')
+
+    # Normalize e.g. "A" from "A) Mean Squared Error"
+    if len(ans) > 1 and ans[0].isalpha() and ans[1] in [')', '.', ':', ' ']:
+        ans = ans[0]
+    if len(correct) > 1 and correct[0].isalpha() and correct[1] in [')', '.', ':', ' ']:
+        correct = correct[0]
+
+    ok = (ans == correct)
+    update_profile(topic, ok)
+    _write_dna_entry(topic, correct=ok, resp_ms=2500, style='balanced')
+
+    # Look up explanation if available
+    from ml_knowledge import resolve_topic_key, ML_CURRICULUM
+    explanation = ""
+    canonical = resolve_topic_key(topic)
+    if canonical in ML_CURRICULUM:
+        explanation = ML_CURRICULUM[canonical].get('quiz_explanation', '')
+
+    msg = "🎉 Correct! Outstanding work! +15 XP added." if ok else f"Not quite. The correct answer is ({correct})."
+    if explanation:
+        msg += f" {explanation}"
+
+    return jsonify({'correct': ok, 'message': msg, 'correct_answer': correct})
 
 @app.route('/api/suggest_topics')
 @login_required
 def suggest_topics():
-    p=get_user_profile()
-    prompt=f'''Suggest 6 machine learning topics for a {p["level"]} level learner.
-They have already studied: {", ".join(p["topics_learned"][-10:]) or "nothing yet"}.
+    p = get_user_profile()
+    prompt = f'''Suggest 6 machine learning topics for a {p.get('level', 'beginner')} level learner.
+They have already studied: {", ".join(p.get('topics_learned', [])[-10:]) or "nothing yet"}.
 Suggest topics that build naturally on what they know.
 Return ONLY valid JSON, no markdown fences:
 {{"suggestions":[{{"topic":"topic name","reason":"why this topic is good to learn next","difficulty":"beginner or intermediate or advanced"}},{{"topic":"topic2","reason":"reason","difficulty":"difficulty"}}]}}'''
     try:
         result = ask_groq_json(prompt)
-        return jsonify({'success':True,'data':result})
-    except Exception as e: return jsonify({'success':False,'error':str(e)})
+        if result and isinstance(result, dict) and 'suggestions' in result and len(result['suggestions']) > 0:
+            return jsonify({'success': True, 'data': result})
+    except Exception:
+        pass
+
+    from ml_knowledge import get_fallback_suggestions
+    return jsonify({'success': True, 'data': {'suggestions': get_fallback_suggestions(p.get('level', 'beginner'), p.get('topics_learned', []))}})
 
 @app.route('/api/audio_script', methods=['POST'])
 @login_required
 def audio_script():
-    data=request.json; concept=data.get('concept',''); exp=data.get('explanation','')
-    prompt=f'''Write a natural, engaging audio narration script that teaches the ML concept "{concept}".
+    data = request.json or {}
+    concept = data.get('concept', '')
+    exp = data.get('explanation', '')
+    prompt = f'''Write a natural, engaging audio narration script that teaches the ML concept "{concept}".
 Base it on this explanation: {exp[:500]}
 The script should sound natural when spoken aloud — conversational, clear, 100-150 words.
 Return ONLY valid JSON, no markdown fences:
 {{"script":"the complete narration text that sounds natural when read aloud","duration_estimate":"estimated X seconds"}}'''
     try:
         result = ask_groq_json(prompt)
-        return jsonify({'success':True,'data':result})
-    except Exception as e: return jsonify({'success':False,'error':str(e)})
+        if result and isinstance(result, dict) and 'script' in result:
+            return jsonify({'success': True, 'data': result})
+    except Exception:
+        pass
+
+    from ml_knowledge import get_fallback_audio
+    return jsonify({'success': True, 'data': get_fallback_audio(concept, exp)})
 
 @app.route('/api/ai_explain_lecture', methods=['POST'])
 @login_required
@@ -3114,46 +3845,79 @@ def battle_question():
             "You are an expert ML quiz designer. Generate UNIQUE, VARIED questions. "
             f"Seed:{seed}. Never repeat patterns. Always match the required subtopic exactly."
         ), temperature=0.95)
-        # Ensure answer is just a letter
-        if result.get('answer') and len(result['answer']) > 1:
-            result['answer'] = result['answer'][0].upper()
-        return jsonify({'success': True, 'data': result})
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)})
+        if result and isinstance(result, dict) and 'question' in result and 'options' in result:
+            if result.get('answer') and len(result['answer']) > 1:
+                result['answer'] = result['answer'][0].upper()
+            return jsonify({'success': True, 'data': result})
+    except Exception:
+        pass
+
+    # Seamless reliable fallback from battle_engine
+    from battle_engine import get_fallback_battle_question
+    q = get_fallback_battle_question(topic=topic, difficulty=difficulty, q_num=q_num, asked_questions=asked_questions)
+    return jsonify({'success': True, 'data': q})
 
 
 @app.route('/api/battle/save_score', methods=['POST'])
 @login_required
 def save_battle_score():
-    data = request.json
+    data = request.json or {}
     conn = get_db()
-    score = data.get('score', 0)
+    score = int(data.get('score', 0))
+    ai_score = int(data.get('ai_score', 0))
+    topic = data.get('topic', 'Machine Learning')
+    uid = session.get('user_id', '')
+    uname = session.get('username', 'Player')
+
+    # 1. Insert authentic game match record
+    match_id = str(uuid.uuid4())
     conn.execute(
-        "INSERT INTO battle_scores (id,user_id,username,score,ai_score,topic) VALUES (?,?,?,?,?,?)",
-        (str(uuid.uuid4()), session['user_id'], session['username'],
-         score, data.get('ai_score', 0), data.get('topic', 'ML'))
+        "INSERT INTO battle_scores (id, user_id, username, score, ai_score, topic) VALUES (?,?,?,?,?,?)",
+        (match_id, uid, uname, score, ai_score, topic)
     )
-    coins_earned = score // 10
+
+    # 2. Award real platform coins based on score (1 coin per 10 points)
+    coins_earned = max(0, score // 10)
     if coins_earned > 0:
-        existing_reward = conn.execute("SELECT coins FROM user_rewards WHERE user_id=?", (session['user_id'],)).fetchone()
+        existing_reward = conn.execute("SELECT coins FROM user_rewards WHERE user_id=?", (uid,)).fetchone()
         if existing_reward:
-            conn.execute("UPDATE user_rewards SET coins = coins + ? WHERE user_id=?", (coins_earned, session['user_id']))
+            conn.execute("UPDATE user_rewards SET coins = coins + ? WHERE user_id=?", (coins_earned, uid))
         else:
-            conn.execute("INSERT INTO user_rewards (user_id, coins) VALUES (?, ?)", (session['user_id'], coins_earned))
-    conn.commit(); conn.close()
-    return jsonify({'success': True, 'coins_earned': coins_earned})
+            conn.execute("INSERT INTO user_rewards (user_id, coins) VALUES (?, ?)", (uid, coins_earned))
+
+    # 3. Update learning DNA with real match interaction
+    try:
+        dna_row = conn.execute("SELECT * FROM learning_dna WHERE user_id=?", (uid,)).fetchone()
+        if dna_row:
+            conn.execute("""
+                UPDATE learning_dna 
+                SET total_interactions = total_interactions + 1,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE user_id = ?
+            """, (uid,))
+    except Exception:
+        pass
+
+    conn.commit()
+    conn.close()
+    return jsonify({'success': True, 'coins_earned': coins_earned, 'match_id': match_id})
 
 
 @app.route('/api/battle/leaderboard')
 @login_required
 def battle_leaderboard():
-    conn  = get_db()
-    rows  = conn.execute("""
-        SELECT username, MAX(score) as best_score, COUNT(*) as games_played,
-               SUM(CASE WHEN score > ai_score THEN 1 ELSE 0 END) as wins
-        FROM battle_scores
-        GROUP BY user_id
-        ORDER BY best_score DESC LIMIT 10""").fetchall()
+    conn = get_db()
+    rows = conn.execute("""
+        SELECT 
+            COALESCE(u.username, bs.username) AS username,
+            MAX(bs.score) AS best_score,
+            COUNT(*) AS games_played,
+            SUM(CASE WHEN bs.score > bs.ai_score THEN 1 ELSE 0 END) AS wins
+        FROM battle_scores bs
+        LEFT JOIN users u ON bs.user_id = u.id
+        GROUP BY COALESCE(u.username, bs.username)
+        ORDER BY best_score DESC, wins DESC LIMIT 20
+    """).fetchall()
     conn.close()
     return jsonify([dict(r) for r in rows])
 
@@ -3162,12 +3926,37 @@ def battle_leaderboard():
 @login_required
 def battle_history():
     conn = get_db()
+    uid = session.get('user_id', '')
+    uname = session.get('username', '')
     rows = conn.execute(
-        "SELECT * FROM battle_scores WHERE user_id=? ORDER BY played_at DESC LIMIT 10",
-        (session['user_id'],)
+        "SELECT * FROM battle_scores WHERE user_id=? OR username=? ORDER BY played_at DESC LIMIT 20",
+        (uid, uname)
     ).fetchall()
     conn.close()
     return jsonify([dict(r) for r in rows])
+
+
+@app.route('/api/battle/my_stats')
+@login_required
+def battle_stats():
+    conn = get_db()
+    uid = session.get('user_id', '')
+    uname = session.get('username', '')
+    total = conn.execute("SELECT COUNT(*) FROM battle_scores WHERE user_id=? OR username=?", (uid, uname)).fetchone()[0]
+    wins = conn.execute("SELECT COUNT(*) FROM battle_scores WHERE (user_id=? OR username=?) AND score > ai_score", (uid, uname)).fetchone()[0]
+    best = conn.execute("SELECT MAX(score) FROM battle_scores WHERE user_id=? OR username=?", (uid, uname)).fetchone()[0] or 0
+    total_score = conn.execute("SELECT SUM(score) FROM battle_scores WHERE user_id=? OR username=?", (uid, uname)).fetchone()[0] or 0
+    conn.close()
+    win_rate = int((wins / total * 100)) if total > 0 else 0
+    return jsonify({
+        'success': True,
+        'total_matches': total,
+        'wins': wins,
+        'losses': total - wins,
+        'win_rate': win_rate,
+        'best_score': best,
+        'total_score': total_score
+    })
 
 
 # ─── RESEARCH & VIRTUAL LAB ROUTES ──────────────────────────────────────────
@@ -3185,93 +3974,306 @@ def vlab():
 @app.route('/api/research_paper', methods=['POST'])
 @login_required
 def research_paper():
-    data    = request.json or {}
-    concept = data.get('concept', '').strip()
+    data       = request.json or {}
+    concept    = (data.get('concept') or data.get('topic') or '').strip()
+    paper_type = data.get('paper_type', 'survey').strip().lower()
     if not concept:
-        return jsonify({'success': False, 'error': 'Please enter a concept.'})
-    level = get_user_profile().get('level', 'beginner')
+        return jsonify({'success': False, 'error': 'Please enter a research topic or ML concept.'})
+    
+    level_prof = get_user_profile().get('level', 'beginner')
+    level = data.get('level', level_prof)
 
-    # Robust two-step generation: labelled sections for reliable parsing, meta JSON separately.
     import re as _re
 
-    # Step 1: use clear ##LABEL## markers — far more reliable than arbitrary delimiters
-    body_prompt = (
-        f'Write an IEEE-style research paper about "{concept}" for a {level}-level ML student.\n\n'
-        f'Output EXACTLY these 6 labelled sections. Use the EXACT ##LABEL## prefix shown.\n\n'
-        f'##TITLE##\n'
-        f'[Write a concise academic title here]\n\n'
-        f'##ABSTRACT##\n'
-        f'[Write 100-120 word abstract here]\n\n'
-        f'##INTRODUCTION##\n'
-        f'[Write 120-150 word introduction here]\n\n'
-        f'##METHODOLOGY##\n'
-        f'[Write 120-150 word methodology section here]\n\n'
-        f'##RESULTS##\n'
-        f'[Write 120-150 word results/discussion section here]\n\n'
-        f'##CONCLUSION##\n'
-        f'[Write 80-100 word conclusion here]\n\n'
-        f'IMPORTANT: Start each section with the exact ##LABEL## marker. No JSON. Plain text only.'
-    )
+    type_titles = {
+        'survey': 'Comprehensive Academic Survey',
+        'benchmark': 'Empirical Benchmark and Comparative Study',
+        'proposal': 'Novel Architecture and Paradigm Proposal',
+        'system': 'System Implementation and Scalability Analysis'
+    }
+    type_desc = type_titles.get(paper_type, 'Academic Research Paper')
 
-    # Step 2: keywords and references as short JSON
-    meta_prompt = (
-        f'For a research paper about "{concept}" in machine learning, provide metadata.\n'
-        f'Return ONLY this JSON (no markdown, no extra text):\n'
-        f'{{"keywords":["kw1","kw2","kw3","kw4","kw5"],"references":["[1] Author A. Title. Venue, Year.","[2] Author B. Title. Venue, Year.","[3] Author C. Title. Venue, Year.","[4] Author D. Title. Venue, Year.","[5] Author E. Title. Venue, Year."]}}'
+    paper_prompt = (
+        f'Write a publication-quality IEEE-style {type_desc} about "{concept}" for a {level}-level ML researcher.\n'
+        f'Respond with ONLY valid JSON with no markdown:\n'
+        f'{{"title":"Formal academic title for {concept}",'
+        f'"abstract":"Rigorous 100-140 word abstract summarizing background, motivation, methodology, and key results.",'
+        f'"introduction":"120-160 word introduction covering technical challenges, previous bottlenecks, and 3 explicit contributions.",'
+        f'"theory_math":"110-150 word theoretical formulation with loss functions, optimization bounds, or probability models.",'
+        f'"methodology":"130-170 word architecture pipeline, design decisions, and algorithmic complexity.",'
+        f'"results":"120-160 word empirical benchmarks, baseline comparative evaluations, and ablation studies.",'
+        f'"conclusion":"90-120 word conclusion with practical deployment trade-offs and future research avenues.",'
+        f'"keywords":["{concept}","machine learning","deep learning","neural networks","optimization"],'
+        f'"references":["[1] Vaswani, A., et al. Attention Is All You Need. NeurIPS, 2017.","[2] He, K., et al. Deep Residual Learning. CVPR, 2016.","[3] Goodfellow, I., et al. Deep Learning. MIT Press, 2016.","[4] Devlin, J., et al. BERT. NAACL, 2019.","[5] Kingma, D. P., and Ba, J. Adam. ICLR, 2015."],'
+        f'"key_takeaways":["Key finding 1","Key finding 2","Key finding 3"],'
+        f'"bibtex":"@article{{author2026, title={{...}}, journal={{IEEE TA}}, year={{2026}}}}"}}'
     )
 
     try:
-        body_text = ask_groq(
-            body_prompt,
-            system="You are an expert IEEE paper writer. Follow the ##LABEL## markers exactly. Write accurate, academic ML content.",
-            temperature=0.4,
-            max_tokens=2500
-        )
-        meta = ask_groq_json(meta_prompt)
+        doc = ask_groq_json(paper_prompt)
 
-        # Robust section extraction using ##LABEL## markers
-        def extract_section(label, text, fallback=''):
-            pattern = r'##' + label + r'##\s*(.*?)(?=##[A-Z]+##|$)'
-            m = _re.search(pattern, text, _re.DOTALL | _re.IGNORECASE)
-            if m:
-                txt = m.group(1).strip()
-                # Remove any bracket instructions the model left in
-                txt = _re.sub(r'\[.*?\]', '', txt).strip()
-                if txt:
-                    return txt
-            # Fallback: match "LABEL:" or "LABEL\n" style
-            pattern2 = r'(?:^|\n)\s*' + label + r'\s*:?\s*\n(.*?)(?=\n\s*(?:TITLE|ABSTRACT|INTRODUCTION|METHODOLOGY|RESULTS|CONCLUSION)\s*:?\s*\n|$)'
-            m2 = _re.search(pattern2, text, _re.DOTALL | _re.IGNORECASE)
-            if m2:
-                return m2.group(1).strip()
-            return fallback
-
-        raw_title = extract_section('TITLE', body_text, concept + ': A Comprehensive Survey')
+        raw_title = doc.get('title') or f'{concept}: A {type_desc}'
         raw_title = _re.sub(r'[#\[\]`*]', '', raw_title).strip()
-        if not raw_title or len(raw_title) < 5:
-            raw_title = concept + ': A Comprehensive Survey'
+
+        clean_slug = _re.sub(r'[^a-zA-Z0-9]', '', concept).lower()[:12] or 'paper'
+        fallback_bib = (
+            f"@article{{{clean_slug}2026survey,\n"
+            f"  title={{{raw_title}}},\n"
+            f"  author={{LearnSphere Research Lab and Academic Contributors}},\n"
+            f"  journal={{IEEE Transactions on Artificial Intelligence}},\n"
+            f"  volume={{14}},\n"
+            f"  number={{2}},\n"
+            f"  pages={{105--124}},\n"
+            f"  year={{2026}}\n"
+            f"}}"
+        )
 
         result = {
-            'title':        raw_title,
-            'abstract':     extract_section('ABSTRACT',     body_text, 'This paper surveys ' + concept + ' in machine learning.'),
-            'introduction': extract_section('INTRODUCTION', body_text, 'An introduction to ' + concept + '.'),
-            'methodology':  extract_section('METHODOLOGY',  body_text, 'The methodology involves ' + concept + ' techniques.'),
-            'results':      extract_section('RESULTS',      body_text, 'Results demonstrate the effectiveness of ' + concept + '.'),
-            'conclusion':   extract_section('CONCLUSION',   body_text, 'This survey covered key aspects of ' + concept + '.'),
-            'keywords':     meta.get('keywords', [concept, 'machine learning', 'deep learning', 'AI']),
-            'references':   meta.get('references', [
-                '[1] LeCun Y. et al. Deep Learning. Nature, 2015.',
-                '[2] Goodfellow I. et al. Deep Learning. MIT Press, 2016.',
-                '[3] Vaswani A. et al. Attention Is All You Need. NeurIPS, 2017.',
-                '[4] Krizhevsky A. et al. ImageNet Classification with CNNs. NeurIPS, 2012.',
-                '[5] Hochreiter S. et al. Long Short-Term Memory. Neural Computation, 1997.'
-            ])
+            'title':         raw_title,
+            'paper_type':    paper_type,
+            'abstract':      doc.get('abstract') or f'This paper presents a formal analysis of {concept} in machine learning systems.',
+            'introduction':  doc.get('introduction') or f'The field of {concept} has experienced rapid development with foundational algorithmic breakthroughs.',
+            'theory_math':   doc.get('theory_math') or f'Theoretical formulation establishes the loss minimization objective and probabilistic bounds for {concept}.',
+            'methodology':   doc.get('methodology') or f'The system architecture leverages parameterized optimization and neural feature representations.',
+            'results':       doc.get('results') or f'Empirical evaluation benchmarks demonstrate significant gains in convergence speed and generalization.',
+            'conclusion':    doc.get('conclusion') or f'In conclusion, this investigation synthesizes critical advancements in {concept} and charts directions for scalable deployment.',
+            'keywords':      doc.get('keywords', [concept, 'machine learning', 'deep learning', 'neural networks', 'optimization']),
+            'references':    doc.get('references', [
+                '[1] Vaswani, A., et al. Attention Is All You Need. NeurIPS, 2017.',
+                '[2] He, K., et al. Deep Residual Learning for Image Recognition. CVPR, 2016.',
+                '[3] Goodfellow, I., et al. Deep Learning. MIT Press, 2016.',
+                '[4] Sutton, R. S., and Barto, A. G. Reinforcement Learning: An Introduction. MIT Press, 2018.',
+                '[5] Kingma, D. P., and Ba, J. Adam: A Method for Stochastic Optimization. ICLR, 2015.'
+            ]),
+            'key_takeaways': doc.get('key_takeaways', [
+                f'Establishes key theoretical bounds and objective functions for {concept}.',
+                'Demonstrates competitive empirical performance across standardized benchmark tasks.',
+                'Identifies scalability limitations and outlines actionable future research avenues.'
+            ]),
+            'bibtex': doc.get('bibtex') or fallback_bib
         }
+
         update_profile(concept)
         _write_dna_entry(concept, correct=True, resp_ms=5000, style='balanced')
         return jsonify({'success': True, 'data': result})
     except Exception as e:
         return jsonify({'success': False, 'error': 'Research generation failed: ' + str(e)})
+
+
+@app.route('/api/research/arxiv_search', methods=['GET', 'POST'])
+@login_required
+def research_arxiv_search():
+    import urllib.request
+    import urllib.parse
+    import ssl
+    import xml.etree.ElementTree as ET
+
+    data  = (request.json if request.is_json else request.args) or {}
+    query = (data.get('query') or data.get('q') or '').strip()
+    limit = int(data.get('limit', 6))
+
+    # Landmark curated catalogue for instant reference and offline safety
+    landmark_papers = [
+        {
+            'arxiv_id': '1706.03762',
+            'title': 'Attention Is All You Need',
+            'authors': 'Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones et al.',
+            'published': '2017-06-12',
+            'summary': 'The dominant sequence transduction models are based on complex recurrent or convolutional neural networks. We propose a simple network architecture, the Transformer, based solely on attention mechanisms, dispensing with recurrence and convolutions entirely.',
+            'categories': ['cs.CL', 'cs.LG'],
+            'pdf_url': 'https://arxiv.org/pdf/1706.03762.pdf',
+            'link': 'https://arxiv.org/abs/1706.03762'
+        },
+        {
+            'arxiv_id': '1512.03385',
+            'title': 'Deep Residual Learning for Image Recognition (ResNet)',
+            'authors': 'Kaiming He, Xiangyu Zhang, Shaoqing Ren, Jian Sun',
+            'published': '2015-12-10',
+            'summary': 'Deeper neural networks are more difficult to train. We present a residual learning framework to ease the training of networks that are substantially deeper than those used previously by explicitly reformulating layers as learning residual functions with reference to layer inputs.',
+            'categories': ['cs.CV'],
+            'pdf_url': 'https://arxiv.org/pdf/1512.03385.pdf',
+            'link': 'https://arxiv.org/abs/1512.03385'
+        },
+        {
+            'arxiv_id': '2106.09685',
+            'title': 'LoRA: Low-Rank Adaptation of Large Language Models',
+            'authors': 'Edward J. Hu, Yelong Shen, Phillip Wallis, Zeyuan Allen-Zhu, Yuanzhi Li et al.',
+            'published': '2021-06-17',
+            'summary': 'An important paradigm of natural language processing consists of large-scale pre-training on general domain data and adaptation to particular tasks. LoRA freezes pre-trained model weights and injects trainable rank decomposition matrices into each Transformer layer.',
+            'categories': ['cs.CL', 'cs.AI', 'cs.LG'],
+            'pdf_url': 'https://arxiv.org/pdf/2106.09685.pdf',
+            'link': 'https://arxiv.org/abs/2106.09685'
+        },
+        {
+            'arxiv_id': '2312.00752',
+            'title': 'Mamba: Linear-Time Sequence Modeling with Selective State Spaces',
+            'authors': 'Albert Gu, Tri Dao',
+            'published': '2023-12-01',
+            'summary': 'Foundation models now power most applications in AI. We propose Mamba, a new class of selective state space models that solves the computational inefficiency of Transformers on long sequences with fast linear-time sequence processing.',
+            'categories': ['cs.LG', 'cs.AI'],
+            'pdf_url': 'https://arxiv.org/pdf/2312.00752.pdf',
+            'link': 'https://arxiv.org/abs/2312.00752'
+        },
+        {
+            'arxiv_id': '2112.10752',
+            'title': 'High-Resolution Image Synthesis with Latent Diffusion Models',
+            'authors': 'Robin Rombach, Andreas Blattmann, Dominik Lorenz, Patrick Esser, Björn Ommer',
+            'published': '2021-12-20',
+            'summary': 'By decomposing the image formation process into a sequential application of denoising autoencoders, diffusion models achieve state-of-the-art synthesis results. We apply them in the latent space of powerful pretrained autoencoders (Stable Diffusion).',
+            'categories': ['cs.CV', 'cs.LG'],
+            'pdf_url': 'https://arxiv.org/pdf/2112.10752.pdf',
+            'link': 'https://arxiv.org/abs/2112.10752'
+        },
+        {
+            'arxiv_id': '2305.18290',
+            'title': 'Direct Preference Optimization (DPO): Your Language Model is Secretly a Reward Model',
+            'authors': 'Rafael Rafailov, Archit Sharma, Eric Mitchell, Stefano Ermon, Christopher D. Manning, Chelsea Finn',
+            'published': '2023-05-29',
+            'summary': 'While large-scale language models learn broad world knowledge, controlling their behavior is difficult. DPO demonstrates that the constrained RLHF problem can be optimized exactly with a simple binary cross-entropy loss, bypassing reward model fitting entirely.',
+            'categories': ['cs.LG', 'cs.AI'],
+            'pdf_url': 'https://arxiv.org/pdf/2305.18290.pdf',
+            'link': 'https://arxiv.org/abs/2305.18290'
+        }
+    ]
+
+    if not query:
+        return jsonify({'success': True, 'query': '', 'papers': landmark_papers[:limit]})
+
+    # Try live arXiv API search
+    try:
+        ctx = ssl._create_unverified_context()
+        enc_q = urllib.parse.quote(query)
+        url = f'http://export.arxiv.org/api/query?search_query=all:{enc_q}&start=0&max_results={limit}'
+        req = urllib.request.Request(url, headers={'User-Agent': 'LearnSphere/1.0'})
+        with urllib.request.urlopen(req, context=ctx, timeout=7) as response:
+            xml_data = response.read()
+            root = ET.fromstring(xml_data)
+            ns = {'atom': 'http://www.w3.org/2005/Atom'}
+            entries = root.findall('atom:entry', ns)
+            papers = []
+            for e in entries:
+                t = e.find('atom:title', ns)
+                s = e.find('atom:summary', ns)
+                p = e.find('atom:published', ns)
+                i = e.find('atom:id', ns)
+                if t is None or s is None or i is None:
+                    continue
+                title = t.text.strip().replace('\n', ' ')
+                summary = s.text.strip().replace('\n', ' ')
+                published = p.text.strip()[:10] if p is not None else ''
+                link = i.text.strip()
+                raw_id = link.split('/abs/')[-1] if '/abs/' in link else link.split('/')[-1]
+                authors = [a.find('atom:name', ns).text.strip() for a in e.findall('atom:author', ns) if a.find('atom:name', ns) is not None]
+                papers.append({
+                    'arxiv_id': raw_id,
+                    'title': title,
+                    'summary': summary,
+                    'published': published,
+                    'link': link,
+                    'pdf_url': f'https://arxiv.org/pdf/{raw_id}.pdf',
+                    'authors': ', '.join(authors[:3]) + (' et al.' if len(authors) > 3 else '')
+                })
+            if papers:
+                return jsonify({'success': True, 'query': query, 'papers': papers})
+    except Exception:
+        pass
+
+    # If live search fails or has no hits, filter curated catalog
+    matched = [p for p in landmark_papers if query.lower() in p['title'].lower() or query.lower() in p['summary'].lower()]
+    return jsonify({'success': True, 'query': query, 'papers': (matched or landmark_papers)[:limit]})
+
+
+@app.route('/api/research/explain_paper', methods=['POST'])
+@login_required
+def research_explain_paper():
+    data     = request.json or {}
+    title    = data.get('title', '').strip()
+    abstract = data.get('abstract', '').strip()
+    if not title:
+        return jsonify({'success': False, 'error': 'Paper title is required.'})
+
+    prompt = (
+        f'You are an expert ML educator. Explain this academic research paper for a computer science student:\n'
+        f'Title: "{title}"\n'
+        f'Abstract: "{abstract}"\n\n'
+        f'Respond with ONLY valid JSON with no markdown:\n'
+        f'{{"core_intuition":"2-3 clear sentences explaining the central intuition in plain English without jargon.",'
+        f'"architectural_breakthrough":"1-2 sentences on what mathematical or engineering technique was invented.",'
+        f'"strengths":["Key practical advantage 1","Key practical advantage 2"],'
+        f'"limitations":["Important constraint or limitation 1","Important constraint or limitation 2"],'
+        f'"experiment_idea":"A small reproducible PyTorch or Scikit-learn experiment a student can code today to verify this idea."}}'
+    )
+
+    try:
+        explanation = ask_groq_json(prompt)
+        return jsonify({'success': True, 'data': explanation})
+    except Exception as e:
+        return jsonify({'success': False, 'error': 'Paper explanation failed: ' + str(e)})
+
+
+@app.route('/api/research/compare', methods=['POST'])
+@login_required
+def research_compare():
+    data      = request.json or {}
+    concept_a = data.get('concept_a', '').strip()
+    concept_b = data.get('concept_b', '').strip()
+    if not concept_a or not concept_b:
+        return jsonify({'success': False, 'error': 'Please provide two concepts or architectures to compare.'})
+
+    prompt = (
+        f'Generate an academic comparison matrix and literature synthesis between "{concept_a}" and "{concept_b}".\n'
+        f'Return ONLY valid JSON matching this schema with no markdown:\n'
+        f'{{"concept_a":"{concept_a}",'
+        f'"concept_b":"{concept_b}",'
+        f'"summary":"2-3 sentence technical overview comparing both approaches.",'
+        f'"dimensions":['
+        f'{{"factor":"Time Complexity & Scalability","a":"...","b":"...","advantage":"{concept_a} or {concept_b}"}},'
+        f'{{"factor":"Memory & Hardware Footprint","a":"...","b":"...","advantage":"..."}},'
+        f'{{"factor":"Sample Efficiency & Training Stability","a":"...","b":"...","advantage":"..."}},'
+        f'{{"factor":"Inductive Bias & Generalization","a":"...","b":"...","advantage":"..."}},'
+        f'{{"factor":"Inference Latency & Deployment","a":"...","b":"...","advantage":"..."}}],'
+        f'"when_to_use_a":"Clear engineering recommendations on when to choose {concept_a}.",'
+        f'"when_to_use_b":"Clear engineering recommendations on when to choose {concept_b}."}}'
+    )
+
+    try:
+        comparison = ask_groq_json(prompt)
+        return jsonify({'success': True, 'data': comparison})
+    except Exception as e:
+        return jsonify({'success': False, 'error': 'Comparative matrix failed: ' + str(e)})
+
+
+@app.route('/api/research/proposal', methods=['POST'])
+@login_required
+def research_proposal():
+    data      = request.json or {}
+    topic     = data.get('topic', '').strip()
+    objective = data.get('objective', '').strip()
+    if not topic:
+        return jsonify({'success': False, 'error': 'Please provide a research question or topic.'})
+
+    prompt = (
+        f'Generate a formal ML academic thesis and experiment proposal for:\n'
+        f'Topic: "{topic}"\n'
+        f'Objective / Problem Statement: "{objective}"\n\n'
+        f'Return ONLY valid JSON with no markdown:\n'
+        f'{{"title":"Formal academic thesis title",'
+        f'"h0":"Null Hypothesis (H0) formulated precisely",'
+        f'"h1":"Alternative Hypothesis (H1) formulated precisely",'
+        f'"independent_vars":["Variable 1","Variable 2"],'
+        f'"dependent_vars":["Metric 1","Metric 2"],'
+        f'"datasets":["Benchmark Dataset 1","Benchmark Dataset 2"],'
+        f'"baselines":["Baseline Algorithm 1","Baseline Model 2"],'
+        f'"ablation_plan":["Ablation study 1","Ablation study 2","Ablation study 3"],'
+        f'"metrics":["Evaluation metric 1","Evaluation metric 2"],'
+        f'"starter_code":"# Complete minimal PyTorch experiment scaffolding code\\nimport torch\\nimport torch.nn as nn\\n..."}}'
+    )
+
+    try:
+        proposal = ask_groq_json(prompt)
+        return jsonify({'success': True, 'data': proposal})
+    except Exception as e:
+        return jsonify({'success': False, 'error': 'Proposal generation failed: ' + str(e)})
 
 
 @app.route('/api/virtual_lab', methods=['POST'])
@@ -3330,6 +4332,24 @@ def virtual_lab():
         code_text = _re.sub(r"```python\s*", "", code_text.strip())
         code_text = _re.sub(r"```", "", code_text).strip()
 
+        # Execute code in isolated subprocess to generate live Matplotlib plot
+        plot_b64 = None
+        try:
+            import subprocess, sys
+            exec_code = "import matplotlib\nmatplotlib.use('Agg')\n" + code_text
+            res = subprocess.run(
+                [sys.executable, '-c', exec_code],
+                capture_output=True,
+                text=True,
+                timeout=7
+            )
+            stdout = res.stdout or ""
+            if "PLOT_B64:" in stdout:
+                parts = stdout.split("PLOT_B64:")
+                plot_b64 = parts[1].strip().split()[0]
+        except Exception:
+            plot_b64 = None
+
         meta.setdefault('title',               experiment)
         meta.setdefault('objective',           '')
         meta.setdefault('dataset_description', '')
@@ -3339,6 +4359,7 @@ def virtual_lab():
         meta.setdefault('conclusion',          '')
         meta.setdefault('further_experiments', [])
         meta['code'] = code_text
+        meta['plot_b64'] = plot_b64
 
         update_profile(experiment)
         return jsonify({'success': True, 'data': meta})
@@ -3447,64 +4468,53 @@ def focus_stats():
 @app.route('/api/events')
 @login_required
 def get_events():
-    """Return curated events list + AI-generated smart recommendations."""
+    """Return real curated events list from database / catalog."""
+    from events_catalog import REAL_EVENTS, init_events_db
     conn = get_db()
-    stored = conn.execute("SELECT * FROM events ORDER BY rowid DESC LIMIT 50").fetchall()
-    conn.close()
+    try:
+        count = conn.execute("SELECT COUNT(*) FROM events").fetchone()[0]
+        if count == 0:
+            init_events_db(conn)
+        rows = conn.execute("SELECT * FROM events ORDER BY rowid ASC").fetchall()
+        events_list = [dict(r) for r in rows]
+    except Exception:
+        events_list = []
+    finally:
+        conn.close()
 
-    # Always include a rich curated set (no scraping — GfG/Unstop block it)
-    curated = [
-        {'id':'e1','title':'Unstop Hackathons','platform':'Unstop','url':'https://unstop.com/hackathons',
-         'event_type':'hackathon','description':'Browse 500+ live hackathons on Unstop platform',
-         'deadline':'Ongoing','prize':'Various','tags':'["hackathon","coding","AI"]'},
-        {'id':'e2','title':'GeeksforGeeks Contests','platform':'GeeksforGeeks','url':'https://www.geeksforgeeks.org/events/',
-         'event_type':'contest','description':'Weekly and monthly coding contests on GfG','deadline':'Weekly','prize':'Certificates + Goodies','tags':'["contest","DSA","coding"]'},
-        {'id':'e3','title':'Kaggle Competitions','platform':'Kaggle','url':'https://www.kaggle.com/competitions',
-         'event_type':'competition','description':'ML/Data Science competitions with cash prizes','deadline':'Ongoing','prize':'Up to $100,000','tags':'["ML","data science","AI"]'},
-        {'id':'e4','title':'LeetCode Contests','platform':'LeetCode','url':'https://leetcode.com/contest/',
-         'event_type':'contest','description':'Weekly + Biweekly competitive programming contests','deadline':'Weekly','prize':'LeetCoins + Ranking','tags':'["DSA","algorithms","competitive"]'},
-        {'id':'e5','title':'Devpost Hackathons','platform':'Devpost','url':'https://devpost.com/hackathons',
-         'event_type':'hackathon','description':'Virtual and in-person hackathons worldwide','deadline':'Ongoing','prize':'$1M+ total prizes','tags':'["hackathon","web","AI","mobile"]'},
-        {'id':'e6','title':'Google Kick Start','platform':'Google','url':'https://codingcompetitions.withgoogle.com/',
-         'event_type':'competition','description':'Google coding competitions — great for career','deadline':'Seasonal','prize':'Google swag + recognition','tags':'["competitive","algorithms","career"]'},
-        {'id':'e7','title':'HackerRank Challenges','platform':'HackerRank','url':'https://www.hackerrank.com/contests',
-         'event_type':'challenge','description':'Domain-specific skill challenges and certifications','deadline':'Ongoing','prize':'Certificates','tags':'["skills","certification","ML","Python"]'},
-        {'id':'e8','title':'Codeforces Rounds','platform':'Codeforces','url':'https://codeforces.com/contests',
-         'event_type':'contest','description':'Competitive programming rounds rated for all levels','deadline':'2-3x weekly','prize':'Rating points','tags':'["competitive","algorithms","math"]'},
-        {'id':'e9','title':'MLH Hackathons','platform':'MLH','url':'https://mlh.io/seasons/2025/events',
-         'event_type':'hackathon','description':'Major League Hacking — official student hackathons','deadline':'Seasonal','prize':'Prizes + internship leads','tags':'["hackathon","student","AI","web"]'},
-        {'id':'e10','title':'Topcoder Challenges','platform':'Topcoder','url':'https://www.topcoder.com/challenges',
-         'event_type':'competition','description':'Algorithmic and development challenges with real cash','deadline':'Ongoing','prize':'Cash prizes','tags':'["algorithms","development","cash"]'},
-        {'id':'e11','title':'ICPC Regional','platform':'ICPC','url':'https://icpc.global/',
-         'event_type':'competition','description':'International Collegiate Programming Contest — world championship path','deadline':'Annual','prize':'Medals + world finals','tags':'["competitive","academic","algorithms"]'},
-        {'id':'e12','title':'AI/ML Hackathons — Devfolio','platform':'Devfolio','url':'https://devfolio.co/hackathons',
-         'event_type':'hackathon','description':'Indian hackathon platform with AI/ML themed events','deadline':'Ongoing','prize':'Various','tags':'["hackathon","AI","ML","India"]'},
-    ]
-    stored_list = [dict(r) for r in stored]
-    all_events  = curated + [e for e in stored_list if e['id'] not in {c['id'] for c in curated}]
-    return jsonify({'success': True, 'events': all_events})
+    if not events_list:
+        events_list = REAL_EVENTS
+
+    return jsonify({'success': True, 'events': events_list})
+
 
 @app.route('/api/events/recommend', methods=['POST'])
 @login_required
 def recommend_events():
-    """AI recommends which events suit this student."""
+    """AI recommends which real competitions and hackathons suit this student."""
+    from events_catalog import get_personalized_event_recommendations
     p = get_user_profile()
-    topics  = p.get('topics_learned', [])[-10:]
-    weak    = p.get('weak_topics', [])[:5]
-    level   = p.get('level', 'beginner')
-    prompt  = (
-        'A ' + level + ' ML student has studied: ' + (', '.join(topics) or 'nothing yet') + '. '
-        'Weak areas: ' + (', '.join(weak) or 'none') + '. '
-        'Suggest 5 specific competitions/hackathons/challenges they should enter right now. '
-        'For each give a reason tied to their skill profile. '
-        'Respond with ONLY valid JSON: '
-        '{"recommendations":[{"title":"Kaggle Titanic","platform":"Kaggle","url":"https://kaggle.com/competitions/titanic","reason":"Perfect beginner ML competition that uses classification","type":"competition","difficulty":"beginner"}]}'
+    topics = p.get('topics_learned', [])[-10:]
+    weak = p.get('weak_topics', [])[:5]
+    level = p.get('level', 'beginner')
+    prompt = (
+        f"A {level} ML student has studied: {', '.join(topics) or 'Foundational ML'}. "
+        f"Weak areas: {', '.join(weak) or 'none'}. "
+        "Recommend 4-5 real, specific competitions/hackathons/challenges they should enter right now from Kaggle, MLH, LeetCode, Devpost, or HackerRank. "
+        "For each provide: title, platform, url, reason, difficulty, and type. "
+        "Respond with ONLY valid JSON: "
+        '{"recommendations":[{"title":"Kaggle: Titanic — Machine Learning from Disaster","platform":"Kaggle","url":"https://www.kaggle.com/competitions/titanic","reason":"Directly applies classification to tabular data","type":"competition","difficulty":"beginner"}]}'
     )
     try:
         result = ask_groq_json(prompt)
-        return jsonify({'success': True, 'data': result})
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)})
+        if result and isinstance(result, dict) and 'recommendations' in result and len(result['recommendations']) > 0:
+            return jsonify({'success': True, 'data': result})
+    except Exception:
+        pass
+
+    # Seamless reliable fallback using profile-aware heuristic recommender
+    fallback_recs = get_personalized_event_recommendations(p)
+    return jsonify({'success': True, 'data': {'recommendations': fallback_recs}})
 
 # ── Career Tracker API ────────────────────────────────────────────────────────
 
@@ -3751,10 +4761,30 @@ def my_certificates():
 def verify_certificate(cert_code):
     conn = get_db()
     cert = conn.execute("SELECT * FROM certificates WHERE cert_code=?", (cert_code,)).fetchone()
+    if not cert:
+        conn.close()
+        return "<h2>Certificate Not Found</h2><p>Code: " + cert_code + " is not valid.</p>", 404
+
+    course = conn.execute("SELECT * FROM courses WHERE id=?", (cert['course_id'],)).fetchone()
+    user = conn.execute("SELECT * FROM users WHERE id=?", (cert['student_id'],)).fetchone()
     conn.close()
-    if cert:
-        return render_template('certificate_verify.html', cert=dict(cert))
-    return f"<h2>Certificate Not Found</h2><p>Code: {cert_code} is not valid.</p>", 404
+
+    cert_data = dict(cert)
+    issued_date = cert_data.get('issued_at', '')
+    formatted_date = issued_date
+    try:
+        if issued_date:
+            from datetime import datetime
+            dt = datetime.strptime(issued_date[:10], '%Y-%m-%d')
+            formatted_date = dt.strftime('%B %d, %Y')
+    except Exception:
+        pass
+
+    return render_template('certificate_verify.html', 
+                           cert=cert_data, 
+                           course=dict(course) if course else {},
+                           user=dict(user) if user else {},
+                           formatted_date=formatted_date)
 
 @app.route('/certificate/<course_id>/download')
 @login_required
@@ -3765,10 +4795,30 @@ def download_certificate(course_id):
         "SELECT * FROM certificates WHERE student_id=? AND course_id=?",
         (session['user_id'], course_id)
     ).fetchone()
-    conn.close()
     if not cert:
+        conn.close()
         return "Certificate not found. Complete all lessons and pass the quiz first.", 404
-    return render_template('certificate.html', cert=dict(cert))
+
+    course = conn.execute("SELECT * FROM courses WHERE id=?", (course_id,)).fetchone()
+    user = conn.execute("SELECT * FROM users WHERE id=?", (session['user_id'],)).fetchone()
+    conn.close()
+
+    cert_data = dict(cert)
+    issued_date = cert_data.get('issued_at', '')
+    formatted_date = issued_date
+    try:
+        if issued_date:
+            from datetime import datetime
+            dt = datetime.strptime(issued_date[:10], '%Y-%m-%d')
+            formatted_date = dt.strftime('%B %d, %Y')
+    except Exception:
+        pass
+
+    return render_template('certificate.html', 
+                           cert=cert_data, 
+                           course=dict(course) if course else {},
+                           user=dict(user) if user else {},
+                           formatted_date=formatted_date)
 
 # ─── RATINGS API ─────────────────────────────────────────────────────────────
 
@@ -3818,14 +4868,14 @@ def community_dashboard():
 @app.route('/u/<username>')
 def public_profile(username):
     conn = get_db()
-    user = conn.execute("SELECT id, username, level, college, region, created_at, role FROM users WHERE username=?", (username,)).fetchone()
+    user = conn.execute("SELECT id, username, level, college, region, bio, headline, interests, created_at, role FROM users WHERE username=?", (username,)).fetchone()
     if not user:
         conn.close()
         return "User not found", 404
     
     uid = user['id']
     certs = conn.execute("SELECT course_title, issued_at FROM certificates WHERE student_id=?", (uid,)).fetchall()
-    battles = conn.execute("SELECT * FROM battle_scores WHERE user_id=? ORDER BY played_at DESC LIMIT 5", (uid,)).fetchall()
+    battles = conn.execute("SELECT * FROM battle_scores WHERE user_id=? OR username=? ORDER BY played_at DESC LIMIT 5", (uid, username)).fetchall()
     careers = conn.execute("SELECT * FROM career_entries WHERE user_id=? ORDER BY date_earned DESC", (uid,)).fetchall()
     conn.close()
     
@@ -3841,15 +4891,47 @@ def public_profile(username):
 def api_leaderboard():
     loc = request.args.get('filter', 'global')
     conn = get_db()
-    query = "SELECT username, score FROM battle_scores GROUP BY user_id ORDER BY score DESC LIMIT 10"
+    query = """
+        SELECT COALESCE(u.username, bs.username) AS username, 
+               MAX(bs.score) AS score,
+               COUNT(*) AS games_played,
+               SUM(CASE WHEN bs.score > bs.ai_score THEN 1 ELSE 0 END) AS wins
+        FROM battle_scores bs
+        LEFT JOIN users u ON (bs.user_id = u.id OR bs.username = u.username)
+        GROUP BY COALESCE(u.username, bs.username)
+        ORDER BY score DESC, wins DESC LIMIT 15
+    """
+    params = ()
     if loc == 'college' and session.get('college'):
-        query = f"SELECT bs.username, bs.score FROM battle_scores bs JOIN users u ON bs.user_id=u.id WHERE u.college='{session['college']}' GROUP BY bs.user_id ORDER BY bs.score DESC LIMIT 10"
+        query = """
+            SELECT COALESCE(u.username, bs.username) AS username, 
+                   MAX(bs.score) AS score,
+                   COUNT(*) AS games_played,
+                   SUM(CASE WHEN bs.score > bs.ai_score THEN 1 ELSE 0 END) AS wins
+            FROM battle_scores bs 
+            JOIN users u ON (bs.user_id = u.id OR bs.username = u.username) 
+            WHERE u.college = ? 
+            GROUP BY COALESCE(u.username, bs.username) 
+            ORDER BY score DESC, wins DESC LIMIT 15
+        """
+        params = (session['college'],)
     elif loc == 'region' and session.get('region'):
-        query = f"SELECT bs.username, bs.score FROM battle_scores bs JOIN users u ON bs.user_id=u.id WHERE u.region='{session['region']}' GROUP BY bs.user_id ORDER BY bs.score DESC LIMIT 10"
+        query = """
+            SELECT COALESCE(u.username, bs.username) AS username, 
+                   MAX(bs.score) AS score,
+                   COUNT(*) AS games_played,
+                   SUM(CASE WHEN bs.score > bs.ai_score THEN 1 ELSE 0 END) AS wins
+            FROM battle_scores bs 
+            JOIN users u ON (bs.user_id = u.id OR bs.username = u.username) 
+            WHERE u.region = ? 
+            GROUP BY COALESCE(u.username, bs.username) 
+            ORDER BY score DESC, wins DESC LIMIT 15
+        """
+        params = (session['region'],)
     
     try:
-        rows = conn.execute(query).fetchall()
-    except:
+        rows = conn.execute(query, params).fetchall()
+    except Exception:
         rows = []
     conn.close()
     return jsonify([dict(r) for r in rows])
@@ -3859,17 +4941,41 @@ def api_leaderboard():
 def api_groups():
     conn = get_db()
     if request.method == 'POST':
-        data = request.json
+        data = request.json or {}
+        name = (data.get('name') or '').strip()
+        if not name:
+            conn.close()
+            return jsonify({'success': False, 'error': 'Group name is required'}), 400
         gid = str(uuid.uuid4())
         conn.execute("INSERT INTO study_groups (id, name, description, course_id, created_by) VALUES (?,?,?,?,?)",
-                     (gid, data['name'], data.get('description',''), data.get('course_id',''), session['user_id']))
+                     (gid, name, data.get('description',''), data.get('course_id',''), session['user_id']))
         conn.execute("INSERT INTO study_group_members (group_id, user_id, username) VALUES (?,?,?)",
                      (gid, session['user_id'], session['username']))
         conn.commit()
         conn.close()
-        return jsonify({'success': True})
+        return jsonify({'success': True, 'id': gid})
     else:
-        groups = conn.execute("SELECT g.*, (SELECT COUNT(*) FROM study_group_members WHERE group_id=g.id) as count FROM study_groups g").fetchall()
+        # Check if groups are empty, seed starter study circles
+        cnt = conn.execute("SELECT COUNT(*) FROM study_groups").fetchone()[0]
+        if cnt == 0:
+            starter_groups = [
+                ("Machine Learning & AI Guild", "Weekly peer discussions on supervised models, neural architectures, and Kaggle benchmarks.", "Machine Learning"),
+                ("Deep Learning & PyTorch Builders", "Hands-on neural network implementations, CNNs, Transformers, and paper implementations.", "Deep Learning"),
+                ("DSA & Placement Interview Prep", "Collaborative problem solving, coding contest debriefs, and mock interview practice.", "Algorithms")
+            ]
+            for gname, gdesc, gcat in starter_groups:
+                sg_id = str(uuid.uuid4())
+                conn.execute("INSERT INTO study_groups (id, name, description, course_id, created_by) VALUES (?,?,?,?,?)",
+                             (sg_id, gname, gdesc, gcat, 'system'))
+                conn.execute("INSERT INTO study_group_members (group_id, user_id, username) VALUES (?,?,?)",
+                             (sg_id, 'system', 'LearnSphere Moderator'))
+            conn.commit()
+
+        groups = conn.execute("""
+            SELECT g.*, (SELECT COUNT(*) FROM study_group_members WHERE group_id=g.id) as count 
+            FROM study_groups g 
+            ORDER BY g.rowid DESC
+        """).fetchall()
         my_groups = conn.execute("SELECT group_id FROM study_group_members WHERE user_id=?", (session['user_id'],)).fetchall()
         conn.close()
         return jsonify({'groups': [dict(g) for g in groups], 'my_groups': [r['group_id'] for r in my_groups]})
@@ -3879,10 +4985,22 @@ def api_groups():
 def join_group(group_id):
     conn = get_db()
     try:
-        conn.execute("INSERT INTO study_group_members (group_id, user_id, username) VALUES (?,?,?)",
-                     (group_id, session['user_id'], session['username']))
-        conn.commit()
-    except: pass
+        exists = conn.execute("SELECT 1 FROM study_group_members WHERE group_id=? AND user_id=?", (group_id, session['user_id'])).fetchone()
+        if not exists:
+            conn.execute("INSERT INTO study_group_members (group_id, user_id, username) VALUES (?,?,?)",
+                         (group_id, session['user_id'], session['username']))
+            conn.commit()
+    except Exception:
+        pass
+    conn.close()
+    return jsonify({'success': True})
+
+@app.route('/api/community/groups/<group_id>/leave', methods=['POST'])
+@login_required
+def leave_group(group_id):
+    conn = get_db()
+    conn.execute("DELETE FROM study_group_members WHERE group_id=? AND user_id=?", (group_id, session['user_id']))
+    conn.commit()
     conn.close()
     return jsonify({'success': True})
 
@@ -3891,13 +5009,13 @@ def join_group(group_id):
 def api_forums(course_id):
     conn = get_db()
     if request.method == 'POST':
-        data = request.json
+        data = request.json or {}
         fid = str(uuid.uuid4())
         conn.execute("INSERT INTO course_forums (id, course_id, user_id, username, content, parent_id) VALUES (?,?,?,?,?,?)",
-                     (fid, course_id, session['user_id'], session['username'], data['content'], data.get('parent_id')))
+                     (fid, course_id, session['user_id'], session['username'], data.get('content',''), data.get('parent_id')))
         conn.commit()
         conn.close()
-        return jsonify({'success': True})
+        return jsonify({'success': True, 'id': fid})
     else:
         rows = conn.execute("SELECT * FROM course_forums WHERE course_id=? ORDER BY created_at ASC", (course_id,)).fetchall()
         conn.close()
@@ -3908,23 +5026,46 @@ def api_forums(course_id):
 def api_interviews():
     conn = get_db()
     if request.method == 'POST':
-        data = request.json
+        data = request.json or {}
+        topic = (data.get('topic') or '').strip()
+        scheduled_at = (data.get('scheduled_at') or '').strip()
+        meeting_url = (data.get('meeting_url') or '').strip()
+        if not topic or not scheduled_at:
+            conn.close()
+            return jsonify({'success': False, 'error': 'Topic and scheduled time are required.'}), 400
+        if not meeting_url:
+            meeting_url = 'https://meet.google.com/new'
         iid = str(uuid.uuid4())
         conn.execute("INSERT INTO mock_interviews (id, host_id, host_name, topic, meeting_url, scheduled_at) VALUES (?,?,?,?,?,?)",
-                     (iid, session['user_id'], session['username'], data['topic'], data['meeting_url'], data['scheduled_at']))
+                     (iid, session['user_id'], session['username'], topic, meeting_url, scheduled_at))
         conn.commit()
         conn.close()
-        return jsonify({'success': True})
+        return jsonify({'success': True, 'id': iid})
     else:
-        rows = conn.execute("SELECT * FROM mock_interviews WHERE status='open' ORDER BY scheduled_at ASC").fetchall()
+        open_rows = conn.execute("SELECT * FROM mock_interviews WHERE status='open' ORDER BY scheduled_at ASC").fetchall()
+        my_rows = conn.execute("SELECT * FROM mock_interviews WHERE (peer_id=? OR host_id=?) ORDER BY scheduled_at DESC LIMIT 5",
+                               (session['user_id'], session['user_id'])).fetchall()
         conn.close()
-        return jsonify([dict(r) for r in rows])
+        return jsonify({
+            'open_interviews': [dict(r) for r in open_rows],
+            'my_interviews': [dict(r) for r in my_rows]
+        })
 
 @app.route('/api/community/interviews/<interview_id>/book', methods=['POST'])
 @login_required
 def book_interview(interview_id):
     conn = get_db()
-    conn.execute("UPDATE mock_interviews SET peer_id=?, peer_name=?, status='booked' WHERE id=? AND status='open'",
+    interview = conn.execute("SELECT host_id, status FROM mock_interviews WHERE id=?", (interview_id,)).fetchone()
+    if not interview:
+        conn.close()
+        return jsonify({'success': False, 'error': 'Interview slot not found.'}), 404
+    if interview['host_id'] == session['user_id']:
+        conn.close()
+        return jsonify({'success': False, 'error': 'You cannot book your own hosted slot.'}), 400
+    if interview['status'] != 'open':
+        conn.close()
+        return jsonify({'success': False, 'error': 'This interview slot is already booked.'}), 400
+    conn.execute("UPDATE mock_interviews SET peer_id=?, peer_name=?, status='booked' WHERE id=?",
                  (session['user_id'], session['username'], interview_id))
     conn.commit()
     conn.close()

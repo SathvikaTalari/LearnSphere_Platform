@@ -5,7 +5,6 @@
 
   <div class="dna-hero">
     <div class="dna-hero-text">
-      <div class="feature-label">🧬 Adaptive Intelligence</div>
       <h1 class="page-title">Your Learning <span class="accent">DNA</span></h1>
       <p class="page-sub">LearnSphere builds a live intelligence profile — tracking your learning speed, mistake patterns, concept memory decay, and preferred explanation style.</p>
     </div>
@@ -24,7 +23,7 @@
 
     <!-- Knowledge Decay Predictions -->
     <div class="dna-card">
-      <div class="card-hr"><h2>⏳ Knowledge Prediction Engine</h2><span class="badge-ai">AI Powered</span></div>
+      <div class="card-hr"><h2>Knowledge Prediction Engine</h2></div>
       <p class="card-sub">AI predicts when you'll forget each concept using spaced repetition science (SM-2 algorithm).</p>
       <div id="decayList"><div class="micro-loader"></div></div>
     </div>
@@ -32,7 +31,7 @@
     <!-- Concept Memory Map -->
     <div class="dna-card">
       <div class="card-hr">
-        <h2>🧠 Concept Memory Map</h2>
+        <h2>Concept Memory Map</h2>
         <select id="sortBy" onchange="renderConceptMap(dnaData&&dnaData.dna||[])" class="mini-select">
           <option value="recent">Most Recent</option>
           <option value="weak">Weakest First</option>
@@ -44,13 +43,13 @@
 
     <!-- Speed Profile -->
     <div class="dna-card">
-      <div class="card-hr"><h2>⚡ Learning Speed Profile</h2><span class="badge-live">Live</span></div>
+      <div class="card-hr"><h2>Learning Speed Profile</h2></div>
       <div id="speedProfile"><div class="micro-loader"></div></div>
     </div>
 
     <!-- Style DNA -->
     <div class="dna-card">
-      <div class="card-hr"><h2>🎨 Explanation Style DNA</h2></div>
+      <div class="card-hr"><h2>Explanation Style DNA</h2></div>
       <p class="card-sub">Which style helps you learn fastest?</p>
       <div style="margin-top:0.75rem">
         <div class="style-row"><span class="sl-label">Visual / Diagrams</span><div class="sbar"><div class="sbar-fill" id="s-visual"></div></div><span class="sbar-pct" id="sp-visual">0%</span></div>
@@ -65,7 +64,7 @@
 
   <!-- Mistake Pattern Analysis -->
   <div class="dna-card" style="margin-top:1.5rem">
-    <div class="card-hr"><h2>🔍 Mistake Pattern Analysis</h2><span class="badge-ai">AI Insight</span></div>
+    <div class="card-hr"><h2>Mistake Pattern Analysis</h2></div>
     <div id="mistakePatterns" style="margin-top:0.75rem"><div class="micro-loader"></div></div>
   </div>
 
@@ -93,7 +92,6 @@
 .dna-hero{display:flex;align-items:center;justify-content:space-between;gap:2rem;margin-bottom:2rem;padding:2rem 2.5rem;background:var(--bg-card);border:1px solid var(--border);border-radius:20px;position:relative;overflow:hidden;}
 .dna-hero::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--accent-dim),transparent 65%);pointer-events:none;}
 .dna-hero-text{position:relative;z-index:1;}
-.feature-label{display:inline-block;padding:0.25rem 0.75rem;border-radius:20px;background:var(--accent-dim);border:1px solid var(--border-strong);color:var(--accent);font-size:0.72rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:0.6rem;}
 .dna-stats-bar{display:grid;grid-template-columns:repeat(5,1fr);gap:1rem;margin-bottom:2rem;}
 .dna-stat{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:1.2rem;text-align:center;transition:border-color 0.2s;}
 .dna-stat:hover{border-color:var(--border-strong);}
@@ -104,8 +102,6 @@
 .card-hr{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;}
 .card-hr h2{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;}
 .card-sub{font-size:0.8rem;color:var(--text-muted);line-height:1.5;}
-.badge-ai{padding:0.18rem 0.55rem;border-radius:20px;background:var(--accent-dim);border:1px solid var(--border-strong);color:var(--accent);font-size:0.68rem;font-weight:700;white-space:nowrap;}
-.badge-live{padding:0.18rem 0.55rem;border-radius:20px;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.25);color:#10B981;font-size:0.68rem;font-weight:700;}
 .mini-select{padding:0.28rem 0.6rem;border-radius:7px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text-secondary);font-size:0.76rem;font-family:'Source Sans 3',sans-serif;outline:none;}
 .micro-loader{display:flex;align-items:center;justify-content:center;min-height:80px;color:var(--text-muted);font-size:0.82rem;}
 .micro-loader::after{content:'Loading...';margin-left:0.5rem;}
@@ -181,8 +177,8 @@ function renderStats(p) {
     document.getElementById('dsMastered').textContent      = s.mastered_count  || 0;
     document.getElementById('dsWeak').textContent          = s.weak_count       || 0;
     document.getElementById('dsRetention').textContent     = (s.avg_retention   || 0) + '%';
-    const sm = {visual:'🎨 Visual',code:'💻 Code',simple:'🤝 Analogies',technical:'🔬 Technical',balanced:'⚖️ Mixed'};
-    document.getElementById('dsStyle').textContent = sm[s.preferred_style] || '⚖️ Mixed';
+    const sm = {visual:'Visual',code:'Code',simple:'Analogies',technical:'Technical',balanced:'Mixed'};
+    document.getElementById('dsStyle').textContent = sm[s.preferred_style] || 'Mixed';
 }
 
 function renderDecay(predictions) {
@@ -198,7 +194,7 @@ function renderDecay(predictions) {
         const duf = p.days_until_forget !== undefined ? p.days_until_forget : (p.days_until_forgotten || 0);
         const urg = duf<=1?'high':duf<=3?'med':'low';
         const col = urg==='high'?'#EF4444':urg==='med'?'#F59E0B':'#10B981';
-        const lbl = urg==='high'?'⚠️ Forget today!':urg==='med'?`${duf}d left`:`Safe ${duf}d`;
+        const lbl = urg==='high'?'Review today':urg==='med'?`${duf}d left`:`Safe ${duf}d`;
         return `<div class="decay-item">
             <div class="decay-dot" style="background:${col}"></div>
             <div class="decay-info">
@@ -222,8 +218,7 @@ function renderConceptMap(dna) {
     else if(sort==='strong') s.sort((a,b)=>b.accuracy-a.accuracy);
     el.innerHTML = s.map(d => {
         const cls = d.accuracy>=80?'ch-master':d.accuracy>=60?'ch-learn':d.accuracy>=40?'ch-weak':'ch-danger';
-        const ic = d.accuracy>=80?'✓':d.accuracy>=60?'◎':d.accuracy>=40?'○':'✗';
-        return `<span class="concept-chip ${cls}" title="${d.accuracy}% accuracy · ${d.retention}% retention · ${d.attempts} attempts">${ic} ${d.concept} <small>${d.accuracy}%</small></span>`;
+        return `<span class="concept-chip ${cls}" title="${d.accuracy}% accuracy · ${d.retention}% retention · ${d.attempts} attempts">${d.concept} <small>${d.accuracy}%</small></span>`;
     }).join('');
 }
 
@@ -234,7 +229,7 @@ function renderSpeedProfile(p) {
     const avg = speeds.length ? Math.round(speeds.reduce((a,b)=>a+b,0)/speeds.length) : 0;
     const fast = dna.filter(d=>d.avg_response_ms>0&&d.avg_response_ms<3000).length;
     const slow = dna.filter(d=>d.avg_response_ms>=5000).length;
-    const rating = avg<3000?'🚀 Fast':avg<6000?'⚡ Steady':'📖 Deep';
+    const rating = avg<3000?'Fast':avg<6000?'Steady':'Deep';
     const insight = fast>slow?'You grasp concepts quickly — great for breadth learning. Try challenging advanced topics!':'You invest time understanding deeply — a sign of excellent retention and thoroughness.';
     document.getElementById('speedProfile').innerHTML = `
         <div class="speed-grid">
@@ -265,7 +260,7 @@ function renderStyleBars(p) {
         }
     },200);
     const dom = Object.entries(pcts).sort((a,b)=>b[1]-a[1])[0][0];
-    const tips={visual:'Use the 🎨 Diagram tab in AI Learn for best results!',code:'Use Code Lab and code examples — you learn by doing!',simple:'Try ELI5 mode in AI Learn — analogies click for you!',technical:'Use Technical mode in AI Learn for deep understanding!'};
+    const tips={visual:'Use the Diagram tab in AI Learn for best results!',code:'Use Code Lab and code examples — you learn by doing!',simple:'Try ELI5 mode in AI Learn — analogies click for you!',technical:'Use Technical mode in AI Learn for deep understanding!'};
     const tip = document.getElementById('styleTip');
     tip.style.display='block';
     tip.innerHTML=`<strong>Your dominant style:</strong> ${dom.charAt(0).toUpperCase()+dom.slice(1)} — ${tips[dom]}`;
@@ -277,7 +272,7 @@ function renderMistakePatterns(dna) {
     if(!weak.length){el.innerHTML='<p style="color:var(--text-muted);font-size:0.83rem">No significant patterns detected yet. Keep practising!</p>';return;}
     el.innerHTML=`<div class="mistake-grid">${weak.slice(0,6).map(d=>`
         <div class="mistake-card">
-            <span class="m-tag">⚠️ ${d.accuracy<40?'Critical':'Needs Review'}</span>
+            <span class="m-tag">${d.accuracy<40?'Critical':'Needs Review'}</span>
             <h4>${d.concept}</h4>
             <p>${d.accuracy}% accuracy over ${d.attempts} attempt${d.attempts>1?'s':''}. Memory retention: ${d.retention}%.</p>
             <a href="/learn?concept=${encodeURIComponent(d.concept)}" style="color:var(--accent);font-size:0.76rem;font-weight:600;text-decoration:none">→ Review now</a>
@@ -292,7 +287,7 @@ function renderMistakePatterns(dna) {
     let t=0;
     function frame(){
         ctx.clearRect(0,0,180,220);
-        const accent=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()||'#00D4FF';
+        const accent=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()||'#10B981';
         for(let i=0;i<20;i++){
             const y=i*11+10;
             const x1=90+Math.sin((i*0.5)+t)*55;

@@ -1,216 +1,1216 @@
 {% extends 'base.html' %}
 {% block title %}Community Hub — LearnSphere{% endblock %}
 
-{% block extra_css %}
-<style>
-.comm-hub { padding: 2rem; max-width:1200px; margin: 0 auto; }
-.comm-header { border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 2rem; }
-.comm-header h1 { font-family: var(--font-serif); font-size: 2rem; color: var(--text1); }
-.comm-header p { color: var(--text2); margin-top: 0.5rem; }
-
-.grid-cols {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 2rem;
-}
-
-.panel {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 1.5rem;
-    height: 100%;
-}
-
-.panel-title {
-    font-size: 1.25rem;
-    font-weight: bold;
-    color: var(--text1);
-    margin-bottom: 1rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-/* Leaderboard */
-.lb-filter { margin-bottom: 1rem; }
-.lb-filter select { background:var(--bg1); border:1px solid var(--border); color:var(--text1); padding:0.5rem; border-radius:6px; outline:none; }
-.lb-row { display:flex; align-items:center; padding: 0.75rem; border-bottom:1px solid rgba(255,255,255,0.05); }
-.lb-row:last-child { border-bottom:none; }
-.lb-rank { font-weight:bold; color:var(--accent); width:30px; }
-.lb-name { flex:1; font-weight:500; display:flex; align-items:center; gap:0.5rem;}
-.lb-score { color:var(--text2); }
-
-/* Groups & Interviews */
-.btn-sm { padding: 0.4rem 0.8rem; font-size: 0.8rem; border-radius: 6px; background:var(--accent); color:#fff; border:none; cursor:pointer;}
-.item-card { background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 8px; margin-bottom:1rem; border:1px solid rgba(255,255,255,0.05); }
-.item-title { font-weight: bold; margin-bottom: 0.25rem; }
-.item-meta { font-size: 0.8rem; color: var(--text2); margin-bottom:0.75rem;}
-
-.public-profile-link { font-size:0.8rem; color:var(--accent); text-decoration:none; margin-left:10px; }
-.public-profile-link:hover { text-decoration:underline; }
-
-form-group { margin-bottom:1rem; display:block; }
-input.comm-input, textarea.comm-input { width:100%; background:var(--bg1); border:1px solid var(--border); padding:0.6rem; color:var(--text1); border-radius:6px; margin-bottom:0.5rem;}
-</style>
-{% endblock %}
-
 {% block content %}
-<div class="comm-hub">
-    <div class="comm-header">
-        <h1>Community Hub</h1>
-        <p>Connect with peers, join study groups, and practice mock interviews.</p>
+<style>
+/* ==========================================================================
+   COMMUNITY HUB — Professional, Modern, Clean & Simple
+   ========================================================================== */
+
+.comm-page-wrap {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 1.8rem 1.6rem 4.5rem;
+}
+
+/* ── Hero Banner ────────────────────────────────────────────────────────── */
+.comm-hero-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--r2);
+  padding: 2.2rem 2.4rem;
+  margin-bottom: 1.6rem;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
+}
+
+.comm-hero-title {
+  font-family: var(--ff-display);
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 0.4rem;
+}
+
+.comm-hero-sub {
+  font-size: 0.92rem;
+  color: var(--text2);
+  max-width: 620px;
+  line-height: 1.6;
+  margin-bottom: 1.25rem;
+}
+
+.comm-metrics-row {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.comm-metric-item {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text2);
+}
+
+.comm-metric-item strong {
+  color: var(--text);
+  font-weight: 800;
+}
+
+/* ── Primary Navigation Tabs ────────────────────────────────────────────── */
+.comm-nav-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.comm-tabs-group {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  padding: 0.3rem;
+  border-radius: 12px;
+}
+
+.comm-tab-btn {
+  padding: 0.5rem 1.15rem;
+  border-radius: 9px;
+  border: none;
+  background: transparent;
+  color: var(--text2);
+  font-family: var(--ff-sans);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.comm-tab-btn:hover {
+  color: var(--text);
+  background: var(--bg3);
+}
+
+.comm-tab-btn.active {
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 2px 10px var(--accent-glow);
+}
+
+.comm-tab-badge {
+  font-size: 0.7rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.2);
+  font-weight: 800;
+}
+
+/* ── Panels & Cards ─────────────────────────────────────────────────────── */
+.comm-panel-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--r2);
+  padding: 1.75rem 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.panel-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.4rem;
+  flex-wrap: wrap;
+}
+
+.panel-title-text {
+  font-family: var(--ff-display);
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.panel-action-btn {
+  padding: 0.5rem 1.1rem;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  font-family: var(--ff-sans);
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.panel-action-btn:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+/* ── Inline Expandable Form ─────────────────────────────────────────────── */
+.comm-form-box {
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  padding: 1.4rem 1.6rem;
+  margin-bottom: 1.6rem;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.form-box-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.comm-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.comm-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.comm-field.full {
+  grid-column: 1 / -1;
+}
+
+.comm-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text2);
+}
+
+.comm-input {
+  width: 100%;
+  padding: 0.65rem 0.9rem;
+  border-radius: 8px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: var(--ff-sans);
+  font-size: 0.86rem;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.comm-input:focus {
+  border-color: var(--accent);
+}
+
+.form-btn-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.btn-secondary {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text2);
+  font-family: var(--ff-sans);
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-secondary:hover {
+  border-color: var(--border2);
+  color: var(--text);
+}
+
+/* ── Study Groups Grid ──────────────────────────────────────────────────── */
+.groups-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.15rem;
+}
+
+.group-card {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.35rem 1.4rem;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.15s ease;
+}
+
+.group-card:hover {
+  border-color: var(--border2);
+  transform: translateY(-2px);
+}
+
+.group-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.65rem;
+}
+
+.group-icon-title {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.group-avatar-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--accent-glow);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.group-title {
+  font-family: var(--ff-display);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.3;
+}
+
+.group-desc {
+  font-size: 0.82rem;
+  color: var(--text2);
+  line-height: 1.55;
+  margin-bottom: 1.1rem;
+  flex: 1;
+}
+
+.group-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--border);
+}
+
+.group-members-pill {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text2);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.group-join-btn {
+  padding: 0.42rem 0.95rem;
+  border-radius: 7px;
+  font-family: var(--ff-sans);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: none;
+}
+
+.group-join-btn.join {
+  background: var(--accent);
+  color: #fff;
+}
+
+.group-join-btn.join:hover {
+  filter: brightness(1.1);
+}
+
+.group-join-btn.joined {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid var(--success);
+  color: var(--success);
+}
+
+.group-join-btn.joined:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+/* ── Mock Interviews List ───────────────────────────────────────────────── */
+.interviews-subnav {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.subnav-pill {
+  padding: 0.35rem 0.85rem;
+  border-radius: 20px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.subnav-pill.active {
+  background: var(--accent-glow);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.interviews-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.interview-card {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.15rem 1.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  transition: all 0.15s ease;
+}
+
+.interview-card:hover {
+  border-color: var(--border2);
+}
+
+.interview-info {
+  flex: 1;
+}
+
+.interview-topic {
+  font-family: var(--ff-display);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 0.35rem;
+}
+
+.interview-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.78rem;
+  color: var(--text2);
+  flex-wrap: wrap;
+}
+
+.interview-meta-row span {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.interview-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-shrink: 0;
+}
+
+.user-profile-chip {
+  color: var(--accent);
+  text-decoration: none;
+  font-size: 0.76rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.user-profile-chip:hover {
+  text-decoration: underline;
+}
+
+/* ── Leaderboard Table ──────────────────────────────────────────────────── */
+.lb-filter-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.15rem;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+}
+
+.lb-scope-select {
+  padding: 0.45rem 0.85rem;
+  border-radius: 8px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: var(--ff-sans);
+  font-size: 0.82rem;
+  outline: none;
+  cursor: pointer;
+}
+
+.lb-scope-select:focus {
+  border-color: var(--accent);
+}
+
+.modern-comm-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.modern-comm-table th {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text3);
+  border-bottom: 1px solid var(--border);
+}
+
+.modern-comm-table td {
+  padding: 0.9rem 1rem;
+  font-size: 0.86rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+
+.modern-comm-table tr:hover td {
+  background: var(--bg3);
+}
+
+.rank-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  font-weight: 800;
+  font-size: 0.78rem;
+  background: var(--bg3);
+  color: var(--text2);
+}
+
+.rank-badge.gold { background: rgba(245, 158, 11, 0.2); color: #F59E0B; border: 1px solid #F59E0B; }
+.rank-badge.silver { background: rgba(148, 163, 184, 0.2); color: #CBD5E1; border: 1px solid #94A3B8; }
+.rank-badge.bronze { background: rgba(217, 119, 6, 0.2); color: #D97706; border: 1px solid #D97706; }
+
+/* ── Toast Feedback ─────────────────────────────────────────────────────── */
+.comm-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  padding: 0.85rem 1.4rem;
+  border-radius: 10px;
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.86rem;
+  font-weight: 600;
+  z-index: 1000;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: all 0.2s ease;
+  pointer-events: none;
+}
+
+.comm-toast.show {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.comm-toast.success { border-color: var(--success); color: var(--success); }
+.comm-toast.error { border-color: var(--danger); color: var(--danger); }
+
+/* Empty state */
+.comm-empty-box {
+  text-align: center;
+  padding: 3rem 1.5rem;
+  color: var(--text3);
+}
+
+.comm-empty-box .icon {
+  font-size: 2.4rem;
+  margin-bottom: 0.5rem;
+}
+
+@media (max-width: 768px) {
+  .comm-page-wrap { padding: 1.2rem 1rem 3rem; }
+  .comm-hero-card { padding: 1.6rem 1.4rem; }
+  .comm-hero-card::after { display: none; }
+  .comm-form-grid { grid-template-columns: 1fr; }
+  .interview-card { flex-direction: column; align-items: flex-start; }
+  .interview-actions { width: 100%; justify-content: flex-end; }
+  .groups-grid { grid-template-columns: 1fr; }
+}
+</style>
+
+<div class="comm-page-wrap animate-in">
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       HERO BANNER
+       ══════════════════════════════════════════════════════════════════════ -->
+  <div class="comm-hero-card">
+    <h1 class="comm-hero-title">Peer Network & Collaborative Hub</h1>
+    <p class="comm-hero-sub">
+      Connect with peers, collaborate in dedicated study groups, participate in 1-on-1 technical mock interviews, and rise through the global ranks.
+    </p>
+
+    <div class="comm-metrics-row">
+      <div class="comm-metric-item">
+        <strong id="mGroupsCount">3</strong> Study Circles
+      </div>
+      <div class="comm-metric-item">
+        <strong id="mInterviewsCount">0</strong> Open Interview Slots
+      </div>
+      <div class="comm-metric-item">
+        <strong id="mCompetitorsCount">0</strong> Ranked Learners
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       TABS NAVIGATION
+       ══════════════════════════════════════════════════════════════════════ -->
+  <div class="comm-nav-bar">
+    <div class="comm-tabs-group">
+      <button class="comm-tab-btn active" id="tabBtnGroups" onclick="switchCommTab('groups')">
+        <span>Study Groups</span>
+        <span class="comm-tab-badge" id="tabBadgeGroups">3</span>
+      </button>
+      <button class="comm-tab-btn" id="tabBtnInterviews" onclick="switchCommTab('interviews')">
+        <span>Mock Interviews</span>
+        <span class="comm-tab-badge" id="tabBadgeInterviews">0</span>
+      </button>
+      <button class="comm-tab-btn" id="tabBtnLeaderboard" onclick="switchCommTab('leaderboard')">
+        <span>Peer Leaderboard</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       TAB 1: STUDY GROUPS
+       ══════════════════════════════════════════════════════════════════════ -->
+  <div id="tabContentGroups" class="comm-panel-card">
+    <div class="panel-header-row">
+      <div class="panel-title-text">
+        Active Study Groups
+      </div>
+      <button class="panel-action-btn" onclick="toggleGroupForm()">
+        <span>+</span> Create Study Group
+      </button>
     </div>
 
-    <div class="grid-cols" style="margin-bottom:2rem;">
-        
-        <!-- Leadeboard -->
-        <div class="panel">
-            <div class="panel-title">🏆 Leaderboard</div>
-            <div class="lb-filter">
-                <select id="lbFilter" onchange="loadLeaderboard()">
-                    <option value="global">Global (All Users)</option>
-                    <option value="college">My College</option>
-                    <option value="region">My Region</option>
-                </select>
-            </div>
-            <div id="lbContent">Loading...</div>
+    <!-- Create Group Form (Collapsible) -->
+    <div id="groupCreateForm" class="comm-form-box" style="display:none;">
+      <div class="form-box-title">
+        Create a New Study Circle
+      </div>
+      <div class="comm-form-grid">
+        <div class="comm-field">
+          <label class="comm-label">Group Name *</label>
+          <input type="text" id="newGrpName" class="comm-input" placeholder="e.g. Computer Vision Cohort">
         </div>
-
-        <!-- Create specific quick forms -->
-        <div style="display:flex; flex-direction:column; gap:2rem;">
-            <!-- P2P Interviews -->
-            <div class="panel">
-                <div class="panel-title">
-                    🤝 Mock Interviews 
-                    <button class="btn-sm" onclick="document.getElementById('interviewForm').style.display='block'">+ Host Slot</button>
-                </div>
-                
-                <div id="interviewForm" style="display:none; margin-bottom:1rem; padding:1rem; background:rgba(255,255,255,0.05); border-radius:8px;">
-                    <input type="text" id="intTopic" class="comm-input" placeholder="Topic (e.g. Python basics)">
-                    <input type="datetime-local" id="intTime" class="comm-input">
-                    <input type="text" id="intLink" class="comm-input" placeholder="Meeting Link (Zoom/Meet)">
-                    <button class="btn-sm" onclick="hostInterview()">Post Availability</button>
-                    <button class="btn-sm" style="background:transparent;border:1px solid var(--border);" onclick="document.getElementById('interviewForm').style.display='none'">Cancel</button>
-                </div>
-
-                <div id="interviewsList">Loading...</div>
-            </div>
+        <div class="comm-field">
+          <label class="comm-label">Category / Focus Topic</label>
+          <input type="text" id="newGrpCat" class="comm-input" placeholder="e.g. Deep Learning & CNNs">
         </div>
-
+        <div class="comm-field full">
+          <label class="comm-label">Description & Goals</label>
+          <input type="text" id="newGrpDesc" class="comm-input" placeholder="Briefly describe what your group studies together...">
+        </div>
+      </div>
+      <div class="form-btn-row">
+        <button class="panel-action-btn" onclick="submitCreateGroup()">Publish Group</button>
+        <button class="btn-secondary" onclick="toggleGroupForm(false)">Cancel</button>
+      </div>
     </div>
 
-    <!-- Study Groups -->
-    <div class="panel" style="margin-bottom:2rem;">
-        <div class="panel-title">
-            📚 Study Groups
-            <button class="btn-sm" onclick="document.getElementById('groupForm').style.display='block'">+ Create Group</button>
-        </div>
-        
-        <div id="groupForm" style="display:none; margin-bottom:1rem; padding:1rem; background:rgba(255,255,255,0.05); border-radius:8px;">
-            <input type="text" id="grpName" class="comm-input" placeholder="Group Name">
-            <input type="text" id="grpDesc" class="comm-input" placeholder="Description">
-            <button class="btn-sm" onclick="createGroup()">Create</button>
-            <button class="btn-sm" style="background:transparent;border:1px solid var(--border);" onclick="document.getElementById('groupForm').style.display='none'">Cancel</button>
-        </div>
-
-        <div id="groupsList" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:1rem;">Loading...</div>
+    <!-- Groups Grid -->
+    <div class="groups-grid" id="groupsContainer">
+      <div class="comm-empty-box">
+        <div class="spinner" style="margin:0 auto 0.75rem"></div>
+        <p>Loading study groups...</p>
+      </div>
     </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       TAB 2: MOCK INTERVIEWS
+       ══════════════════════════════════════════════════════════════════════ -->
+  <div id="tabContentInterviews" class="comm-panel-card" style="display:none;">
+    <div class="panel-header-row">
+      <div class="panel-title-text">
+        Peer-to-Peer Mock Interviews
+      </div>
+      <button class="panel-action-btn" onclick="toggleInterviewForm()">
+        <span>+</span> Host an Interview Slot
+      </button>
+    </div>
+
+    <!-- Host Interview Form (Collapsible) -->
+    <div id="interviewHostForm" class="comm-form-box" style="display:none;">
+      <div class="form-box-title">
+        Host a 1-on-1 Practice Session
+      </div>
+      <div class="comm-form-grid">
+        <div class="comm-field">
+          <label class="comm-label">Interview Topic / Domain *</label>
+          <input type="text" id="newIntTopic" class="comm-input" placeholder="e.g. ML System Design & Algorithms">
+        </div>
+        <div class="comm-field">
+          <label class="comm-label">Date & Time *</label>
+          <input type="datetime-local" id="newIntTime" class="comm-input">
+        </div>
+        <div class="comm-field full">
+          <label class="comm-label">Meeting URL (Google Meet / Zoom)</label>
+          <input type="url" id="newIntLink" class="comm-input" placeholder="https://meet.google.com/xyz-abc-def (leave blank to auto-generate)">
+        </div>
+      </div>
+      <div class="form-btn-row">
+        <button class="panel-action-btn" onclick="submitHostInterview()">Publish Availability</button>
+        <button class="btn-secondary" onclick="toggleInterviewForm(false)">Cancel</button>
+      </div>
+    </div>
+
+    <!-- Sub-tab switcher: Open Slots vs My Sessions -->
+    <div class="interviews-subnav">
+      <button class="subnav-pill active" id="subnavOpenBtn" onclick="switchInterviewSubnav('open')">
+        Available Slots (<span id="openCountSpan">0</span>)
+      </button>
+      <button class="subnav-pill" id="subnavMyBtn" onclick="switchInterviewSubnav('my')">
+        My Sessions (<span id="myCountSpan">0</span>)
+      </button>
+    </div>
+
+    <!-- Open Slots Container -->
+    <div class="interviews-list" id="openInterviewsContainer">
+      <div class="comm-empty-box">
+        <div class="spinner" style="margin:0 auto 0.75rem"></div>
+        <p>Loading available slots...</p>
+      </div>
+    </div>
+
+    <!-- My Sessions Container (Hidden by default) -->
+    <div class="interviews-list" id="myInterviewsContainer" style="display:none;">
+      <div class="comm-empty-box">
+        <p>Loading your sessions...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       TAB 3: LEADERBOARD
+       ══════════════════════════════════════════════════════════════════════ -->
+  <div id="tabContentLeaderboard" class="comm-panel-card" style="display:none;">
+    <div class="panel-header-row">
+      <div class="panel-title-text">
+        Community Peer Leaderboard
+      </div>
+
+      <div class="lb-filter-row">
+        <label style="font-size:0.78rem;font-weight:700;color:var(--text2)">Filter Scope:</label>
+        <select id="commLbFilter" class="lb-scope-select" onchange="loadLeaderboard()">
+          <option value="global" selected>Global (All Learners)</option>
+          <option value="college">My College</option>
+          <option value="region">My Region</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="leaderboardContainer" style="overflow-x:auto;">
+      <div class="comm-empty-box">
+        <div class="spinner" style="margin:0 auto 0.75rem"></div>
+        <p>Loading leaderboard...</p>
+      </div>
+    </div>
+  </div>
 
 </div>
 
+<!-- Lightweight Toast Alert -->
+<div id="commToast" class="comm-toast">
+  <span id="toastMsg">Operation successful</span>
+</div>
+
 <script>
-async function loadLeaderboard() {
-    const f = document.getElementById('lbFilter').value;
-    const res = await fetch('/api/community/leaderboard?filter='+f);
-    const data = await res.json();
-    let html = '';
-    data.forEach((r,i) => {
-        html += `<div class="lb-row">
-            <div class="lb-rank">#${i+1}</div>
-            <div class="lb-name">
-                ${r.username} 
-                <a href="/u/${r.username}" class="public-profile-link" target="_blank">[Profile]</a>
-            </div>
-            <div class="lb-score">${r.score} pts</div>
-        </div>`;
-    });
-    if(!html) html = '<p style="color:var(--text2)">No users found for this filter.</p>';
-    document.getElementById('lbContent').innerHTML = html;
+/* ==========================================================================
+   COMMUNITY HUB CONTROLLER — Groups, Mock Interviews & Leaderboard
+   ========================================================================== */
+
+let commState = {
+  currentTab: 'groups',
+  interviewSubnav: 'open',
+  groups: [],
+  myGroupIds: [],
+  openInterviews: [],
+  myInterviews: []
+};
+
+// ── Tab Navigation ────────────────────────────────────────────────────────
+function switchCommTab(tab) {
+  commState.currentTab = tab;
+  
+  document.getElementById('tabBtnGroups').classList.toggle('active', tab === 'groups');
+  document.getElementById('tabBtnInterviews').classList.toggle('active', tab === 'interviews');
+  document.getElementById('tabBtnLeaderboard').classList.toggle('active', tab === 'leaderboard');
+
+  document.getElementById('tabContentGroups').style.display = tab === 'groups' ? 'block' : 'none';
+  document.getElementById('tabContentInterviews').style.display = tab === 'interviews' ? 'block' : 'none';
+  document.getElementById('tabContentLeaderboard').style.display = tab === 'leaderboard' ? 'block' : 'none';
+
+  if (tab === 'groups') loadGroups();
+  if (tab === 'interviews') loadInterviews();
+  if (tab === 'leaderboard') loadLeaderboard();
 }
 
-async function loadInterviews() {
-    const res = await fetch('/api/community/interviews');
-    const data = await res.json();
-    let html = '';
-    data.forEach(x => {
-        html += `<div class="item-card">
-            <div class="item-title">${x.topic} hosted by ${x.host_name}</div>
-            <div class="item-meta">Starts: ${new Date(x.scheduled_at).toLocaleString()}</div>
-            <button class="btn-sm" onclick="bookInterview('${x.id}')">Book Slot</button>
-            <a href="/u/${x.host_name}" class="public-profile-link" target="_blank">View host</a>
-        </div>`;
-    });
-    if(!html) html = '<p style="color:var(--text2)">No open slots right now. Be the first to host!</p>';
-    document.getElementById('interviewsList').innerHTML = html;
+function switchInterviewSubnav(sub) {
+  commState.interviewSubnav = sub;
+  document.getElementById('subnavOpenBtn').classList.toggle('active', sub === 'open');
+  document.getElementById('subnavMyBtn').classList.toggle('active', sub === 'my');
+  document.getElementById('openInterviewsContainer').style.display = sub === 'open' ? 'flex' : 'none';
+  document.getElementById('myInterviewsContainer').style.display = sub === 'my' ? 'flex' : 'none';
 }
 
+// ── Form Toggles ──────────────────────────────────────────────────────────
+function toggleGroupForm(show) {
+  const el = document.getElementById('groupCreateForm');
+  el.style.display = (show !== undefined ? show : el.style.display === 'none') ? 'block' : 'none';
+  if (el.style.display === 'block') document.getElementById('newGrpName').focus();
+}
+
+function toggleInterviewForm(show) {
+  const el = document.getElementById('interviewHostForm');
+  el.style.display = (show !== undefined ? show : el.style.display === 'none') ? 'block' : 'none';
+  if (el.style.display === 'block') {
+    // Default scheduled time to tomorrow at 3 PM
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(15, 0, 0, 0);
+    document.getElementById('newIntTime').value = tomorrow.toISOString().slice(0, 16);
+    document.getElementById('newIntTopic').focus();
+  }
+}
+
+// ── STUDY GROUPS ──────────────────────────────────────────────────────────
 async function loadGroups() {
+  try {
     const res = await fetch('/api/community/groups');
     const data = await res.json();
-    let html = '';
-    data.groups.forEach(g => {
-        const isMember = data.my_groups.includes(g.id);
-        html += `<div class="item-card">
-            <div class="item-title">${g.name}</div>
-            <div class="item-meta">${g.description||'No description'} <br> ${g.count} members</div>
-            ${isMember ? '<span style="color:var(--success);font-size:0.8rem;">✓ Joined</span>' : 
-            `<button class="btn-sm" style="background:var(--bg1);border:1px solid var(--border);" onclick="joinGroup('${g.id}')">Join Group</button>`}
+    commState.groups = data.groups || [];
+    commState.myGroupIds = data.my_groups || [];
+
+    document.getElementById('mGroupsCount').textContent = commState.groups.length;
+    document.getElementById('tabBadgeGroups').textContent = commState.groups.length;
+
+    renderGroups();
+  } catch (err) {
+    document.getElementById('groupsContainer').innerHTML = `
+      <div class="comm-empty-box">
+        <p>Could not load study groups. Please refresh.</p>
+      </div>`;
+  }
+}
+
+function renderGroups() {
+  const container = document.getElementById('groupsContainer');
+  if (!commState.groups.length) {
+    container.innerHTML = `
+      <div class="comm-empty-box">
+        <div style="font-weight:700;color:var(--text);margin-bottom:0.25rem">No Study Circles Yet</div>
+        <p style="font-size:0.85rem;color:var(--text2)">Be the pioneer! Click "+ Create Study Group" above to start the first cohort.</p>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = commState.groups.map(g => {
+    const isMember = commState.myGroupIds.includes(g.id);
+    const initials = (g.name || 'SG').split(' ').map(w => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
+    return `
+      <div class="group-card">
+        <div class="group-card-top">
+          <div class="group-icon-title">
+            <div class="group-avatar-icon">${initials}</div>
+            <div>
+              <div class="group-title">${escapeHtml(g.name)}</div>
+              ${g.course_id ? `<span style="font-size:0.7rem;font-weight:700;color:var(--accent)">${escapeHtml(g.course_id)}</span>` : ''}
+            </div>
+          </div>
+        </div>
+
+        <p class="group-desc">${escapeHtml(g.description || 'Collaborative peer study group discussing machine learning and software engineering.')}</p>
+
+        <div class="group-card-foot">
+          <span class="group-members-pill">
+            ${g.count || 1} ${g.count === 1 ? 'member' : 'members'}
+          </span>
+
+          ${isMember ? `
+            <button class="group-join-btn joined" onclick="handleLeaveGroup('${g.id}', '${escapeHtml(g.name)}')">
+              Leave Group
+            </button>
+          ` : `
+            <button class="group-join-btn join" onclick="handleJoinGroup('${g.id}', '${escapeHtml(g.name)}')">
+              Join Circle
+            </button>
+          `}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+async function handleJoinGroup(id, name) {
+  try {
+    const res = await fetch(`/api/community/groups/${id}/join`, { method: 'POST' });
+    const data = await res.json();
+    if (data.success) {
+      showToast(`Joined "${name}" successfully!`, 'success');
+      loadGroups();
+    }
+  } catch (e) {
+    showToast('Failed to join group.', 'error');
+  }
+}
+
+async function handleLeaveGroup(id, name) {
+  try {
+    const res = await fetch(`/api/community/groups/${id}/leave`, { method: 'POST' });
+    const data = await res.json();
+    if (data.success) {
+      showToast(`Left "${name}".`, 'success');
+      loadGroups();
+    }
+  } catch (e) {
+    showToast('Failed to leave group.', 'error');
+  }
+}
+
+async function submitCreateGroup() {
+  const name = document.getElementById('newGrpName').value.trim();
+  const cat = document.getElementById('newGrpCat').value.trim();
+  const desc = document.getElementById('newGrpDesc').value.trim();
+
+  if (!name) {
+    showToast('Please provide a group name.', 'error');
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/community/groups', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, description: desc, course_id: cat })
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast(`Study group "${name}" created!`, 'success');
+      toggleGroupForm(false);
+      document.getElementById('newGrpName').value = '';
+      document.getElementById('newGrpCat').value = '';
+      document.getElementById('newGrpDesc').value = '';
+      loadGroups();
+    } else {
+      showToast(data.error || 'Failed to create group.', 'error');
+    }
+  } catch (e) {
+    showToast('Error creating group.', 'error');
+  }
+}
+
+// ── MOCK INTERVIEWS ───────────────────────────────────────────────────────
+async function loadInterviews() {
+  try {
+    const res = await fetch('/api/community/interviews');
+    const data = await res.json();
+    commState.openInterviews = data.open_interviews || [];
+    commState.myInterviews = data.my_interviews || [];
+
+    document.getElementById('mInterviewsCount').textContent = commState.openInterviews.length;
+    document.getElementById('tabBadgeInterviews').textContent = commState.openInterviews.length;
+    document.getElementById('openCountSpan').textContent = commState.openInterviews.length;
+    document.getElementById('myCountSpan').textContent = commState.myInterviews.length;
+
+    renderInterviews();
+  } catch (err) {
+    document.getElementById('openInterviewsContainer').innerHTML = `
+      <div class="comm-empty-box">
+        <p>Could not load interview slots.</p>
+      </div>`;
+  }
+}
+
+function renderInterviews() {
+  // Render Open Slots
+  const openCont = document.getElementById('openInterviewsContainer');
+  if (!commState.openInterviews.length) {
+    openCont.innerHTML = `
+      <div class="comm-empty-box">
+        <div style="font-weight:700;color:var(--text);margin-bottom:0.25rem">No Open Slots Right Now</div>
+        <p style="font-size:0.85rem;color:var(--text2)">Be the first to host! Click "+ Host an Interview Slot" above to practice with a peer.</p>
+      </div>`;
+  } else {
+    openCont.innerHTML = commState.openInterviews.map(x => {
+      const dt = new Date(x.scheduled_at);
+      const dtFormatted = isNaN(dt.getTime()) ? x.scheduled_at : dt.toLocaleDateString(undefined, { 
+        weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' 
+      });
+
+      return `
+        <div class="interview-card">
+          <div class="interview-info">
+            <div class="interview-topic">${escapeHtml(x.topic)}</div>
+            <div class="interview-meta-row">
+              <span>Host: <a href="/u/${escapeHtml(x.host_name)}" target="_blank" class="user-profile-chip">${escapeHtml(x.host_name)} ↗</a></span>
+              <span>${dtFormatted}</span>
+              <span style="color:var(--success);font-weight:700">Open for Booking</span>
+            </div>
+          </div>
+
+          <div class="interview-actions">
+            <button class="panel-action-btn" onclick="handleBookInterview('${x.id}', '${escapeHtml(x.topic)}')">
+              <span>Book Slot</span>
+            </button>
+          </div>
         </div>`;
+    }).join('');
+  }
+
+  // Render My Sessions
+  const myCont = document.getElementById('myInterviewsContainer');
+  if (!commState.myInterviews.length) {
+    myCont.innerHTML = `
+      <div class="comm-empty-box">
+        <div style="font-weight:700;color:var(--text);margin-bottom:0.25rem">No Scheduled Sessions</div>
+        <p style="font-size:0.85rem;color:var(--text2)">When you book or host an interview, it will appear here with your video meeting link.</p>
+      </div>`;
+  } else {
+    myCont.innerHTML = commState.myInterviews.map(x => {
+      const dt = new Date(x.scheduled_at);
+      const dtFormatted = isNaN(dt.getTime()) ? x.scheduled_at : dt.toLocaleDateString(undefined, { 
+        weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' 
+      });
+      const isHost = (x.host_name === '{{ session.get("username", "") }}');
+      const partnerName = isHost ? (x.peer_name || 'Awaiting Partner') : x.host_name;
+
+      return `
+        <div class="interview-card">
+          <div class="interview-info">
+            <div class="interview-topic">${escapeHtml(x.topic)}</div>
+            <div class="interview-meta-row">
+              <span>Role: <strong>${isHost ? 'Host' : 'Interviewee'}</strong></span>
+              <span>Partner: <a href="/u/${escapeHtml(partnerName)}" target="_blank" class="user-profile-chip">${escapeHtml(partnerName)} ↗</a></span>
+              <span>${dtFormatted}</span>
+              <span style="color:${x.status === 'booked' ? 'var(--warn)' : 'var(--success)'};font-weight:700">
+                ${x.status === 'booked' ? 'Confirmed' : 'Open'}
+              </span>
+            </div>
+          </div>
+
+          <div class="interview-actions">
+            <a href="${escapeHtml(x.meeting_url || 'https://meet.google.com/new')}" target="_blank" rel="noopener noreferrer" class="panel-action-btn">
+              <span>Join Meeting ↗</span>
+            </a>
+          </div>
+        </div>`;
+    }).join('');
+  }
+}
+
+async function handleBookInterview(id, topic) {
+  try {
+    const res = await fetch(`/api/community/interviews/${id}/book`, { method: 'POST' });
+    const data = await res.json();
+    if (data.success) {
+      showToast(`Booked slot for "${topic}"!`, 'success');
+      loadInterviews();
+      switchInterviewSubnav('my');
+    } else {
+      showToast(data.error || 'Could not book slot.', 'error');
+    }
+  } catch (e) {
+    showToast('Error booking interview.', 'error');
+  }
+}
+
+async function submitHostInterview() {
+  const topic = document.getElementById('newIntTopic').value.trim();
+  const time = document.getElementById('newIntTime').value.trim();
+  const link = document.getElementById('newIntLink').value.trim();
+
+  if (!topic || !time) {
+    showToast('Please provide a topic and scheduled date/time.', 'error');
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/community/interviews', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ topic, scheduled_at: time, meeting_url: link })
     });
-    if(!html) html = '<p style="color:var(--text2)">No study groups exist yet.</p>';
-    document.getElementById('groupsList').innerHTML = html;
+    const data = await res.json();
+    if (data.success) {
+      showToast('Interview slot posted successfully!', 'success');
+      toggleInterviewForm(false);
+      document.getElementById('newIntTopic').value = '';
+      document.getElementById('newIntLink').value = '';
+      loadInterviews();
+      switchInterviewSubnav('open');
+    } else {
+      showToast(data.error || 'Failed to post slot.', 'error');
+    }
+  } catch (e) {
+    showToast('Error posting interview slot.', 'error');
+  }
 }
 
-async function hostInterview() {
-    const topic = document.getElementById('intTopic').value; 
-    const at = document.getElementById('intTime').value;
-    const link = document.getElementById('intLink').value;
-    if(!topic || !at || !link) return alert("Fill all fields.");
-    await fetch('/api/community/interviews', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({topic:topic, scheduled_at:at, meeting_url:link})
-    });
-    document.getElementById('interviewForm').style.display='none';
-    loadInterviews();
+// ── LEADERBOARD ───────────────────────────────────────────────────────────
+async function loadLeaderboard() {
+  const filter = document.getElementById('commLbFilter').value;
+  const container = document.getElementById('leaderboardContainer');
+
+  container.innerHTML = `
+    <div class="comm-empty-box">
+      <div class="spinner" style="margin:0 auto 0.75rem"></div>
+      <p>Loading real competitor rankings...</p>
+    </div>`;
+
+  try {
+    const res = await fetch(`/api/community/leaderboard?filter=${filter}`);
+    const data = await res.json();
+
+    document.getElementById('mCompetitorsCount').textContent = data.length;
+
+    if (!data || !data.length) {
+      container.innerHTML = `
+        <div class="comm-empty-box">
+          <div style="font-weight:700;color:var(--text);margin-bottom:0.25rem">No Records Found</div>
+          <p style="font-size:0.85rem;color:var(--text2)">Compete in Battle Arena to post the first authentic score for this scope!</p>
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = `
+      <table class="modern-comm-table">
+        <thead>
+          <tr>
+            <th style="width:60px">Rank</th>
+            <th>Learner</th>
+            <th style="text-align:right">High Score</th>
+            <th style="text-align:right">Matches</th>
+            <th style="text-align:right">Wins</th>
+            <th style="text-align:right">Profile</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${data.map((r, i) => {
+            const rankClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+            return `
+              <tr>
+                <td><span class="rank-badge ${rankClass}">#${i + 1}</span></td>
+                <td>
+                  <strong style="color:var(--text)">${escapeHtml(r.username)}</strong>
+                </td>
+                <td style="text-align:right;font-weight:800;color:var(--accent)">
+                  ${r.score} pts
+                </td>
+                <td style="text-align:right;color:var(--text2)">
+                  ${r.games_played || 1}
+                </td>
+                <td style="text-align:right;color:var(--success);font-weight:700">
+                  ${r.wins !== undefined ? r.wins : '-'}
+                </td>
+                <td style="text-align:right">
+                  <a href="/u/${escapeHtml(r.username)}" target="_blank" class="user-profile-chip">
+                    <span>Portfolio</span> ↗
+                  </a>
+                </td>
+              </tr>`;
+          }).join('')}
+        </tbody>
+      </table>`;
+  } catch (err) {
+    container.innerHTML = `
+      <div class="comm-empty-box">
+        <p>Could not retrieve leaderboard data.</p>
+      </div>`;
+  }
 }
 
-async function bookInterview(id) {
-    await fetch('/api/community/interviews/'+id+'/book', {method:'POST'});
-    loadInterviews();
+// ── Toast Utility ─────────────────────────────────────────────────────────
+let toastTimer = null;
+function showToast(msg, type = 'success') {
+  const toast = document.getElementById('commToast');
+  const text = document.getElementById('toastMsg');
+
+  toast.className = `comm-toast ${type} show`;
+  text.textContent = msg;
+
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    toast.classList.remove('show');
+  }, 3200);
 }
 
-async function createGroup() {
-    const n = document.getElementById('grpName').value;
-    const d = document.getElementById('grpDesc').value;
-    if(!n) return;
-    await fetch('/api/community/groups', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({name:n, description:d})
-    });
-    document.getElementById('groupForm').style.display='none';
-    loadGroups();
+function escapeHtml(text) {
+  if (!text) return '';
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
 }
 
-async function joinGroup(id) {
-    await fetch('/api/community/groups/'+id+'/join', {method:'POST'});
-    loadGroups();
-}
-
-window.onload = () => {
-    loadLeaderboard();
-    loadInterviews();
-    loadGroups();
-};
+// Initial boot
+loadGroups();
+loadInterviews();
 </script>
+
 {% endblock %}

@@ -1,25 +1,37 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="night">
+<html lang="en" data-theme="day">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{% block title %}LearnSphere{% endblock %}</title>
+<link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='images/favicon.svg') }}">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" id="hljs-theme">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css" id="hljs-theme">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 {% block extra_css %}{% endblock %}
 </head>
 <body>
 
 <nav class="navbar">
-  <a href="/" class="nav-logo">
-    <svg width="22" height="22" viewBox="0 0 28 28" fill="none">
-      <circle cx="14" cy="14" r="13" stroke="#00D4FF" stroke-width="1.5"/>
-      <circle cx="14" cy="14" r="5" fill="#00D4FF"/>
-      <line x1="14" y1="1" x2="14" y2="7" stroke="#00D4FF" stroke-width="1.5"/>
-      <line x1="14" y1="21" x2="14" y2="27" stroke="#00D4FF" stroke-width="1.5"/>
-      <line x1="1" y1="14" x2="7" y2="14" stroke="#00D4FF" stroke-width="1.5"/>
-      <line x1="21" y1="14" x2="27" y2="14" stroke="#00D4FF" stroke-width="1.5"/>
+  <a href="/" class="nav-logo" title="LearnSphere Home">
+    <svg width="24" height="24" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" class="nav-logo-mark">
+      <defs>
+        <linearGradient id="navLsGrad" x1="4" y1="4" x2="36" y2="36" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#34D399"/>
+          <stop offset="50%" stop-color="#10B981"/>
+          <stop offset="100%" stop-color="#047857"/>
+        </linearGradient>
+        <linearGradient id="navRingGrad" x1="36" y1="10" x2="4" y2="30" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#6EE7B7"/>
+          <stop offset="40%" stop-color="#10B981"/>
+          <stop offset="100%" stop-color="#059669"/>
+        </linearGradient>
+      </defs>
+      <circle cx="20" cy="20" r="16.5" stroke="url(#navLsGrad)" stroke-width="2.4" stroke-linecap="round"/>
+      <path d="M 20 3.5 C 27 3.5 32 8.5 32 15 C 32 19.5 28.5 22.5 23.5 24 C 17 26 13.5 28.5 13.5 32 C 13.5 35 16 36.5 20 36.5" stroke="url(#navLsGrad)" stroke-width="2.8" stroke-linecap="round" fill="none"/>
+      <ellipse cx="20" cy="20" rx="16.5" ry="6.8" stroke="url(#navRingGrad)" stroke-width="2.2" transform="rotate(-24 20 20)" stroke-linecap="round" stroke-dasharray="72 26"/>
+      <circle cx="20" cy="20" r="3.6" fill="#10B981"/>
+      <circle cx="20" cy="20" r="1.4" fill="#FFFFFF"/>
     </svg>
     <span class="logo-text">Learn<span class="logo-accent">Sphere</span></span>
   </a>
@@ -46,7 +58,7 @@
   </div>
 
   <div class="nav-right">
-    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle Light / Dark Mode">🌙</button>
+    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle Light / Dark Mode" aria-label="Toggle Theme"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg></button>
 
     <!-- Sleek Corner User Profile with Dropdown -->
     <div class="user-menu-wrap" id="userMenuWrap">
@@ -66,46 +78,24 @@
 
       <!-- Dropdown Menu -->
       <div class="user-dropdown" id="userDropdown">
-        <div class="user-dropdown-header">
+        <a href="/profile" class="user-dropdown-header" style="text-decoration:none; display:flex; cursor:pointer;" title="View & Edit Profile">
           <div class="dropdown-avatar">{{ session.get('username','?')[0]|upper }}</div>
           <div class="dropdown-info">
             <div class="dropdown-name">{{ session.get('username','User') }}</div>
             <div class="dropdown-role-badge">{{ role|capitalize or 'Student' }}</div>
           </div>
-        </div>
+        </a>
         <div class="dropdown-divider"></div>
 
-        {% if role == 'educator' %}
-          <a href="/educator/dashboard" class="dropdown-item">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg>
-            <span>Educator Dashboard</span>
-          </a>
-          <a href="/educator/courses" class="dropdown-item">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
-            <span>My Courses</span>
-          </a>
-        {% else %}
-          <a href="/student/dashboard" class="dropdown-item">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg>
-            <span>Student Dashboard</span>
-          </a>
-          <a href="/student/courses" class="dropdown-item">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
-            <span>Enrolled Courses</span>
-          </a>
-          <a href="/dna" class="dropdown-item">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="m4.93 4.93 4.24 4.24"></path><path d="m14.83 9.17 4.24-4.24"></path><path d="m14.83 14.83 4.24 4.24"></path><path d="m9.17 14.83-4.24 4.24"></path></svg>
-            <span>Learning DNA</span>
-          </a>
-          <a href="/career" class="dropdown-item">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
-            <span>Career Portfolio</span>
-          </a>
-        {% endif %}
+        <a href="/profile" class="dropdown-item">
+          <span>My Profile</span>
+        </a>
+        <a href="/settings" class="dropdown-item">
+          <span>Settings</span>
+        </a>
 
         <div class="dropdown-divider"></div>
         <a href="/logout" class="dropdown-item logout-item">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
           <span>Sign Out</span>
         </a>
       </div>
@@ -119,29 +109,57 @@
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 <script>
 (function() {
-  var t = localStorage.getItem('ls_theme')  || 'night';
-  var a = localStorage.getItem('ls_accent') || 'cyan';
+  var t = localStorage.getItem('ls_theme') || 'day';
+  var a = localStorage.getItem('ls_accent');
+  if (!a || a === 'cyan') {
+    a = 'green';
+    localStorage.setItem('ls_accent', 'green');
+  }
   document.documentElement.setAttribute('data-theme', t);
   document.documentElement.setAttribute('data-accent', a);
 
-  var accentMap = {cyan:'#00D4FF', purple:'#7C3AED', green:'#10B981', amber:'#F59E0B'};
-  if (accentMap[a]) {
-    document.documentElement.style.setProperty('--accent', accentMap[a]);
-    document.documentElement.style.setProperty('--accent-glow', accentMap[a] + '22');
-    document.documentElement.style.setProperty('--accent-strong', accentMap[a] + '44');
-  }
+  var accentMap = {
+    green: t === 'day' ? '#059669' : '#10B981',
+    purple: '#7C3AED',
+    amber: '#F59E0B'
+  };
+  var accentColor = accentMap[a] || (t === 'day' ? '#059669' : '#10B981');
+  document.documentElement.style.setProperty('--accent', accentColor);
+  document.documentElement.style.setProperty('--accent-glow', accentColor + '26');
+  document.documentElement.style.setProperty('--accent-strong', accentColor + '4D');
 
   var icon = document.getElementById('themeToggle');
-  if (icon) icon.textContent = t === 'day' ? '☀️' : '🌙';
+  var sunSvg = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>';
+  var moonSvg = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
+  if (icon) icon.innerHTML = t === 'day' ? sunSvg : moonSvg;
+
+  var hljs = document.getElementById('hljs-theme');
+  if (hljs) hljs.href = t === 'day'
+    ? 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css'
+    : 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css';
 })();
 
 function toggleTheme() {
-  var curr = document.documentElement.getAttribute('data-theme') || 'night';
-  var next = curr === 'night' ? 'day' : 'night';
+  var curr = document.documentElement.getAttribute('data-theme') || 'day';
+  var next = curr === 'day' ? 'night' : 'day';
   document.documentElement.setAttribute('data-theme', next);
   localStorage.setItem('ls_theme', next);
+
+  var a = localStorage.getItem('ls_accent') || 'green';
+  var accentMap = {
+    green: next === 'day' ? '#059669' : '#10B981',
+    purple: '#7C3AED',
+    amber: '#F59E0B'
+  };
+  var accentColor = accentMap[a] || (next === 'day' ? '#059669' : '#10B981');
+  document.documentElement.style.setProperty('--accent', accentColor);
+  document.documentElement.style.setProperty('--accent-glow', accentColor + '26');
+  document.documentElement.style.setProperty('--accent-strong', accentColor + '4D');
+
   var icon = document.getElementById('themeToggle');
-  if (icon) icon.textContent = next === 'day' ? '☀️' : '🌙';
+  var sunSvg = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>';
+  var moonSvg = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
+  if (icon) icon.innerHTML = next === 'day' ? sunSvg : moonSvg;
   var hljs = document.getElementById('hljs-theme');
   if (hljs) hljs.href = next === 'day'
     ? 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css'

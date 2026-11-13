@@ -1,0 +1,618 @@
+{% extends "base.html" %}
+{% block title %}My Profile &bull; LearnSphere{% endblock %}
+{% block content %}
+<style>
+.sp-wrap {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+}
+
+.sp-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.sp-page-title {
+  font-family: var(--ff-display, var(--ff-sans));
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text);
+  margin: 0;
+}
+
+.sp-pub-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--accent);
+  text-decoration: none;
+  padding: 0.45rem 0.95rem;
+  background: var(--accent-glow, rgba(5, 150, 105, 0.1));
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  transition: all 0.15s ease;
+}
+.sp-pub-link:hover {
+  background: var(--accent);
+  color: #FFFFFF;
+}
+
+/* ── Profile Header Card ─────────────────────────────────────────── */
+.sp-banner-card {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.75rem 2rem;
+  margin-bottom: 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  flex-wrap: wrap;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+}
+
+.sp-user-lead {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  min-width: 280px;
+}
+
+.sp-avatar-large {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent) 0%, #059669 100%);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 800;
+  flex-shrink: 0;
+  box-shadow: 0 4px 14px var(--accent-glow, rgba(5, 150, 105, 0.25));
+}
+
+.sp-user-text h2 {
+  font-family: var(--ff-display, var(--ff-sans));
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--text);
+  margin: 0 0 0.25rem 0;
+  line-height: 1.2;
+}
+
+.sp-headline-text {
+  font-size: 0.88rem;
+  color: var(--text2);
+  margin-bottom: 0.5rem;
+}
+
+.sp-badges-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.sp-pill {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+}
+.sp-pill.role {
+  background: rgba(16, 185, 129, 0.12);
+  color: var(--success);
+}
+.sp-pill.level {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text2);
+}
+
+.sp-banner-stats {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  padding: 0.75rem 1.5rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.sp-stat-item {
+  text-align: center;
+}
+.sp-stat-num {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--accent);
+  line-height: 1.2;
+}
+.sp-stat-label {
+  font-size: 0.72rem;
+  color: var(--text2);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+/* ── Two Column Grid ─────────────────────────────────────────────── */
+.sp-grid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 1.75rem;
+  align-items: start;
+}
+
+/* ── Edit Form Card ──────────────────────────────────────────────── */
+.sp-form-card {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 2rem;
+}
+
+.sp-card-head {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+.sp-card-head h3 {
+  font-family: var(--ff-display, var(--ff-sans));
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 0.3rem 0;
+}
+.sp-card-head p {
+  font-size: 0.85rem;
+  color: var(--text2);
+  margin: 0;
+}
+
+.sp-form-group {
+  margin-bottom: 1.25rem;
+}
+
+.sp-label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 0.4rem;
+}
+
+.sp-input,
+.sp-select,
+.sp-textarea {
+  width: 100%;
+  padding: 0.7rem 0.9rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: var(--ff-sans);
+  font-size: 0.9rem;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease;
+}
+.sp-input:focus,
+.sp-select:focus,
+.sp-textarea:focus {
+  border-color: var(--accent);
+}
+.sp-input:disabled {
+  background: var(--bg2);
+  color: var(--text3);
+  cursor: not-allowed;
+}
+
+.sp-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.sp-alert-box {
+  padding: 0.85rem 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 1.25rem;
+  display: none;
+}
+.sp-alert-box.success {
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid var(--success);
+  color: var(--success);
+}
+.sp-alert-box.error {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid var(--danger);
+  color: var(--danger);
+}
+
+.sp-save-btn {
+  padding: 0.75rem 1.8rem;
+  background: var(--accent);
+  color: #FFFFFF;
+  font-weight: 700;
+  font-size: 0.9rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: filter 0.15s ease;
+}
+.sp-save-btn:hover {
+  filter: brightness(1.1);
+}
+
+/* ── Sidebar (Right) ─────────────────────────────────────────────── */
+.sp-side-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.sp-side-card {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.5rem;
+}
+
+.sp-side-card h4 {
+  font-family: var(--ff-display, var(--ff-sans));
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 1rem 0;
+}
+
+.sp-cert-item {
+  padding: 0.85rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 0.75rem;
+}
+.sp-cert-item:last-child {
+  margin-bottom: 0;
+}
+.sp-cert-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 0.25rem;
+}
+.sp-cert-meta {
+  font-size: 0.72rem;
+  color: var(--text2);
+  margin-bottom: 0.6rem;
+}
+.sp-cert-btn {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--accent);
+  text-decoration: none;
+  padding: 0.25rem 0.6rem;
+  background: var(--accent-glow, rgba(5, 150, 105, 0.1));
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+}
+.sp-cert-btn:hover {
+  background: var(--accent);
+  color: #FFFFFF;
+}
+
+.sp-copy-box {
+  display: flex;
+  align-items: center;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.8rem;
+  color: var(--text2);
+  margin-top: 0.6rem;
+}
+.sp-copy-box span {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sp-copy-btn {
+  background: transparent;
+  border: none;
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 0.75rem;
+  cursor: pointer;
+  padding: 0.2rem 0.4rem;
+}
+
+@media (max-width: 820px) {
+  .sp-grid {
+    grid-template-columns: 1fr;
+  }
+  .sp-banner-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .sp-banner-stats {
+    width: 100%;
+    justify-content: space-around;
+  }
+  .sp-row-2 {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+
+<div class="sp-wrap animate-in">
+
+  <!-- Top bar -->
+  <div class="sp-top-bar">
+    <h1 class="sp-page-title">Student Profile</h1>
+    <a href="/u/{{ session.get('username','student') }}" id="topPubLink" class="sp-pub-link" target="_blank">View Public Portfolio &rarr;</a>
+  </div>
+
+  <!-- Profile Banner Summary -->
+  <div class="sp-banner-card">
+    <div class="sp-user-lead">
+      <div class="sp-avatar-large" id="bannerAvatar">S</div>
+      <div class="sp-user-text">
+        <h2 id="bannerName">Learner</h2>
+        <div class="sp-headline-text" id="bannerHeadline">Machine Learning Student</div>
+        <div class="sp-badges-row">
+          <span class="sp-pill role" id="bannerRole">Student</span>
+          <span class="sp-pill level" id="bannerLevel">Beginner</span>
+          <span style="font-size:0.75rem;color:var(--text3)" id="bannerJoined">Joined 2026</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="sp-banner-stats">
+      <div class="sp-stat-item">
+        <div class="sp-stat-num" id="statEnrolled">0</div>
+        <div class="sp-stat-label">Enrolled</div>
+      </div>
+      <div class="sp-stat-item">
+        <div class="sp-stat-num" id="statCompleted">0</div>
+        <div class="sp-stat-label">Completed</div>
+      </div>
+      <div class="sp-stat-item">
+        <div class="sp-stat-num" id="statCerts">0</div>
+        <div class="sp-stat-label">Certificates</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Two Column Layout -->
+  <div class="sp-grid">
+
+    <!-- Left: Edit Form -->
+    <div class="sp-form-card">
+      <div class="sp-card-head">
+        <h3>Edit Profile Details</h3>
+        <p>Manage your account credentials, academic institution, and learning goals.</p>
+      </div>
+
+      <div id="alertBox" class="sp-alert-box"></div>
+
+      <form id="profileForm" onsubmit="saveProfile(event)">
+        <div class="sp-row-2">
+          <div class="sp-form-group">
+            <label class="sp-label" for="profUsername">Username / Full Name</label>
+            <input type="text" id="profUsername" class="sp-input" required placeholder="Your name">
+          </div>
+          <div class="sp-form-group">
+            <label class="sp-label" for="profEmail">Email Address</label>
+            <input type="email" id="profEmail" class="sp-input" disabled title="Account email cannot be modified">
+          </div>
+        </div>
+
+        <div class="sp-form-group">
+          <label class="sp-label" for="profHeadline">Headline / Professional Title</label>
+          <input type="text" id="profHeadline" class="sp-input" placeholder="e.g. Computer Science Undergrad &bull; Aspiring ML Engineer">
+        </div>
+
+        <div class="sp-row-2">
+          <div class="sp-form-group">
+            <label class="sp-label" for="profCollege">College / University</label>
+            <input type="text" id="profCollege" class="sp-input" placeholder="e.g. Stanford University">
+          </div>
+          <div class="sp-form-group">
+            <label class="sp-label" for="profRegion">Region / Location</label>
+            <input type="text" id="profRegion" class="sp-input" placeholder="e.g. San Francisco, CA">
+          </div>
+        </div>
+
+        <div class="sp-row-2">
+          <div class="sp-form-group">
+            <label class="sp-label" for="profLevel">Current Skill Level</label>
+            <select id="profLevel" class="sp-select">
+              <option value="beginner">Beginner</option>
+              <option value="intermediate">Intermediate</option>
+              <option value="advanced">Advanced</option>
+            </select>
+          </div>
+          <div class="sp-form-group">
+            <label class="sp-label" for="profInterests">Learning Focus &bull; Interests</label>
+            <input type="text" id="profInterests" class="sp-input" placeholder="e.g. Deep Learning, MLOps, NLP">
+          </div>
+        </div>
+
+        <div class="sp-form-group">
+          <label class="sp-label" for="profBio">About You (Bio)</label>
+          <textarea id="profBio" class="sp-textarea" rows="4" placeholder="Briefly describe your technical background, current ML research, and future aspirations..."></textarea>
+        </div>
+
+        <button type="submit" class="sp-save-btn" id="saveBtn">Save Profile Changes</button>
+      </form>
+    </div>
+
+    <!-- Right: Sidebar Cards -->
+    <div class="sp-side-stack">
+
+      <!-- Verified Certificates -->
+      <div class="sp-side-card">
+        <h4>Verified Certificates</h4>
+        <div id="certList">
+          <p style="font-size:0.82rem;color:var(--text2);margin:0">Loading credentials...</p>
+        </div>
+      </div>
+
+      <!-- Public Profile Link Card -->
+      <div class="sp-side-card">
+        <h4>Public Portfolio</h4>
+        <p style="font-size:0.82rem;color:var(--text2);line-height:1.5;margin:0">Share your achievements, certificates, and battle rankings with recruiters and peers.</p>
+        <div class="sp-copy-box">
+          <span id="publicUrlText">/u/student</span>
+          <button type="button" class="sp-copy-btn" onclick="copyPublicUrl()">Copy</button>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+let currentUserData = null;
+
+async function loadProfile() {
+  try {
+    const res = await fetch('/api/user/profile');
+    const data = await res.json();
+    if (!data.success || !data.profile) return;
+
+    currentUserData = data.profile;
+    const p = data.profile;
+    const stats = data.stats || {};
+    const certs = data.certificates || [];
+
+    // Header banner
+    const name = p.username || 'Learner';
+    document.getElementById('bannerName').textContent = name;
+    document.getElementById('bannerAvatar').textContent = name.charAt(0).toUpperCase();
+    document.getElementById('bannerHeadline').textContent = p.headline || 'Machine Learning Student';
+    document.getElementById('bannerRole').textContent = (p.role || 'Student').toUpperCase();
+    document.getElementById('bannerLevel').textContent = (p.level || 'Beginner').toUpperCase();
+    if (p.created_at) {
+      document.getElementById('bannerJoined').textContent = 'Joined ' + p.created_at.split(' ')[0];
+    }
+
+    // Stats
+    document.getElementById('statEnrolled').textContent = stats.enrolled_courses || 0;
+    document.getElementById('statCompleted').textContent = stats.completed_lectures || 0;
+    document.getElementById('statCerts').textContent = stats.certificates_count || 0;
+
+    // Public links
+    document.getElementById('topPubLink').href = '/u/' + encodeURIComponent(name);
+    document.getElementById('publicUrlText').textContent = window.location.origin + '/u/' + encodeURIComponent(name);
+
+    // Form inputs
+    document.getElementById('profUsername').value = p.username || '';
+    document.getElementById('profEmail').value = p.email || '';
+    document.getElementById('profHeadline').value = p.headline || '';
+    document.getElementById('profCollege').value = p.college || '';
+    document.getElementById('profRegion').value = p.region || '';
+    document.getElementById('profLevel').value = (p.level || 'beginner').toLowerCase();
+    document.getElementById('profInterests').value = p.interests || '';
+    document.getElementById('profBio').value = p.bio || '';
+
+    // Certificates list
+    const certBox = document.getElementById('certList');
+    if (!certs.length) {
+      certBox.innerHTML = '<p style="font-size:0.82rem;color:var(--text2);margin:0;line-height:1.4">Complete all modules of any course to earn your verified credential here.</p>';
+    } else {
+      certBox.innerHTML = certs.map(c => `
+        <div class="sp-cert-item">
+          <div class="sp-cert-title">${escHtml(c.course_title)}</div>
+          <div class="sp-cert-meta">Code: ${escHtml(c.cert_code || '')} &bull; ${c.issued_at ? c.issued_at.split(' ')[0] : 'Verified'}</div>
+          <a href="/certificate/${c.course_id}/download" target="_blank" class="sp-cert-btn">Download PDF</a>
+        </div>
+      `).join('');
+    }
+  } catch (err) {
+    console.error('Error loading profile:', err);
+  }
+}
+
+async function saveProfile(e) {
+  e.preventDefault();
+  const btn = document.getElementById('saveBtn');
+  const alertBox = document.getElementById('alertBox');
+  btn.textContent = 'Saving Changes...';
+  btn.disabled = true;
+  alertBox.style.display = 'none';
+
+  const payload = {
+    username: document.getElementById('profUsername').value.trim(),
+    headline: document.getElementById('profHeadline').value.trim(),
+    college: document.getElementById('profCollege').value.trim(),
+    region: document.getElementById('profRegion').value.trim(),
+    level: document.getElementById('profLevel').value,
+    interests: document.getElementById('profInterests').value.trim(),
+    bio: document.getElementById('profBio').value.trim()
+  };
+
+  try {
+    const res = await fetch('/api/user/profile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const result = await res.json();
+
+    if (result.success) {
+      alertBox.className = 'sp-alert-box success';
+      alertBox.textContent = 'Profile updated successfully!';
+      alertBox.style.display = 'block';
+      loadProfile();
+    } else {
+      alertBox.className = 'sp-alert-box error';
+      alertBox.textContent = result.error || 'Failed to update profile.';
+      alertBox.style.display = 'block';
+    }
+  } catch (err) {
+    alertBox.className = 'sp-alert-box error';
+    alertBox.textContent = 'Network error saving profile.';
+    alertBox.style.display = 'block';
+  } finally {
+    btn.textContent = 'Save Profile Changes';
+    btn.disabled = false;
+  }
+}
+
+function copyPublicUrl() {
+  const url = document.getElementById('publicUrlText').textContent;
+  navigator.clipboard.writeText(url);
+  alert('Public portfolio URL copied to clipboard!');
+}
+
+function escHtml(s) {
+  if (s == null) return '';
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+loadProfile();
+</script>
+{% endblock %}
+

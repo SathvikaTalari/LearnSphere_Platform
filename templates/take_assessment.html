@@ -14,12 +14,12 @@
 /* True/False */
 .tf-row{display:flex;gap:.75rem}
 .tf-btn{flex:1;padding:.75rem;border-radius:10px;border:1.5px solid var(--border);background:var(--bg2);color:var(--text);font-size:.9rem;font-weight:700;cursor:pointer;transition:all .15s;text-align:center}
-.tf-btn:hover,.tf-btn.selected{border-color:var(--accent);background:rgba(0,212,255,.08);color:var(--accent)}
+.tf-btn:hover,.tf-btn.selected{border-color:var(--accent);background:rgba(16,185,129,.12);color:var(--accent)}
 /* Choices */
 .choice-list{display:flex;flex-direction:column;gap:.55rem}
 .choice-btn{padding:.7rem 1rem;border-radius:9px;border:1.5px solid var(--border);background:var(--bg2);color:var(--text);font-size:.86rem;text-align:left;cursor:pointer;transition:all .15s;line-height:1.45}
-.choice-btn:hover{border-color:var(--accent);background:rgba(0,212,255,.06)}
-.choice-btn.selected{border-color:var(--accent);background:rgba(0,212,255,.1);color:var(--accent)}
+.choice-btn:hover{border-color:var(--accent);background:rgba(16,185,129,.08)}
+.choice-btn.selected{border-color:var(--accent);background:rgba(16,185,129,.15);color:var(--accent)}
 /* Text / fill */
 .text-input{width:100%;padding:.65rem 1rem;border-radius:9px;border:1.5px solid var(--border);background:var(--bg2);color:var(--text);font-family:var(--ff-sans);font-size:.88rem;outline:none;transition:border-color .15s}
 .text-input:focus{border-color:var(--accent)}
@@ -43,7 +43,7 @@
 .result-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:2rem;text-align:center;margin-bottom:1.4rem}
 .result-score{font-size:3.5rem;font-weight:800;font-family:var(--ff-serif);margin:.5rem 0}
 .result-pass{color:var(--success)}.result-fail{color:var(--danger)}
-.cert-banner{background:linear-gradient(135deg,rgba(16,185,129,.12),rgba(0,212,255,.08));border:1px solid rgba(16,185,129,.3);border-radius:var(--r2);padding:1.25rem 1.5rem;text-align:center;margin-bottom:1rem}
+.cert-banner{background:linear-gradient(135deg,rgba(16,185,129,.15),rgba(5,150,105,.08));border:1px solid rgba(16,185,129,.3);border-radius:var(--r2);padding:1.25rem 1.5rem;text-align:center;margin-bottom:1rem}
 .cert-banner h3{font-family:var(--ff-serif);color:var(--success);margin-bottom:.4rem}
 .cert-dl-btn{display:inline-flex;align-items:center;gap:.5rem;padding:.6rem 1.5rem;border-radius:8px;background:var(--success);color:#fff;font-weight:700;font-size:.88rem;text-decoration:none;transition:filter .15s}
 .cert-dl-btn:hover{filter:brightness(1.1)}
@@ -121,8 +121,8 @@ function renderQuestionInput(q) {
   switch(q.question_type) {
     case 'true_false':
       return '<div class="tf-row">'
-        + '<button class="tf-btn" id="tf-true-'+qid+'" onclick="setTF(\''+qid+'\',\'true\',this)">✅ True</button>'
-        + '<button class="tf-btn" id="tf-false-'+qid+'" onclick="setTF(\''+qid+'\',\'false\',this)">❌ False</button>'
+        + '<button class="tf-btn" id="tf-true-'+qid+'" onclick="setTF(\''+qid+'\',\'true\',this)">True</button>'
+        + '<button class="tf-btn" id="tf-false-'+qid+'" onclick="setTF(\''+qid+'\',\'false\',this)">False</button>'
         + '</div>';
 
     case 'single_choice':
@@ -174,13 +174,13 @@ function renderQuestionInput(q) {
     case 'audio':
       return (opts[0] && opts[0].startsWith('http')
         ? '<audio controls src="'+escH(opts[0])+'" style="width:100%;margin-bottom:.75rem;border-radius:8px"></audio>'
-        : '<div style="padding:.6rem;background:var(--bg2);border-radius:8px;font-size:.8rem;color:var(--text2);margin-bottom:.65rem">🎧 ' + escH(opts[0]||'Audio content') + '</div>')
+        : '<div style="padding:.6rem;background:var(--bg2);border-radius:8px;font-size:.8rem;color:var(--text2);margin-bottom:.65rem">' + escH(opts[0]||'Audio content') + '</div>')
         + '<input class="text-input" id="au-'+qid+'" placeholder="Your answer after listening…" oninput="answers[\''+qid+'\']=this.value;updateProgress()">';
 
     case 'video':
       return (opts[0] && opts[0].includes('youtube')
         ? '<div style="position:relative;padding-bottom:35%;height:0;border-radius:8px;overflow:hidden;border:1px solid var(--border);margin-bottom:.75rem"><iframe src="'+escH(opts[0])+'" style="position:absolute;top:0;left:0;width:100%;height:100%" frameborder="0" allowfullscreen></iframe></div>'
-        : '<div style="padding:.6rem;background:var(--bg2);border-radius:8px;font-size:.8rem;color:var(--text2);margin-bottom:.65rem">🎥 ' + escH(opts[0]||'Video content') + '</div>')
+        : '<div style="padding:.6rem;background:var(--bg2);border-radius:8px;font-size:.8rem;color:var(--text2);margin-bottom:.65rem">' + escH(opts[0]||'Video content') + '</div>')
         + '<input class="text-input" id="vi-'+qid+'" placeholder="Your answer after watching…" oninput="answers[\''+qid+'\']=this.value;updateProgress()">';
 
     default:
@@ -290,22 +290,21 @@ function showResults(data) {
 
   var passClass = data.passed ? 'result-pass' : 'result-fail';
   var html = '<div class="result-card">'
-    + '<div style="font-size:3rem">' + (data.passed ? '🏆' : '📚') + '</div>'
     + '<div class="result-score ' + passClass + '">' + data.percentage + '%</div>'
-    + '<div style="font-size:1rem;color:var(--text);margin-bottom:.4rem;font-weight:700">' + (data.passed ? 'Passed! Well done 🎉' : 'Not passed — keep practising!') + '</div>'
+    + '<div style="font-size:1rem;color:var(--text);margin-bottom:.4rem;font-weight:700">' + (data.passed ? 'Passed successfully.' : 'Not passed — keep practising.') + '</div>'
     + '<div style="font-size:.83rem;color:var(--text2)">Score: ' + data.score + ' / ' + data.max_score + ' pts · Pass: ' + data.pass_score + '%</div>'
     + '</div>';
 
   if (data.cert_issued) {
     html += '<div class="cert-banner">'
-      + '<h3>🎓 Certificate Unlocked!</h3>'
-      + '<p style="font-size:.83rem;color:var(--text2);margin-bottom:.85rem">You completed all lessons and passed the quiz. Download your certificate!</p>'
-      + '<a href="/certificate/' + courseId + '/download" target="_blank" class="cert-dl-btn">⬇ Download Certificate</a>'
+      + '<h3>Certificate Unlocked</h3>'
+      + '<p style="font-size:.83rem;color:var(--text2);margin-bottom:.85rem">You completed all lessons and passed the quiz. Download your certificate.</p>'
+      + '<a href="/certificate/' + courseId + '/download" target="_blank" class="cert-dl-btn">Download Certificate</a>'
       + '</div>';
   }
 
   if (data.passed && !data.cert_issued) {
-    html += '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:1rem 1.25rem;margin-bottom:1rem;font-size:.83rem;color:var(--text2)">✅ Quiz passed! Complete all lessons to unlock your certificate.</div>';
+    html += '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:1rem 1.25rem;margin-bottom:1rem;font-size:.83rem;color:var(--text2)">Quiz passed. Complete all lessons to unlock your certificate.</div>';
   }
 
   // Per-question breakdown
@@ -314,7 +313,7 @@ function showResults(data) {
     var r = data.results[q.id] || {};
     var cls = r.correct ? 'correct' : 'wrong';
     html += '<div class="q-result-item ' + cls + '">'
-      + '<div class="q-result-lbl ' + (r.correct?'ok':'no') + '">' + (r.correct?'✓ Correct':'✗ Incorrect') + ' · Q' + (i+1) + ' · ' + (r.points_earned||0) + '/' + q.points + ' pts</div>'
+      + '<div class="q-result-lbl ' + (r.correct?'ok':'no') + '">' + (r.correct?'Correct':'Incorrect') + ' · Q' + (i+1) + ' · ' + (r.points_earned||0) + '/' + q.points + ' pts</div>'
       + '<div style="font-size:.84rem;color:var(--text);margin-bottom:.25rem">' + escH(q.question_text) + '</div>'
       + '<div style="font-size:.77rem;color:var(--text2)">Your answer: <strong>' + escH(String(r.student_answer||'—')) + '</strong> · Correct: <strong>' + escH(String(r.correct_answer||'—')) + '</strong></div>'
       + (q.explanation ? '<div style="font-size:.75rem;color:var(--accent);margin-top:.3rem;font-style:italic">' + escH(q.explanation) + '</div>' : '')

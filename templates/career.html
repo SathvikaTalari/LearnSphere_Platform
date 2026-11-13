@@ -30,20 +30,6 @@
     line-height: 1.65;
   }
 
-  .cr-badge {
-    display: inline-block;
-    background: rgba(124, 58, 237, .1);
-    border: 1px solid rgba(124, 58, 237, .3);
-    color: #7c3aed;
-    font-size: .7rem;
-    font-weight: 700;
-    padding: .2rem .65rem;
-    border-radius: 20px;
-    letter-spacing: .05em;
-    text-transform: uppercase;
-    margin-bottom: .65rem;
-  }
-
   .cr-grid {
     display: grid;
     grid-template-columns: 1fr 320px;
@@ -274,7 +260,7 @@
   }
 
   .tb-skill {
-    background: rgba(0, 212, 255, .1);
+    background: rgba(16, 185, 129, .12);
     color: var(--accent);
   }
 
@@ -486,7 +472,6 @@
 
 <div class="cr-wrap animate-in">
   <div class="cr-hero">
-    <span class="cr-badge">Career Growth</span>
     <h1>Career Growth Tracker</h1>
     <p>Track your skills learned, competitions attended, certificates earned, and watch your ranking grow. AI generates
       your personalised career summary.</p>
@@ -495,22 +480,18 @@
   <!-- Stat strip -->
   <div class="stat-strip">
     <div class="stat-box">
-      <div class="stat-icon">💡</div>
       <div class="stat-val" id="skillCount">—</div>
       <div class="stat-lbl">Skills</div>
     </div>
     <div class="stat-box">
-      <div class="stat-icon">🏆</div>
       <div class="stat-val" id="compCount">—</div>
       <div class="stat-lbl">Competitions</div>
     </div>
     <div class="stat-box">
-      <div class="stat-icon">🎓</div>
       <div class="stat-val" id="certCount">—</div>
       <div class="stat-lbl">Certificates</div>
     </div>
     <div class="stat-box">
-      <div class="stat-icon">🚀</div>
       <div class="stat-val" id="projCount">—</div>
       <div class="stat-lbl">Projects</div>
     </div>
@@ -522,7 +503,7 @@
       <!-- Add entry form -->
       <div class="add-card">
         <div class="add-card-head" onclick="toggleAddForm()">
-          <h3>➕ Add Career Entry</h3>
+          <h3>Add Career Entry</h3>
           <span id="addToggleIcon" style="color:var(--text2);font-size:.85rem">▼</span>
         </div>
         <div class="add-card-body" id="addForm">
@@ -530,11 +511,11 @@
             <div class="fi">
               <label>Entry Type</label>
               <select id="entryType">
-                <option value="skill">💡 Skill Learned</option>
-                <option value="competition">🏆 Competition / Hackathon</option>
-                <option value="certificate">🎓 Certificate</option>
-                <option value="project">🚀 Project</option>
-                <option value="course">📚 Course Completed</option>
+                <option value="skill">Skill Learned</option>
+                <option value="competition">Competition / Hackathon</option>
+                <option value="certificate">Certificate</option>
+                <option value="project">Project</option>
+                <option value="course">Course Completed</option>
               </select>
             </div>
             <div class="fi">
@@ -563,7 +544,6 @@
       <!-- Timeline -->
       <div class="timeline" id="timeline">
         <div class="tl-empty">
-          <div style="font-size:3rem">🗺️</div>
           <h3>Your career journey starts here</h3>
           <p style="font-size:.8rem">Add skills, competitions, certificates and projects to build your career timeline.
           </p>
@@ -576,7 +556,7 @@
 
       <!-- Ranking card -->
       <div class="side-card">
-        <div class="side-head"><span>📊</span>
+        <div class="side-head">
           <h3>Your Ranking</h3>
         </div>
         <div class="side-body" id="rankingBody">
@@ -607,7 +587,7 @@
 
       <!-- Skills from AI learn -->
       <div class="side-card">
-        <div class="side-head"><span>🧠</span>
+        <div class="side-head">
           <h3>Topics Studied (AI Learn)</h3>
         </div>
         <div class="side-body">
@@ -620,11 +600,11 @@
 
       <!-- AI Summary -->
       <div class="side-card">
-        <div class="side-head"><span>✨</span>
+        <div class="side-head">
           <h3>AI Career Summary</h3>
         </div>
         <div class="side-body">
-          <button class="ai-sum-btn" id="aiSumBtn" onclick="loadAISummary()">✨ Generate AI Career Summary</button>
+          <button class="ai-sum-btn" id="aiSumBtn" onclick="loadAISummary()">Generate AI Career Summary</button>
           <div id="aiSummaryText" style="margin-top:.85rem"></div>
         </div>
       </div>
@@ -706,7 +686,6 @@
     if (!entries.length) {
       tl.innerHTML =
         '<div class="tl-empty">'
-        + '<div style="font-size:3rem">🗺️</div>'
         + '<h3>Your career journey starts here</h3>'
         + '<p style="font-size:.8rem">Add skills, competitions, certificates and projects to build your career timeline.</p>'
         + '</div>';
@@ -724,8 +703,8 @@
         + '</div>'
         + (e.description ? '<div class="tl-desc">' + escH(e.description) + '</div>' : '')
         + '<div class="tl-meta">'
-        + '<span>📅 ' + escH(e.date_earned || '') + '</span>'
-        + '<button class="tl-del" onclick="deleteEntry(\'' + e.id + '\')">🗑 Delete</button>'
+        + '<span>' + escH(e.date_earned || '') + '</span>'
+        + '<button class="tl-del" onclick="deleteEntry(\'' + e.id + '\')">Delete</button>'
         + '</div>'
         + '</div>'
         + '</div>';
@@ -775,7 +754,7 @@
   async function loadAISummary() {
     var btn = document.getElementById('aiSumBtn');
     btn.disabled = true;
-    btn.textContent = '⏳ Generating…';
+    btn.textContent = 'Generating…';
     document.getElementById('aiSummaryText').innerHTML =
       '<div style="color:var(--text2);font-size:.82rem;font-style:italic">AI is crafting your career summary…</div>';
 
@@ -791,7 +770,7 @@
     }
 
     btn.disabled = false;
-    btn.textContent = '✨ Regenerate Summary';
+    btn.textContent = 'Regenerate Summary';
   }
 
   // ── Init ──────────────────────────────────────────────────────────────────────

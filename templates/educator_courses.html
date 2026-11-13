@@ -19,19 +19,19 @@ async function load() {
     grid.innerHTML = courses.map(c=>`
         <div class="course-card educator-card">
             <div class="course-thumb" style="background:linear-gradient(135deg,${c.thumbnail_color}25,${c.thumbnail_color}08);border-color:${c.thumbnail_color}33">
-                <div class="course-icon" style="color:${c.thumbnail_color};font-size:2.2rem">📚</div>
-                <div class="course-badges"><span class="enrolled-count">👨‍🎓 ${c.enrollment_count} students</span></div>
+                <div class="course-icon" style="color:${c.thumbnail_color};font-weight:700;font-size:1.1rem">COURSE</div>
+                <div class="course-badges"><span class="enrolled-count">${c.enrollment_count} students</span></div>
             </div>
             <div class="course-info">
                 <div class="course-meta-row"><span class="course-diff ${c.difficulty}">${c.difficulty}</span><span class="course-cat">${c.category||'ML'}</span></div>
                 <h3>${c.title}</h3>
                 <p class="course-desc">${(c.description||'').slice(0,80)}...</p>
-                <p style="font-size:0.8rem;color:#64748B">📖 ${c.lecture_count} lectures</p>
+                <p style="font-size:0.8rem;color:#64748B">${c.lecture_count} lectures</p>
                 <div class="educator-actions">
-                    <a href="/educator/course/${c.id}/lectures" class="act-btn primary">📖 Lectures</a>
-                    <a href="/educator/course/${c.id}/assessments" class="act-btn">📝 Quizzes</a>
-                    <a href="/educator/course/${c.id}/edit" class="act-btn">✏️ Edit</a>
-                    <button onclick="del('${c.id}',this)" class="act-btn danger">🗑</button>
+                    <a href="/educator/course/${c.id}/lectures" class="act-btn primary">Lectures</a>
+                    <a href="/educator/course/${c.id}/assessments" class="act-btn">Quizzes</a>
+                    <a href="/educator/course/${c.id}/edit" class="act-btn">Edit</a>
+                    <button onclick="del('${c.id}',this)" class="act-btn danger">Delete</button>
                 </div>
             </div>
         </div>`).join('');

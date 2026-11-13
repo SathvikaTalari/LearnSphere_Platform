@@ -3,7 +3,7 @@
 {% block content %}
 <div class="page-wrap">
   <div class="page-header">
-    <div><h1 class="page-title">📝 Assessments</h1><p class="page-sub">Create quizzes with multiple question types for your students</p></div>
+    <div><h1 class="page-title">Assessments</h1><p class="page-sub">Create quizzes with multiple question types for your students</p></div>
     <div style="display:flex;gap:.65rem">
       <a href="/educator/course/{{ course_id }}/lectures" class="btn btn-ghost">← Lectures</a>
       <button onclick="showCreateAssessment()" class="btn btn-primary">+ New Assessment</button>
@@ -31,22 +31,22 @@
   <div id="questionBuilder" style="display:none;margin-top:1.4rem">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
       <h2 style="font-family:var(--ff-serif);font-size:1.1rem" id="builderTitle">Questions</h2>
-      <button onclick="hideBuilder()" class="btn btn-ghost" style="font-size:.8rem">✕ Close</button>
+      <button onclick="hideBuilder()" class="btn btn-ghost" style="font-size:.8rem">Close</button>
     </div>
 
     <!-- Question type selector -->
     <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:1.2rem;margin-bottom:1rem">
       <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;color:var(--text2);margin-bottom:.6rem">Add Question</div>
       <div style="display:flex;flex-wrap:wrap;gap:.45rem;margin-bottom:1rem">
-        <button class="q-type-btn active" onclick="setQType('true_false',this)">✅ True/False</button>
-        <button class="q-type-btn" onclick="setQType('single_choice',this)">◉ Single Choice</button>
-        <button class="q-type-btn" onclick="setQType('multiple_choice',this)">☑ Multiple Choice</button>
-        <button class="q-type-btn" onclick="setQType('text_answer',this)">✍ Text Answer</button>
-        <button class="q-type-btn" onclick="setQType('fill_blank',this)">___ Fill Blank</button>
-        <button class="q-type-btn" onclick="setQType('match',this)">↔ Match</button>
-        <button class="q-type-btn" onclick="setQType('sortable',this)">↕ Sortable</button>
-        <button class="q-type-btn" onclick="setQType('audio',this)">🎧 Audio</button>
-        <button class="q-type-btn" onclick="setQType('video',this)">🎥 Video</button>
+        <button class="q-type-btn active" onclick="setQType('true_false',this)">True/False</button>
+        <button class="q-type-btn" onclick="setQType('single_choice',this)">Single Choice</button>
+        <button class="q-type-btn" onclick="setQType('multiple_choice',this)">Multiple Choice</button>
+        <button class="q-type-btn" onclick="setQType('text_answer',this)">Text Answer</button>
+        <button class="q-type-btn" onclick="setQType('fill_blank',this)">Fill Blank</button>
+        <button class="q-type-btn" onclick="setQType('match',this)">Match</button>
+        <button class="q-type-btn" onclick="setQType('sortable',this)">Sortable</button>
+        <button class="q-type-btn" onclick="setQType('audio',this)">Audio</button>
+        <button class="q-type-btn" onclick="setQType('video',this)">Video</button>
       </div>
 
       <div><label class="form-label">Question Text *</label><textarea id="qText" class="form-input form-textarea" rows="2" placeholder="Enter your question..."></textarea></div>
@@ -106,13 +106,13 @@ async function loadAssessments() {
   if (!list.length) { el.innerHTML='<div style="color:var(--text2);padding:1.5rem;font-size:.85rem">No assessments yet. Create one above!</div>'; return; }
   el.innerHTML = list.map(function(a){
     return '<div class="ass-card"><div class="ass-info"><h3>' + escH(a.title) + '</h3><p>Pass: ' + a.pass_score + '% · ' + (a.description||'No description') + '</p></div>'
-      + '<div style="display:flex;gap:.5rem"><button onclick="openBuilder(\'' + a.id + '\',\'' + escH(a.title) + '\')" class="btn btn-ghost" style="font-size:.78rem">✏️ Questions</button></div></div>';
+      + '<div style="display:flex;gap:.5rem"><button onclick="openBuilder(\'' + a.id + '\',\'' + escH(a.title) + '\')" class="btn btn-ghost" style="font-size:.78rem">Questions</button></div></div>';
   }).join('');
 }
 
 async function openBuilder(assId, title) {
   currentAssId = assId;
-  document.getElementById('builderTitle').textContent = '📝 ' + title + ' — Questions';
+  document.getElementById('builderTitle').textContent = title + ' — Questions';
   document.getElementById('questionBuilder').style.display = 'block';
   setQType('true_false', document.querySelector('.q-type-btn.active'));
   loadQuestions();
@@ -201,7 +201,7 @@ async function loadQuestions() {
       + ' · Correct: <strong>' + escH(q.correct_answer||'') + '</strong>'
       + ' · ' + q.points + ' pts</p>'
       + '</div>'
-      + '<button onclick="deleteQuestion(\'' + q.id + '\')" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:.8rem;padding:.3rem">🗑</button>'
+      + '<button onclick="deleteQuestion(\'' + q.id + '\')" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:.8rem;padding:.3rem">Delete</button>'
       + '</div>';
   }).join('');
 }

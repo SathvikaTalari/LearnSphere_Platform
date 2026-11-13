@@ -4,7 +4,7 @@
 
 <div class="dashboard-layout">
     <div class="dash-header">
-        <h1>📊 Learning Dashboard</h1>
+        <h1>Learning Dashboard</h1>
         <p>Track your ML learning journey</p>
     </div>
 
@@ -12,28 +12,24 @@
         <!-- Stats Row -->
         <div class="stat-cards">
             <div class="stat-card">
-                <div class="stat-icon">🎯</div>
                 <div class="stat-info">
                     <span class="stat-num" id="totalQueries">0</span>
                     <span class="stat-label">Topics Explored</span>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon">✅</div>
                 <div class="stat-info">
                     <span class="stat-num" id="correctAnswers">0</span>
                     <span class="stat-label">Correct Answers</span>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon">📈</div>
                 <div class="stat-info">
                     <span class="stat-num" id="accuracy">0%</span>
                     <span class="stat-label">Accuracy Rate</span>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon">🏆</div>
                 <div class="stat-info">
                     <span class="stat-num level-badge" id="userLevel">Beginner</span>
                     <span class="stat-label">Current Level</span>
@@ -43,7 +39,7 @@
 
         <!-- Level Progress -->
         <div class="dash-card level-card">
-            <h3>🚀 Learning Level</h3>
+            <h3>Learning Level</h3>
             <div class="level-visual">
                 <div class="level-track">
                     <div class="level-node" id="lv-beginner">
@@ -63,13 +59,13 @@
                 </div>
             </div>
             <div class="level-tips" id="levelTips">
-                <p>Keep exploring ML concepts to level up! 🌟</p>
+                <p>Keep exploring ML concepts to level up.</p>
             </div>
         </div>
 
         <!-- Topics Learned -->
         <div class="dash-card topics-card">
-            <h3>📚 Topics Learned</h3>
+            <h3>Topics Learned</h3>
             <div class="topics-cloud" id="topicsCloud">
                 <div class="empty-dash">No topics learned yet. Start with <a href="/learn">Learn</a>!</div>
             </div>
@@ -77,14 +73,14 @@
 
         <!-- Strengths & Weaknesses -->
         <div class="dash-card sw-card">
-            <h3>💪 Strengths</h3>
+            <h3>Strengths</h3>
             <div class="strength-list" id="strengthList">
                 <div class="empty-dash">Complete quizzes to identify strengths</div>
             </div>
         </div>
 
         <div class="dash-card sw-card">
-            <h3>📍 Areas to Improve</h3>
+            <h3>Areas for Improvement</h3>
             <div class="weak-list" id="weakList">
                 <div class="empty-dash">Keep practicing to identify areas for improvement</div>
             </div>
@@ -92,13 +88,13 @@
 
         <!-- Progress Chart -->
         <div class="dash-card chart-card">
-            <h3>📈 Learning Progress</h3>
+            <h3>Learning Progress</h3>
             <canvas id="progressChart" height="200"></canvas>
         </div>
 
         <!-- Recent Activity -->
         <div class="dash-card activity-card">
-            <h3>🕐 Recent Activity</h3>
+            <h3>Recent Activity</h3>
             <div id="activityList">
                 <div class="empty-dash">No activity yet</div>
             </div>
@@ -106,7 +102,7 @@
 
         <!-- Improvement Suggestions -->
         <div class="dash-card suggestions-card">
-            <h3>💡 AI Recommendations</h3>
+            <h3>Recommendations</h3>
             <div id="aiSuggestions">
                 <div class="loading-mini"><div class="spinner-sm"></div> Loading suggestions...</div>
             </div>
@@ -142,13 +138,13 @@ async function loadDashboard() {
     // Strengths
     if (profile.strong_topics && profile.strong_topics.length) {
         document.getElementById('strengthList').innerHTML = profile.strong_topics.map(t => 
-            `<div class="sw-item strong">✅ ${t}</div>`).join('');
+            `<div class="sw-item strong">${t}</div>`).join('');
     }
     
     // Weaknesses
     if (profile.weak_topics && profile.weak_topics.length) {
         document.getElementById('weakList').innerHTML = profile.weak_topics.map(t => 
-            `<div class="sw-item weak">📍 ${t} <a href="/learn?q=${encodeURIComponent(t)}" class="review-link">Review →</a></div>`).join('');
+            `<div class="sw-item weak">${t} <a href="/learn?q=${encodeURIComponent(t)}" class="review-link">Review →</a></div>`).join('');
     }
     
     // Activity
@@ -156,7 +152,7 @@ async function loadDashboard() {
         const recent = profile.history.slice(-8).reverse();
         document.getElementById('activityList').innerHTML = recent.map(h => `
             <div class="activity-item">
-                <span class="activity-type">${h.type === 'concept' ? '📚' : '💻'}</span>
+                <span class="activity-type">${h.type === 'concept' ? 'Concept' : 'Lab'}</span>
                 <span class="activity-topic">${h.topic}</span>
                 <span class="activity-time">${formatTime(h.time)}</span>
             </div>`).join('');
@@ -182,9 +178,9 @@ function updateLevelVisual(level) {
     document.getElementById('levelFill2').style.width = idx >= 2 ? '100%' : '0%';
     
     const tips = {
-        beginner: '🌱 Great start! Explore 5+ topics and practice quizzes to reach Intermediate.',
-        intermediate: '⚡ Solid progress! Master 10+ concepts with 80%+ accuracy for Advanced.',
-        advanced: '🏆 Expert level! You have mastered machine learning fundamentals!'
+        beginner: 'Great start. Explore 5+ topics and practice quizzes to reach Intermediate.',
+        intermediate: 'Solid progress. Master 10+ concepts with 80%+ accuracy for Advanced.',
+        advanced: 'Mastery achieved. You have demonstrated comprehensive ML competency.'
     };
     document.getElementById('levelTips').innerHTML = `<p>${tips[level] || tips.beginner}</p>`;
 }
@@ -217,12 +213,12 @@ function drawProgressChart(profile) {
             datasets: [{
                 label: 'Topics Explored',
                 data,
-                borderColor: '#00D4FF',
-                backgroundColor: 'rgba(0,212,255,0.1)',
+                borderColor: '#10B981',
+                backgroundColor: 'rgba(16, 185, 129, 0.15)',
                 borderWidth: 2,
                 fill: true,
                 tension: 0.4,
-                pointBackgroundColor: '#00D4FF',
+                pointBackgroundColor: '#10B981',
                 pointRadius: 4
             }]
         },

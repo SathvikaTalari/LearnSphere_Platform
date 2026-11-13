@@ -4,30 +4,8 @@
    Accent: --accent CSS variable set by JS
    ================================================================ */
 
-/* ── NIGHT THEME (default) ──────────────────────────────────────── */
+/* ── DAY THEME (default) ────────────────────────────────────────── */
 :root,
-[data-theme="night"] {
-  --bg: #050D1A;
-  --bg2: #0A1628;
-  --bg3: #0F1F35;
-  --bg4: #162840;
-  --text: #E2E8F0;
-  --text2: #94A3B8;
-  --text3: #64748B;
-  --border: rgba(255, 255, 255, 0.07);
-  --border2: rgba(255, 255, 255, 0.15);
-  --shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
-  --shadow2: 0 8px 40px rgba(0, 0, 0, 0.7);
-  --accent: #00D4FF;
-  --accent-glow: rgba(0, 212, 255, 0.13);
-  --accent-strong: rgba(0, 212, 255, 0.28);
-  --success: #10B981;
-  --warn: #F59E0B;
-  --danger: #EF4444;
-  --nav-bg: rgba(5, 13, 26, 0.9);
-}
-
-/* ── DAY THEME ──────────────────────────────────────────────────── */
 [data-theme="day"] {
   --bg: #F0F4F8;
   --bg2: #E2ECF4;
@@ -40,10 +18,35 @@
   --border2: rgba(0, 0, 0, 0.20);
   --shadow: 0 4px 24px rgba(0, 0, 0, 0.10);
   --shadow2: 0 8px 40px rgba(0, 0, 0, 0.15);
+  --accent: #059669;
+  --accent-glow: rgba(5, 150, 105, 0.14);
+  --accent-strong: rgba(5, 150, 105, 0.28);
   --success: #059669;
   --warn: #D97706;
   --danger: #DC2626;
   --nav-bg: rgba(240, 244, 248, 0.95);
+}
+
+/* ── NIGHT THEME ────────────────────────────────────────────────── */
+[data-theme="night"] {
+  --bg: #050D1A;
+  --bg2: #0A1628;
+  --bg3: #0F1F35;
+  --bg4: #162840;
+  --text: #E2E8F0;
+  --text2: #94A3B8;
+  --text3: #64748B;
+  --border: rgba(255, 255, 255, 0.07);
+  --border2: rgba(255, 255, 255, 0.15);
+  --shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
+  --shadow2: 0 8px 40px rgba(0, 0, 0, 0.7);
+  --accent: #10B981;
+  --accent-glow: rgba(16, 185, 129, 0.15);
+  --accent-strong: rgba(16, 185, 129, 0.30);
+  --success: #10B981;
+  --warn: #F59E0B;
+  --danger: #EF4444;
+  --nav-bg: rgba(5, 13, 26, 0.9);
 }
 
 /* ── FONT + SPACING TOKENS ──────────────────────────────────────── */
@@ -271,7 +274,7 @@ a {
 
 .user-profile-btn:hover {
   border-color: var(--accent);
-  background: rgba(0, 212, 255, 0.06);
+  background: var(--accent-glow);
   box-shadow: 0 0 14px var(--accent-glow);
 }
 
@@ -3156,7 +3159,7 @@ pre code.hljs,
 
 /* ── CTA: gradient instead of flat ──────────────────────────────── */
 .cc-cta {
-  background: linear-gradient(135deg, var(--accent), #0099CC);
+  background: linear-gradient(135deg, var(--accent), #059669);
   font-size: .8rem;
   font-weight: 700;
   letter-spacing: .01em;
@@ -3167,7 +3170,7 @@ pre code.hljs,
 
 .cc-cta:hover {
   filter: brightness(1.12);
-  box-shadow: 0 4px 16px rgba(0, 212, 255, 0.25);
+  box-shadow: 0 4px 16px var(--accent-glow);
 }
 
 .cc-cta.enrolled {
@@ -3176,7 +3179,7 @@ pre code.hljs,
 
 /* ── Course card hover glow ──────────────────────────────────────── */
 .course-card-v2:hover {
-  box-shadow: 0 8px 32px rgba(0, 212, 255, 0.12);
+  box-shadow: 0 8px 32px var(--accent-glow);
 }
 
 /* ── Filter row (search + dropdown) ──────────────────────────────── */
@@ -3612,8 +3615,8 @@ pre code.hljs,
 }
 
 .dsi-icon.blue {
-  background: rgba(0, 212, 255, 0.12);
-  color: #00D4FF;
+  background: var(--accent-glow);
+  color: var(--accent);
 }
 
 .dsi-icon.pink {
@@ -3904,9 +3907,9 @@ pre code.hljs,
 }
 
 .status-badge.status-progress {
-  background: rgba(0, 212, 255, 0.12);
-  color: #00D4FF;
-  border: 1px solid rgba(0, 212, 255, 0.25);
+  background: var(--accent-glow);
+  color: var(--accent);
+  border: 1px solid var(--accent-strong);
 }
 
 .status-badge.status-new {
@@ -4013,8 +4016,8 @@ pre code.hljs,
 }
 
 .feat-icon-wrap.feat-code {
-  background: rgba(0, 212, 255, 0.15);
-  border: 1px solid rgba(0, 212, 255, 0.3);
+  background: var(--accent-glow);
+  border: 1px solid var(--accent-strong);
 }
 
 /* ── Right Sidebar: Profile Card ─────────────────────────────────── */
@@ -4026,13 +4029,20 @@ pre code.hljs,
   display: flex;
   align-items: center;
   gap: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.dash-user-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px var(--accent-glow, rgba(5, 150, 105, 0.15));
 }
 
 .dash-user-avatar {
   width: 44px;
   height: 44px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #00D4FF 0%, #6366F1 100%);
+  background: linear-gradient(135deg, var(--accent) 0%, #059669 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -4040,7 +4050,7 @@ pre code.hljs,
   font-weight: 700;
   color: #fff;
   flex-shrink: 0;
-  box-shadow: 0 4px 14px rgba(0, 212, 255, 0.28);
+  box-shadow: 0 4px 14px var(--accent-glow);
 }
 
 .dash-user-name {
@@ -4190,8 +4200,8 @@ pre code.hljs,
 }
 
 .cal-event-dot.dot-blue {
-  background: #00D4FF;
-  box-shadow: 0 0 6px rgba(0, 212, 255, 0.4);
+  background: var(--accent);
+  box-shadow: 0 0 6px var(--accent-glow);
 }
 
 .cal-event-dot.dot-green {
@@ -4248,9 +4258,9 @@ pre code.hljs,
 }
 
 .notice-tag.tag-blue {
-  background: rgba(0, 212, 255, 0.12);
-  color: #00D4FF;
-  border: 1px solid rgba(0, 212, 255, 0.25);
+  background: var(--accent-glow);
+  color: var(--accent);
+  border: 1px solid var(--accent-strong);
 }
 
 .notice-tag.tag-purple {
@@ -4493,9 +4503,9 @@ pre code.hljs,
   border-radius: 4px;
   font-size: .62rem;
   font-weight: 700;
-  background: rgba(0, 212, 255, .1);
+  background: var(--accent-glow);
   color: var(--accent);
-  border: 1px solid rgba(0, 212, 255, .2);
+  border: 1px solid var(--accent-strong);
 }
 
 /* ── Page Content — Sections & Chapters ──────────────────────────── */

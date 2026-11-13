@@ -1,264 +1,948 @@
 {% extends "base.html" %}
 {% block title %}Compete — LearnSphere{% endblock %}
-{% block extra_css %}
+{% block content %}
+
 <style>
-.battle-wrap { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+/* ==========================================================================
+   COMPETE ARENA — Modern, Clean, Simple & Professional
+   ========================================================================== */
 
-/* LOBBY */
-.battle-lobby {
-  background: var(--bg-card); border: 1px solid var(--border);
-  border-radius: var(--radius-xl); padding: 3rem 2.5rem; text-align: center;
-  position: relative; overflow: hidden;
-}
-.lobby-title {
-  font-family: var(--font-serif); font-size: 2.4rem; font-weight: 700;
-  color: var(--text); margin-bottom: 0.5rem;
-}
-.lobby-title span { color: var(--accent); }
-.lobby-sub { color: var(--text-2); font-size: 0.9rem; margin-bottom: 2rem; max-width: 480px; margin-left: auto; margin-right: auto; }
-.lobby-config {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 1.1rem;
-  max-width: 440px; margin: 0 auto 2rem;
-}
-.lobby-field label {
-  display: block; font-size: 0.7rem; font-weight: 700; color: var(--text-2);
-  text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.4rem;
-}
-.lobby-field select {
-  width: 100%; padding: 0.6rem 0.85rem; border-radius: 8px;
-  background: var(--bg-hover); border: 1px solid var(--border);
-  color: var(--text); font-family: var(--font-sans); font-size: 0.86rem; outline: none;
-}
-.start-btn {
-  display: inline-flex; align-items: center; gap: 0.6rem;
-  padding: 0.85rem 2.5rem; border-radius: 50px;
-  background: var(--accent); border: none; color: #fff;
-  font-family: var(--font-serif); font-size: 1.1rem; font-weight: 700;
-  cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 20px var(--accent-glow);
-}
-.start-btn:hover { transform: translateY(-2px); filter: brightness(1.08); }
-
-/* SCOREBOARD */
-.scoreboard {
-  display: grid; grid-template-columns: 1fr 48px 1fr; gap: 1rem;
-  align-items: center; margin-bottom: 1.75rem;
-}
-.score-side {
-  background: var(--bg-card); border: 1px solid var(--border);
-  border-radius: var(--radius-lg); padding: 1.25rem; text-align: center;
-  transition: all 0.2s;
-}
-.score-side.winning { border-color: var(--border-s); background: var(--accent-glow); }
-.score-avatar { font-size: 2.4rem; margin-bottom: 0.35rem; }
-.score-name   { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-2); margin-bottom: 0.3rem; }
-.score-number { font-family: var(--font-serif); font-size: 2.8rem; font-weight: 700; color: var(--accent); line-height: 1; }
-.score-sub    { font-size: 0.7rem; color: var(--text-2); margin-top: 0.2rem; }
-.vs-badge {
-  width: 48px; height: 48px; border-radius: 50%;
-  background: var(--bg-hover); border: 2px solid var(--border);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 0.72rem; font-weight: 900; color: var(--text-2); letter-spacing: 0.05em;
+.compete-page-wrap {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 1.8rem 1.5rem 4rem;
 }
 
-/* QUESTION CARD */
-.question-card {
-  background: var(--bg-card); border: 1px solid var(--border);
-  border-radius: var(--radius-xl); padding: 2rem 2.25rem; margin-bottom: 1.25rem;
+/* ── LOBBY STYLES ───────────────────────────────────────────────────────── */
+.compete-hero-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--r2);
+  padding: 2.2rem 2.4rem;
+  margin-bottom: 1.5rem;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
 }
-.q-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; }
-.q-number { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-2); }
-.q-pts    { font-size: 0.72rem; font-weight: 700; color: var(--accent); }
-.q-diff   { padding: 0.18rem 0.6rem; border-radius: 20px; font-size: 0.7rem; font-weight: 700; }
-.q-diff.easy   { background: rgba(63,185,80,0.12); color: var(--success); }
-.q-diff.medium { background: rgba(227,179,65,0.12); color: var(--warn); }
-.q-diff.hard   { background: rgba(248,81,73,0.1);  color: var(--danger); }
 
-.q-timer-bar  { height: 3px; background: var(--bg-hover); border-radius: 2px; margin-bottom: 1.5rem; overflow: hidden; }
-.q-timer-fill { height: 100%; border-radius: 2px; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width 0.1s linear; }
-
-.q-text { font-family: var(--font-serif); font-size: 1.2rem; font-weight: 600; color: var(--text); line-height: 1.5; margin-bottom: 1.5rem; }
-
-.q-options { display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem; }
-.q-option {
-  padding: 0.8rem 1rem; border-radius: 10px;
-  background: var(--bg-hover); border: 1.5px solid var(--border);
-  color: var(--text); font-size: 0.86rem; font-weight: 500;
-  cursor: pointer; transition: all 0.15s; text-align: left;
-  font-family: var(--font-sans);
+.compete-hero-title {
+  font-family: var(--ff-display);
+  font-size: 1.95rem;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 0.4rem;
 }
-.q-option:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); background: var(--accent-glow); }
-.q-option.correct { border-color: var(--success); background: rgba(63,185,80,0.1); color: var(--success); }
-.q-option.wrong   { border-color: var(--danger);  background: rgba(248,81,73,0.08); color: var(--danger); }
-.q-option:disabled { cursor: not-allowed; }
 
-.q-feedback {
-  margin-top: 1.1rem; padding: 0.85rem 1.1rem;
-  border-radius: 9px; font-size: 0.83rem; line-height: 1.6; display: none;
+.compete-hero-sub {
+  font-size: 0.92rem;
+  color: var(--text2);
+  max-width: 580px;
+  line-height: 1.6;
 }
-.q-feedback.correct { background: rgba(63,185,80,0.07); border: 1px solid rgba(63,185,80,0.22); color: var(--success); }
-.q-feedback.wrong   { background: rgba(248,81,73,0.05); border: 1px solid rgba(248,81,73,0.18); color: var(--text-2); }
 
-.next-btn {
-  display: block; width: 100%; padding: 0.8rem; margin-top: 1rem;
-  border-radius: 10px; background: var(--accent); border: none;
-  color: #fff; font-family: var(--font-serif); font-size: 0.95rem; font-weight: 700;
-  cursor: pointer; transition: all 0.15s;
+/* User Live Stats Bar */
+.user-battle-stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.85rem;
+  margin-bottom: 1.5rem;
 }
-.next-btn:hover   { filter: brightness(1.08); transform: translateY(-1px); }
-.next-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
 
-/* STATUS */
-.status-bar { display: flex; align-items: center; justify-content: center; gap: 0.75rem; margin-bottom: 1.25rem; }
-.status-pill {
-  padding: 0.3rem 0.9rem; border-radius: 20px;
-  background: var(--bg-hover); border: 1px solid var(--border);
-  color: var(--text-2); font-size: 0.75rem; font-weight: 600;
+.battle-stat-box {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 1rem 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  transition: all 0.15s ease;
 }
-.status-pill.active { background: var(--accent-glow); border-color: var(--border-s); color: var(--accent); }
 
-/* RESULT */
-.result-screen {
-  background: var(--bg-card); border: 1px solid var(--border);
-  border-radius: var(--radius-xl); padding: 3rem 2.5rem; text-align: center;
-  animation: fadeUp 0.35s ease;
+.battle-stat-box:hover {
+  border-color: var(--border2);
+  background: var(--bg3);
 }
-.result-emoji { font-size: 5rem; margin-bottom: 1rem; }
-.result-title { font-family: var(--font-serif); font-size: 2rem; font-weight: 700; color: var(--text); margin-bottom: 0.5rem; }
-.result-sub   { color: var(--text-2); font-size: 0.9rem; margin-bottom: 2rem; }
-.result-scores { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; max-width: 360px; margin: 0 auto 2rem; }
-.rs-card { background: var(--bg-hover); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; }
-.rs-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-2); font-weight: 700; margin-bottom: 0.35rem; }
-.rs-score { font-family: var(--font-serif); font-size: 2.4rem; font-weight: 700; }
-.result-actions { display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; }
-.q-history { display: flex; gap: 0.4rem; margin-bottom: 1.5rem; justify-content: center; flex-wrap: wrap; }
-.q-dot { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; }
-.q-dot.ok { background: rgba(63,185,80,0.18); color: var(--success); border: 2px solid var(--success); }
-.q-dot.no { background: rgba(248,81,73,0.1);  color: var(--danger);  border: 2px solid var(--danger); }
 
-/* LEADERBOARD */
-.leaderboard-list { margin-top: 1.5rem; }
-.lb-header { display: flex; gap: 0.75rem; padding: 0.3rem 0.75rem; font-size: 0.68rem; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; }
-.lb-row { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 0.75rem; background: var(--bg-hover); border-radius: 8px; margin-bottom: 0.4rem; font-size: 0.83rem; }
-.lb-rank  { width: 24px; text-align: center; font-weight: 700; flex-shrink: 0; color: var(--text-2); }
-.lb-name  { flex: 1; font-weight: 600; color: var(--text); }
-.lb-score { min-width: 60px; text-align: right; font-weight: 700; color: var(--accent); }
-.lb-games { min-width: 50px; text-align: right; color: var(--text-2); }
-.lb-wins  { min-width: 45px; text-align: right; color: var(--success); font-weight: 600; }
-.gold   { color: #FFD700 !important; }
-.silver { color: #B0BEC5 !important; }
-.bronze { color: #CD7F32 !important; }
+.bstat-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text3);
+}
 
-@media (max-width: 600px) {
-  .q-options    { grid-template-columns: 1fr; }
-  .scoreboard   { grid-template-columns: 1fr auto 1fr; }
-  .lobby-config { grid-template-columns: 1fr; }
+.bstat-val {
+  font-family: var(--ff-display);
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: var(--text);
+}
+
+/* Setup Card */
+.battle-setup-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--r2);
+  padding: 1.75rem 2rem;
+  margin-bottom: 1.75rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+}
+
+.setup-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr;
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.setup-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.setup-field label {
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text2);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.setup-select {
+  width: 100%;
+  padding: 0.65rem 0.9rem;
+  border-radius: 8px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: var(--ff-sans);
+  font-size: 0.86rem;
+  font-weight: 600;
+  outline: none;
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+
+.setup-select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-glow);
+}
+
+.setup-actions-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border);
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.setup-rules-hint {
+  font-size: 0.78rem;
+  color: var(--text3);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.start-duel-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.8rem 2.2rem;
+  border-radius: 50px;
+  background: var(--accent);
+  border: none;
+  color: #fff;
+  font-family: var(--ff-sans);
+  font-size: 0.98rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 4px 20px var(--accent-glow);
+  transition: all 0.18s ease;
+}
+
+.start-duel-btn:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+  box-shadow: 0 6px 25px var(--accent-strong);
+}
+
+/* Tabs: Leaderboard vs History */
+.lobby-tab-switcher {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+
+.lobby-tab-btn {
+  padding: 0.45rem 1rem;
+  border-radius: 8px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.12s;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.lobby-tab-btn.active {
+  background: var(--bg3);
+  border-color: var(--border2);
+  color: var(--accent);
+}
+
+.table-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  overflow: hidden;
+}
+
+.modern-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.83rem;
+  text-align: left;
+}
+
+.modern-table th {
+  padding: 0.75rem 1rem;
+  background: var(--bg3);
+  color: var(--text3);
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border);
+}
+
+.modern-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+
+.modern-table tr:last-child td {
+  border-bottom: none;
+}
+
+.modern-table tr:hover td {
+  background: var(--bg3);
+}
+
+.rank-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  font-weight: 800;
+  font-size: 0.75rem;
+}
+
+.rank-badge.gold   { background: rgba(245, 158, 11, 0.18); color: #F59E0B; border: 1px solid #F59E0B; }
+.rank-badge.silver { background: rgba(148, 163, 184, 0.18); color: #94A3B8; border: 1px solid #94A3B8; }
+.rank-badge.bronze { background: rgba(205, 127, 50, 0.18); color: #CD7F32; border: 1px solid #CD7F32; }
+
+/* ── ARENA STYLES (MATCH IN PROGRESS) ───────────────────────────────────── */
+.arena-card-wrap {
+  animation: fadeIn 0.25s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* VS Scoreboard */
+.vs-scoreboard {
+  display: grid;
+  grid-template-columns: 1fr 140px 1fr;
+  align-items: center;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--r2);
+  padding: 1.25rem 1.6rem;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.contestant-card {
+  display: flex;
+  align-items: center;
+  gap: 0.95rem;
+  padding: 0.5rem;
+}
+
+.contestant-card.right {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+.contestant-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  font-weight: 800;
+  background: var(--bg3);
+  border: 2px solid var(--border2);
+  flex-shrink: 0;
+}
+
+.contestant-avatar.you {
+  background: var(--accent-glow);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.contestant-avatar.ai {
+  background: rgba(124, 58, 237, 0.15);
+  border-color: #7C3AED;
+  color: #7C3AED;
+}
+
+.contestant-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.contestant-name {
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text3);
+}
+
+.contestant-score {
+  font-family: var(--ff-display);
+  font-size: 2.1rem;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.1;
+}
+
+.contestant-sub {
+  font-size: 0.72rem;
+  color: var(--text2);
+}
+
+.vs-center-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+}
+
+.vs-circle {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--bg3);
+  border: 2px solid var(--border2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.76rem;
+  font-weight: 900;
+  color: var(--accent);
+  letter-spacing: 0.05em;
+}
+
+.round-pill {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text3);
+  background: var(--bg);
+  padding: 0.15rem 0.5rem;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+/* Timer progress */
+.timer-bar-wrap {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.65rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin-bottom: 1.25rem;
+}
+
+.timer-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text2);
+  min-width: 90px;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.timer-track {
+  flex: 1;
+  height: 6px;
+  background: var(--bg3);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.timer-fill {
+  height: 100%;
+  width: 100%;
+  background: var(--accent);
+  border-radius: 3px;
+  transition: width 0.1s linear, background-color 0.2s ease;
+}
+
+/* Question Stage */
+.arena-question-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--r2);
+  padding: 1.8rem 2.2rem;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+}
+
+.q-top-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.1rem;
+}
+
+.q-category-tag {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--accent);
+}
+
+.q-pts-badge {
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--success);
+}
+
+.question-text-display {
+  font-family: var(--ff-display);
+  font-size: 1.18rem;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.55;
+  margin-bottom: 1.5rem;
+}
+
+.arena-options-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.arena-option-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.85rem 1.1rem;
+  border-radius: 10px;
+  background: var(--bg3);
+  border: 1.5px solid var(--border);
+  color: var(--text);
+  font-family: var(--ff-sans);
+  font-size: 0.86rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: left;
+  position: relative;
+}
+
+.arena-option-btn:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: var(--accent-glow);
+  transform: translateY(-1px);
+}
+
+.arena-opt-key {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  background: var(--bg);
+  border: 1px solid var(--border2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.78rem;
+  flex-shrink: 0;
+}
+
+.arena-option-btn.selected-correct {
+  border-color: var(--success);
+  background: rgba(16, 185, 129, 0.12);
+  color: var(--success);
+  font-weight: 700;
+}
+
+.arena-option-btn.selected-wrong {
+  border-color: var(--danger);
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--danger);
+}
+
+.ai-choice-chip {
+  position: absolute;
+  top: -9px;
+  right: 12px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 0.1rem 0.45rem;
+  border-radius: 10px;
+  background: #7C3AED;
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.arena-feedback-box {
+  display: none;
+  padding: 1rem 1.25rem;
+  border-radius: 10px;
+  font-size: 0.86rem;
+  line-height: 1.6;
+  margin-bottom: 1.25rem;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.arena-feedback-box.correct {
+  display: block;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  color: var(--success);
+}
+
+.arena-feedback-box.wrong {
+  display: block;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: var(--text);
+}
+
+.next-duel-btn {
+  width: 100%;
+  padding: 0.85rem;
+  border-radius: 10px;
+  background: var(--accent);
+  border: none;
+  color: #fff;
+  font-family: var(--ff-sans);
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.next-duel-btn:hover:not(:disabled) {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+.next-duel-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ── RESULT SCREEN ──────────────────────────────────────────────────────── */
+.result-screen-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--r2);
+  padding: 2.5rem 2rem;
+  text-align: center;
+  animation: fadeIn 0.3s ease;
+  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.2);
+}
+
+.outcome-badge-icon {
+  display: inline-block;
+  padding: 0.35rem 0.9rem;
+  border-radius: 20px;
+  background: var(--accent-glow);
+  border: 1px solid var(--border2);
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.85rem;
+}
+
+.outcome-title {
+  font-family: var(--ff-display);
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 0.4rem;
+}
+
+.outcome-sub {
+  font-size: 0.92rem;
+  color: var(--text2);
+  max-width: 480px;
+  margin: 0 auto 1.75rem;
+  line-height: 1.55;
+}
+
+.outcome-scoreboard {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  max-width: 520px;
+  margin: 0 auto 2rem;
+}
+
+.res-stat-card {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.1rem 1rem;
+}
+
+.res-stat-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text3);
+  margin-bottom: 0.25rem;
+}
+
+.res-stat-num {
+  font-family: var(--ff-display);
+  font-size: 1.85rem;
+  font-weight: 800;
+}
+
+/* Round Dots Matrix */
+.round-dots-row {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.round-dot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.round-dot.won {
+  background: rgba(16, 185, 129, 0.18);
+  border: 2px solid var(--success);
+  color: var(--success);
+}
+
+.round-dot.lost {
+  background: rgba(239, 68, 68, 0.15);
+  border: 2px solid var(--danger);
+  color: var(--danger);
+}
+
+.outcome-actions-row {
+  display: flex;
+  justify-content: center;
+  gap: 0.85rem;
+  flex-wrap: wrap;
+}
+
+.action-btn-pill {
+  padding: 0.75rem 1.6rem;
+  border-radius: 50px;
+  font-family: var(--ff-sans);
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.action-btn-pill.primary {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  box-shadow: 0 4px 15px var(--accent-glow);
+}
+
+.action-btn-pill.primary:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+.action-btn-pill.secondary {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.action-btn-pill.secondary:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+@media (max-width: 768px) {
+  .setup-grid { grid-template-columns: 1fr; }
+  .user-battle-stats-row { grid-template-columns: 1fr 1fr; }
+  .arena-options-grid { grid-template-columns: 1fr; }
+  .vs-scoreboard { grid-template-columns: 1fr auto 1fr; padding: 1rem; }
+  .outcome-scoreboard { grid-template-columns: 1fr; }
 }
 </style>
-{% endblock %}
-{% block content %}
-<div class="battle-wrap">
 
-  <!-- ══ LOBBY ══════════════════════════════════════════════════ -->
+<div class="compete-page-wrap">
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       VIEW 1: LOBBY & SETUP
+       ══════════════════════════════════════════════════════════════════════ -->
   <div id="lobbyScreen">
-    <div class="battle-lobby animate-in">
-      <div class="lobby-title">Compete <span>Mode</span></div>
-      <p class="lobby-sub">Answer ML questions faster and more accurately than our AI tutor. Can you outsmart the machine?</p>
+    
+    <!-- Hero Banner -->
+    <div class="compete-hero-card">
+      <h1 class="compete-hero-title">Challenge the Cortex AI</h1>
+      <p class="compete-hero-sub">Answer machine learning and data science questions head-to-head in real time. Can you outscore the adaptive neural agent?</p>
+    </div>
 
-      <div class="lobby-config">
-        <div class="lobby-field">
-          <label>Topic</label>
-          <select id="cfgTopic">
-            <option>Machine Learning</option>
-            <option>Neural Networks</option>
-            <option>Deep Learning</option>
-            <option>NLP</option>
-            <option>Statistics</option>
-            <option>Python ML</option>
-          </select>
-        </div>
-        <div class="lobby-field">
-          <label>Difficulty</label>
-          <select id="cfgDiff">
-            <option value="easy">Easy</option>
-            <option value="medium" selected>Medium</option>
-            <option value="hard">Hard</option>
-          </select>
-        </div>
-        <div class="lobby-field" style="grid-column:1/-1">
-          <label>Questions</label>
-          <select id="cfgQCount">
-            <option value="5">5 Questions (Quick)</option>
-            <option value="10" selected>10 Questions (Standard)</option>
-            <option value="15">15 Questions (Extended)</option>
-          </select>
-        </div>
+    <!-- User Battle Stats Bar -->
+    <div class="user-battle-stats-row" id="userStatsRow">
+      <div class="battle-stat-box">
+        <span class="bstat-label">Matches Played</span>
+        <span class="bstat-val" id="stMatches">0</span>
       </div>
-
-      <button class="start-btn" onclick="startBattle()">Start Compete</button>
-
-      <div style="margin-top:2.5rem">
-        <div class="section-header" style="margin:0 0 0.75rem"><h2>Leaderboard</h2></div>
-        <div id="lbList" class="leaderboard-list">
-          <div class="loading-card" style="min-height:100px"><div class="spinner"></div></div>
-        </div>
+      <div class="battle-stat-box">
+        <span class="bstat-label">Victories</span>
+        <span class="bstat-val" style="color:var(--success)" id="stWins">0</span>
+      </div>
+      <div class="battle-stat-box">
+        <span class="bstat-label">Win Rate</span>
+        <span class="bstat-val" style="color:var(--accent)" id="stWinRate">0%</span>
+      </div>
+      <div class="battle-stat-box">
+        <span class="bstat-label">High Score</span>
+        <span class="bstat-val" style="color:#F59E0B" id="stHighScore">0</span>
       </div>
     </div>
+
+    <!-- Battle Configuration Card -->
+    <div class="battle-setup-card">
+      <div class="setup-grid">
+        <div class="setup-field">
+          <label>Target Topic</label>
+          <select id="cfgTopic" class="setup-select">
+            <option value="Machine Learning">Machine Learning (Core)</option>
+            <option value="Deep Learning">Deep Learning & Architectures</option>
+            <option value="Neural Networks">Neural Networks & Math</option>
+            <option value="Computer Vision">Computer Vision & CNNs</option>
+            <option value="NLP">Natural Language Processing (NLP)</option>
+            <option value="Statistics">Statistics & Probability</option>
+          </select>
+        </div>
+
+        <div class="setup-field">
+          <label>Difficulty Tier</label>
+          <select id="cfgDiff" class="setup-select">
+            <option value="easy">Casual (+10 pts / q)</option>
+            <option value="medium" selected>Ranked (+20 pts / q)</option>
+            <option value="hard">Master (+30 pts / q)</option>
+          </select>
+        </div>
+
+        <div class="setup-field">
+          <label>Match Length</label>
+          <select id="cfgQCount" class="setup-select">
+            <option value="5">Speed Blitz (5 Questions)</option>
+            <option value="10" selected>Standard Match (10 Questions)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="setup-actions-row">
+        <div class="setup-rules-hint">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+          <span>20s timer per question · Win matches to earn coins & boost Learning DNA</span>
+        </div>
+        <button class="start-duel-btn" onclick="startBattle()">
+          <span>Start Challenge Duel</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Tabs: Leaderboard vs History -->
+    <div class="lobby-tab-switcher">
+      <button class="lobby-tab-btn active" id="tabBtnLb" onclick="switchLobbyTab('lb')">
+        Top Competitors
+      </button>
+      <button class="lobby-tab-btn" id="tabBtnHist" onclick="switchLobbyTab('hist')">
+        My Match History
+      </button>
+    </div>
+
+    <div class="table-card" id="tabPanelLb">
+      <div id="lbList">
+        <p style="padding:1.5rem;text-align:center;color:var(--text3)">Loading leaderboard...</p>
+      </div>
+    </div>
+
+    <div class="table-card" id="tabPanelHist" style="display:none">
+      <div id="histList">
+        <p style="padding:1.5rem;text-align:center;color:var(--text3)">Loading history...</p>
+      </div>
+    </div>
+
   </div>
 
-  <!-- ══ ARENA ══════════════════════════════════════════════════ -->
-  <div id="arenaScreen" style="display:none">
-    <div class="scoreboard">
-      <div class="score-side" id="youSide">
-        <div class="score-avatar" style="font-family:var(--font-serif);font-weight:700">P</div>
-        <div class="score-name">You</div>
-        <div class="score-number" id="yourScore">0</div>
-        <div class="score-sub" id="yourCorr">0 correct</div>
+  <!-- ══════════════════════════════════════════════════════════════════════
+       VIEW 2: ARENA (LIVE MATCH IN PROGRESS)
+       ══════════════════════════════════════════════════════════════════════ -->
+  <div id="arenaScreen" style="display:none" class="arena-card-wrap">
+    
+    <!-- VS Scoreboard -->
+    <div class="vs-scoreboard">
+      <!-- Player -->
+      <div class="contestant-card">
+        <div class="contestant-avatar you">
+          <span>{{ session.get('username','U')[0]|upper }}</span>
+        </div>
+        <div class="contestant-info">
+          <span class="contestant-name">{{ session.get('username','Player') }}</span>
+          <span class="contestant-score" id="yourScore">0</span>
+          <span class="contestant-sub" id="yourCorr">0 correct</span>
+        </div>
       </div>
-      <div class="vs-badge">VS</div>
-      <div class="score-side" id="aiSide">
-        <div class="score-avatar" style="font-family:var(--font-serif);font-weight:700">A</div>
-        <div class="score-name">AI</div>
-        <div class="score-number" id="aiScore">0</div>
-        <div class="score-sub" id="aiCorr">0 correct</div>
+
+      <!-- VS Badge -->
+      <div class="vs-center-badge">
+        <div class="vs-circle">VS</div>
+        <span class="round-pill" id="qRoundProg">Round 1 / 10</span>
+      </div>
+
+      <!-- AI Opponent -->
+      <div class="contestant-card right">
+        <div class="contestant-avatar ai">
+          <span style="font-weight:700;font-size:0.8rem">AI</span>
+        </div>
+        <div class="contestant-info">
+          <span class="contestant-name">Cortex AI</span>
+          <span class="contestant-score" id="aiScore" style="color:#7C3AED">0</span>
+          <span class="contestant-sub" id="aiCorr">0 correct</span>
+        </div>
       </div>
     </div>
 
-    <div class="status-bar">
-      <span class="status-pill active" id="qProg">Q 1 / 10</span>
-      <span class="status-pill" id="diffPill">Medium</span>
-      <span class="status-pill" id="topicPill">ML</span>
+    <!-- Timer Bar -->
+    <div class="timer-bar-wrap">
+      <span class="timer-label">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+        <span id="timerText">20s remaining</span>
+      </span>
+      <div class="timer-track">
+        <div class="timer-fill" id="timerFill"></div>
+      </div>
     </div>
 
-    <div class="question-card">
-      <div class="q-meta">
-        <span class="q-number" id="qNumber">Question 1</span>
-        <span class="q-pts" id="qPoints">+20 pts</span>
-        <span class="q-diff medium" id="qDiff">Medium</span>
+    <!-- Question Stage Card -->
+    <div class="arena-question-card">
+      <div class="q-top-meta">
+        <span class="q-category-tag" id="qTopicTag">Machine Learning</span>
+        <span class="q-pts-badge" id="qPtsTag">+20 pts</span>
       </div>
-      <div class="q-timer-bar"><div class="q-timer-fill" id="timerFill"></div></div>
-      <div class="q-text" id="qText">Loading question...</div>
-      <div class="q-options" id="qOptions"></div>
-      <div class="q-feedback" id="qFeedback"></div>
-      <button class="next-btn" id="nextBtn" onclick="nextQuestion()" disabled>Next Question →</button>
+
+      <div class="question-text-display" id="qTextDisplay">Loading question...</div>
+
+      <div class="arena-options-grid" id="optionsGrid"></div>
+
+      <div class="arena-feedback-box" id="feedbackBox"></div>
+
+      <button class="next-duel-btn" id="nextDuelBtn" onclick="nextQuestion()" disabled>
+        <span>Next Question</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+      </button>
     </div>
+
   </div>
 
-  <!-- ══ RESULT ══════════════════════════════════════════════════ -->
+  <!-- ══════════════════════════════════════════════════════════════════════
+       VIEW 3: RESULTS (MATCH OUTCOME)
+       ══════════════════════════════════════════════════════════════════════ -->
   <div id="resultScreen" style="display:none">
-    <div class="result-screen">
-      <div class="result-emoji" id="resultEmoji" style="font-family:var(--font-serif);font-weight:700"></div>
-      <div class="result-title" id="resultTitle">You Win!</div>
-      <div class="result-sub"   id="resultSub">Great job!</div>
-      <div class="q-history"    id="qHistory"></div>
-      <div class="result-scores">
-        <div class="rs-card"><div class="rs-label">Your Score</div><div class="rs-score" id="finalYou" style="color:var(--accent)">0</div></div>
-        <div class="rs-card"><div class="rs-label">AI Score</div><div class="rs-score" id="finalAI" style="color:var(--accent-2)">0</div></div>
-        <div class="rs-card" id="coinsEarnedCard" style="display:none"><div class="rs-label">Coins Earned</div><div class="rs-score" id="finalCoins" style="color:#F59E0B">0</div></div>
+    <div class="result-screen-card">
+      <div class="outcome-badge-icon" id="outcomeEmoji">Match Result</div>
+      <h2 class="outcome-title" id="outcomeTitle">Victory! You Outsmarted the AI</h2>
+      <p class="outcome-sub" id="outcomeSub">Outstanding performance in the arena. You demonstrated sharp instincts and fast responses.</p>
+
+      <div class="outcome-scoreboard">
+        <div class="res-stat-card">
+          <div class="res-stat-label">Your Score</div>
+          <div class="res-stat-num" id="finalYou" style="color:var(--accent)">0</div>
+        </div>
+        <div class="res-stat-card">
+          <div class="res-stat-label">AI Score</div>
+          <div class="res-stat-num" id="finalAI" style="color:#7C3AED">0</div>
+        </div>
+        <div class="res-stat-card">
+          <div class="res-stat-label">Reward Earned</div>
+          <div class="res-stat-num" id="finalCoins" style="color:#F59E0B">+0 Coins</div>
+        </div>
       </div>
-      <div class="result-actions">
-        <button class="btn btn-primary" onclick="startBattle()">Rematch</button>
-        <button class="btn btn-ghost"   onclick="goLobby()">← Lobby</button>
-        <a href="/dna" class="btn btn-ghost">View DNA</a>
+
+      <div class="round-dots-row" id="resultDotsRow"></div>
+
+      <div class="outcome-actions-row">
+        <button class="action-btn-pill primary" onclick="startBattle()">
+          <span>Rematch</span>
+        </button>
+        <button class="action-btn-pill secondary" onclick="goLobby()">
+          <span>← Back to Lobby</span>
+        </button>
+        <a href="/dna" class="action-btn-pill secondary">
+          <span>Learning Profile</span>
+        </a>
       </div>
     </div>
   </div>
@@ -266,208 +950,487 @@
 </div>
 
 <script>
-var G = {
-  topic:'Machine Learning', diff:'medium', totalQ:10,
-  yourScore:0, aiScore:0, yourCorr:0, aiCorr:0,
-  qNum:0, answered:false, history:[], currentQ:null,
-  timerInterval:null, timeLeft:20
+/* ==========================================================================
+   BATTLE & ARENA CONTROLLER
+   ========================================================================== */
+
+let G = {
+  topic: 'Machine Learning',
+  diff: 'medium',
+  totalQ: 10,
+  yourScore: 0,
+  aiScore: 0,
+  yourCorr: 0,
+  aiCorr: 0,
+  qNum: 0,
+  answered: false,
+  history: [],
+  currentQ: null,
+  timerInterval: null,
+  timeLeft: 20
 };
 
-function show(id){ document.getElementById(id).style.display='block'; }
-function hide(id){ document.getElementById(id).style.display='none'; }
+// Web Audio sound synthesizer (subtle, clean auditory feedback)
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+let audioCtx = null;
 
-async function loadLeaderboard(){
+function playSound(type) {
   try {
-    var rows = await fetch('/api/battle/leaderboard').then(function(r){ return r.json(); });
-    var el = document.getElementById('lbList');
-    if(!rows.length){ el.innerHTML='<p style="text-align:center;color:var(--text-2);padding:1.5rem">No games played yet. Be the first!</p>'; return; }
-    var rankIcon = function(i){ return i===0?'1':i===1?'2':i===2?'3':'#'+(i+1); };
-    el.innerHTML = '<div class="lb-header"><span style="width:24px"></span><span style="flex:1">Player</span><span style="min-width:60px;text-align:right">Best</span><span style="min-width:50px;text-align:right">Games</span><span style="min-width:45px;text-align:right">Wins</span></div>' +
-      rows.map(function(r,i){
-        var cls = i===0?'gold':i===1?'silver':i===2?'bronze':'';
-        return '<div class="lb-row"><span class="lb-rank '+cls+'">'+rankIcon(i)+'</span><span class="lb-name">'+r.username+'</span><span class="lb-score">'+r.best_score+'</span><span class="lb-games">'+r.games_played+'</span><span class="lb-wins">'+r.wins+'</span></div>';
-      }).join('');
-  } catch(e){ document.getElementById('lbList').innerHTML='<p style="color:var(--text-2);padding:1rem;text-align:center">Leaderboard unavailable</p>'; }
+    if (!audioCtx) audioCtx = new AudioContext();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    if (type === 'correct') {
+      osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
+      osc.frequency.setValueAtTime(880.00, audioCtx.currentTime + 0.08); // A5
+      gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.3);
+    } else if (type === 'wrong') {
+      osc.frequency.setValueAtTime(220, audioCtx.currentTime);
+      osc.frequency.setValueAtTime(180, audioCtx.currentTime + 0.1);
+      gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.35);
+    }
+  } catch (e) {}
 }
 
-function goLobby(){ show('lobbyScreen'); hide('arenaScreen'); hide('resultScreen'); loadLeaderboard(); }
+// Keyboard shortcuts (A, B, C, D or 1, 2, 3, 4)
+document.addEventListener('keydown', (e) => {
+  if (document.getElementById('arenaScreen').style.display === 'none') return;
+  if (G.answered) {
+    if (e.key === 'Enter') nextQuestion();
+    return;
+  }
+  const key = e.key.toUpperCase();
+  const letterMap = { '1': 'A', '2': 'B', '3': 'C', '4': 'D', 'A': 'A', 'B': 'B', 'C': 'C', 'D': 'D' };
+  if (letterMap[key]) {
+    const btn = document.querySelector(`.arena-option-btn[data-letter="${letterMap[key]}"]`);
+    if (btn && !btn.disabled) selectOption(btn, letterMap[key]);
+  }
+});
 
-function startBattle(){
-  G.topic      = document.getElementById('cfgTopic').value;
-  G.diff       = document.getElementById('cfgDiff').value;
-  G.totalQ     = parseInt(document.getElementById('cfgQCount').value);
-  G.yourScore  = 0; G.aiScore = 0;
-  G.yourCorr   = 0; G.aiCorr  = 0;
-  G.qNum       = 0; G.answered= false; G.history = []; G.askedQuestions = [];
+// View Switching
+function showScreen(id) {
+  document.getElementById('lobbyScreen').style.display = id === 'lobbyScreen' ? 'block' : 'none';
+  document.getElementById('arenaScreen').style.display = id === 'arenaScreen' ? 'block' : 'none';
+  document.getElementById('resultScreen').style.display = id === 'resultScreen' ? 'block' : 'none';
+}
+
+function goLobby() {
+  clearInterval(G.timerInterval);
+  showScreen('lobbyScreen');
+  loadUserStats();
+  loadLeaderboard();
+  loadMatchHistory();
+}
+
+// Tab switcher in lobby
+function switchLobbyTab(tab) {
+  const isLb = (tab === 'lb');
+  document.getElementById('tabBtnLb').classList.toggle('active', isLb);
+  document.getElementById('tabBtnHist').classList.toggle('active', !isLb);
+  document.getElementById('tabPanelLb').style.display = isLb ? 'block' : 'none';
+  document.getElementById('tabPanelHist').style.display = isLb ? 'none' : 'block';
+}
+
+// Load stats and leaderboard
+async function loadUserStats() {
+  try {
+    const res = await fetch('/api/battle/my_stats');
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById('stMatches').textContent = data.total_matches;
+      document.getElementById('stWins').textContent = data.wins;
+      document.getElementById('stWinRate').textContent = data.win_rate + '%';
+      document.getElementById('stHighScore').textContent = data.best_score;
+    }
+  } catch (e) {}
+}
+
+async function loadLeaderboard() {
+  try {
+    const rows = await fetch('/api/battle/leaderboard').then(r => r.json());
+    const el = document.getElementById('lbList');
+    if (!rows || !rows.length) {
+      el.innerHTML = `
+        <div style="text-align:center;padding:2.8rem 1.5rem;color:var(--text3)">
+          <div style="font-weight:700;font-size:1rem;color:var(--text);margin-bottom:0.3rem">No Matches Recorded Yet</div>
+          <p style="font-size:0.86rem;color:var(--text2);max-width:440px;margin:0 auto">Complete a duel against the Cortex AI above to record your authentic score and claim rank #1!</p>
+        </div>`;
+      return;
+    }
+    el.innerHTML = `
+      <table class="modern-table">
+        <thead>
+          <tr>
+            <th style="width:50px">Rank</th>
+            <th>Competitor</th>
+            <th style="text-align:right">High Score</th>
+            <th style="text-align:right">Matches</th>
+            <th style="text-align:right">Victories</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map((r, i) => {
+            const rankClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+            return `
+              <tr>
+                <td><span class="rank-badge ${rankClass}">#${i + 1}</span></td>
+                <td><strong>${escapeHtml(r.username)}</strong></td>
+                <td style="text-align:right;font-weight:800;color:var(--accent)">${r.best_score} pts</td>
+                <td style="text-align:right;color:var(--text2)">${r.games_played}</td>
+                <td style="text-align:right;color:var(--success);font-weight:700">${r.wins}</td>
+              </tr>`;
+          }).join('')}
+        </tbody>
+      </table>`;
+  } catch (e) {
+    document.getElementById('lbList').innerHTML = '<p style="color:var(--text3);padding:1.5rem;text-align:center">Leaderboard unavailable.</p>';
+  }
+}
+
+async function loadMatchHistory() {
+  try {
+    const rows = await fetch('/api/battle/my_history').then(r => r.json());
+    const el = document.getElementById('histList');
+    if (!rows || !rows.length) {
+      el.innerHTML = `
+        <div style="text-align:center;padding:2.8rem 1.5rem;color:var(--text3)">
+          <div style="font-weight:700;font-size:1rem;color:var(--text);margin-bottom:0.3rem">No Match History</div>
+          <p style="font-size:0.86rem;color:var(--text2);max-width:440px;margin:0 auto">Your authentic match scores, accuracy, and duels will be recorded here automatically.</p>
+        </div>`;
+      return;
+    }
+    el.innerHTML = `
+      <table class="modern-table">
+        <thead>
+          <tr>
+            <th>Date & Time</th>
+            <th>Topic</th>
+            <th>Outcome</th>
+            <th style="text-align:right">Score (You vs AI)</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map(r => {
+            const won = r.score > r.ai_score;
+            const tie = r.score === r.ai_score;
+            const outcomeBadge = tie ? '<span style="color:var(--warn);font-weight:700">TIE</span>' :
+                                 won ? '<span style="color:var(--success);font-weight:700">VICTORY</span>' :
+                                 '<span style="color:var(--danger);font-weight:700">DEFEAT</span>';
+            const dateStr = (r.played_at || '').slice(0, 16).replace('T', ' ');
+            return `
+              <tr>
+                <td style="color:var(--text3)">${dateStr}</td>
+                <td><strong>${escapeHtml(r.topic)}</strong></td>
+                <td>${outcomeBadge}</td>
+                <td style="text-align:right"><strong>${r.score}</strong> vs ${r.ai_score}</td>
+              </tr>`;
+          }).join('')}
+        </tbody>
+      </table>`;
+  } catch (e) {
+    document.getElementById('histList').innerHTML = '<p style="color:var(--text3);padding:1.5rem;text-align:center">History unavailable.</p>';
+  }
+}
+
+// ── START MATCH ──────────────────────────────────────────────────────────
+function startBattle() {
+  G.topic = document.getElementById('cfgTopic').value;
+  G.diff = document.getElementById('cfgDiff').value;
+  G.totalQ = parseInt(document.getElementById('cfgQCount').value) || 10;
+  G.yourScore = 0;
+  G.aiScore = 0;
+  G.yourCorr = 0;
+  G.aiCorr = 0;
+  G.qNum = 0;
+  G.answered = false;
+  G.history = [];
+  
   updateScoreboard();
-  document.getElementById('diffPill').textContent  = G.diff.charAt(0).toUpperCase()+G.diff.slice(1);
-  document.getElementById('topicPill').textContent = G.topic.split(' ')[0];
-  show('arenaScreen'); hide('lobbyScreen'); hide('resultScreen');
+  showScreen('arenaScreen');
   loadNextQuestion();
 }
 
-async function loadNextQuestion(){
-  G.qNum++; G.answered = false;
-  document.getElementById('nextBtn').disabled = true;
-  document.getElementById('qFeedback').style.display = 'none';
+async function loadNextQuestion() {
+  G.qNum++;
+  G.answered = false;
+  
+  document.getElementById('nextDuelBtn').disabled = true;
+  document.getElementById('feedbackBox').style.display = 'none';
 
-  var diff = G.diff;
-  if(G.qNum > 7 && diff !== 'hard') diff = 'hard';
-  else if(G.qNum > 4 && diff === 'easy') diff = 'medium';
+  const pts = G.diff === 'easy' ? 10 : (G.diff === 'medium' ? 20 : 30);
+  document.getElementById('qRoundProg').textContent = `Round ${G.qNum} / ${G.totalQ}`;
+  document.getElementById('qTopicTag').textContent = G.topic;
+  document.getElementById('qPtsTag').textContent = `+${pts} pts`;
+  document.getElementById('qTextDisplay').textContent = 'Generating next battle challenge...';
+  document.getElementById('optionsGrid').innerHTML = `
+    <div style="grid-column:1/-1;text-align:center;padding:2rem">
+      <div class="spinner" style="margin:0 auto"></div>
+    </div>`;
 
-  document.getElementById('qNumber').textContent = 'Question '+G.qNum;
-  document.getElementById('qProg').textContent   = 'Q '+G.qNum+' / '+G.totalQ;
-  document.getElementById('qDiff').textContent   = diff.charAt(0).toUpperCase()+diff.slice(1);
-  document.getElementById('qDiff').className     = 'q-diff '+diff;
-  document.getElementById('qText').textContent   = 'Loading question...';
-  document.getElementById('qOptions').innerHTML  = '<div style="text-align:center;padding:1.5rem;color:var(--text-2)"><div class="spinner" style="margin:0 auto"></div></div>';
-
-  // Build list of previously asked questions so AI never repeats them
-  var askedQuestions = (G.history||[]).map(function(h){ return h.question; }).filter(Boolean);
+  const asked = G.history.map(h => h.question).filter(Boolean);
 
   try {
-    var res  = await fetch('/api/battle/question', {
-      method:'POST', headers:{'Content-Type':'application/json'},
+    const res = await fetch('/api/battle/question', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        topic:             G.topic,
-        difficulty:        diff,
-        question_num:      G.qNum,
-        asked_questions:   askedQuestions
+        topic: G.topic,
+        difficulty: G.diff,
+        question_num: G.qNum,
+        asked_questions: asked
       })
     });
-    var data = await res.json();
-    if(!data.success) throw new Error(data.error);
+    const data = await res.json();
+    if (!data.success || !data.data) throw new Error(data.error || 'Failed to load question');
+
     G.currentQ = data.data;
-    document.getElementById('qPoints').textContent = '+'+(data.data.points||20)+' pts';
     renderQuestion(data.data);
     startTimer(20);
-  } catch(e){
-    document.getElementById('qText').textContent = 'Could not load question. Click Next.';
-    document.getElementById('qOptions').innerHTML = '';
-    document.getElementById('nextBtn').disabled = false;
+  } catch (err) {
+    document.getElementById('qTextDisplay').textContent = 'Question generation timed out. Click next to continue.';
+    document.getElementById('optionsGrid').innerHTML = '';
+    document.getElementById('nextDuelBtn').disabled = false;
   }
 }
 
-function renderQuestion(q){
-  document.getElementById('qText').textContent = q.question;
-  document.getElementById('qOptions').innerHTML = q.options.map(function(opt){
-    var letter = opt.charAt(0);
-    return '<button class="q-option" onclick="selectAnswer(this,\''+letter+'\')" data-letter="'+letter+'">'+opt+'</button>';
+function renderQuestion(q) {
+  document.getElementById('qTextDisplay').textContent = q.question;
+  const grid = document.getElementById('optionsGrid');
+  grid.innerHTML = (q.options || []).map(opt => {
+    const letter = opt.trim().charAt(0).toUpperCase();
+    return `
+      <button class="arena-option-btn" onclick="selectOption(this, '${letter}')" data-letter="${letter}">
+        <span class="arena-opt-key">${letter}</span>
+        <span>${escapeHtml(opt.slice(3).trim() || opt)}</span>
+      </button>`;
   }).join('');
 }
 
-function startTimer(seconds){
+function startTimer(seconds) {
   clearInterval(G.timerInterval);
   G.timeLeft = seconds;
-  var fill = document.getElementById('timerFill');
+  const fill = document.getElementById('timerFill');
+  const text = document.getElementById('timerText');
   fill.style.width = '100%';
-  fill.style.background = 'linear-gradient(90deg, var(--accent), var(--accent-2))';
+  fill.style.background = 'var(--accent)';
 
-  G.timerInterval = setInterval(function(){
+  G.timerInterval = setInterval(() => {
     G.timeLeft -= 0.1;
-    fill.style.width = Math.max(0, G.timeLeft/seconds*100)+'%';
-    if(G.timeLeft <= 5) fill.style.background = 'var(--danger)';
-    if(G.timeLeft <= 0){ clearInterval(G.timerInterval); if(!G.answered) autoTimeout(); }
+    const pct = Math.max(0, (G.timeLeft / seconds) * 100);
+    fill.style.width = pct + '%';
+    text.textContent = Math.ceil(G.timeLeft) + 's remaining';
+
+    if (G.timeLeft <= 6) {
+      fill.style.background = 'var(--warn)';
+    }
+    if (G.timeLeft <= 3) {
+      fill.style.background = 'var(--danger)';
+    }
+
+    if (G.timeLeft <= 0) {
+      clearInterval(G.timerInterval);
+      if (!G.answered) handleTimeout();
+    }
   }, 100);
 }
 
-function autoTimeout(){
+function handleTimeout() {
   G.answered = true;
-  var fb = document.getElementById('qFeedback');
-  fb.className = 'q-feedback wrong';
-  fb.innerHTML = "Time's up! Correct answer: <strong>"+G.currentQ.answer+"</strong>. "+G.currentQ.explanation;
-  fb.style.display = 'block';
-  document.querySelectorAll('.q-option').forEach(function(b){
-    b.disabled = true;
-    if(b.dataset.letter === G.currentQ.answer) b.classList.add('correct');
+  playSound('wrong');
+  const correct = (G.currentQ.answer || 'A').toUpperCase()[0];
+  
+  document.querySelectorAll('.arena-option-btn').forEach(btn => {
+    btn.disabled = true;
+    if (btn.dataset.letter === correct) btn.classList.add('selected-correct');
   });
-  processResult(false, true);
+
+  const fb = document.getElementById('feedbackBox');
+  fb.className = 'arena-feedback-box wrong';
+  fb.innerHTML = `<strong>Time Expired!</strong> The correct answer was <strong>(${correct})</strong>. ${escapeHtml(G.currentQ.explanation || '')}`;
+  fb.style.display = 'block';
+
+  processRoundOutcome(false, true, correct);
 }
 
-function selectAnswer(btn, letter){
-  if(G.answered) return;
+function selectOption(btn, chosenLetter) {
+  if (G.answered) return;
   G.answered = true;
   clearInterval(G.timerInterval);
 
-  var correct   = G.currentQ.answer;
-  var youRight  = letter === correct;
-  var aiAcc     = G.diff==='easy' ? 0.88 : G.diff==='medium' ? 0.70 : 0.52;
-  var aiRight   = Math.random() < aiAcc;
+  const correct = (G.currentQ.answer || 'A').toUpperCase()[0];
+  const youRight = (chosenLetter === correct);
 
-  document.querySelectorAll('.q-option').forEach(function(b){
+  // Correct AI accuracy based on difficulty
+  // Casual: AI gets 55% accuracy | Ranked: 72% | Master: 88%
+  const aiAcc = G.diff === 'easy' ? 0.55 : (G.diff === 'medium' ? 0.72 : 0.88);
+  const aiRight = (Math.random() < aiAcc);
+
+  // Determine which option AI picked
+  let aiChoice = correct;
+  if (!aiRight) {
+    const wrongLetters = ['A', 'B', 'C', 'D'].filter(l => l !== correct);
+    aiChoice = wrongLetters[Math.floor(Math.random() * wrongLetters.length)];
+  }
+
+  // Visual option highlights
+  document.querySelectorAll('.arena-option-btn').forEach(b => {
     b.disabled = true;
-    if(b.dataset.letter === correct) b.classList.add('correct');
-    else if(b === btn && !youRight) b.classList.add('wrong');
-  });
+    const ltr = b.dataset.letter;
+    if (ltr === correct) b.classList.add('selected-correct');
+    else if (b === btn && !youRight) b.classList.add('selected-wrong');
 
-  var fb = document.getElementById('qFeedback');
-  var aiMsg = aiRight ? 'AI got it right.' : 'AI got it wrong!';
-  if(youRight){
-    fb.className = 'q-feedback correct';
-    fb.innerHTML = 'Correct! '+G.currentQ.explanation+' — '+aiMsg;
-  } else {
-    fb.className = 'q-feedback wrong';
-    fb.innerHTML = 'Answer was <strong>'+correct+'</strong>. '+G.currentQ.explanation+' — '+aiMsg;
-  }
-  fb.style.display = 'block';
-  processResult(youRight, aiRight);
-}
-
-function processResult(youRight, aiRight){
-  var pts = G.currentQ ? (G.currentQ.points || 20) : 20;
-  if(youRight){ G.yourScore += pts; G.yourCorr++; }
-  if(aiRight) { G.aiScore  += pts; G.aiCorr++;  }
-  G.history.push({y:youRight, a:aiRight, question: G.currentQ ? G.currentQ.question : null});
-  updateScoreboard();
-  if(G.currentQ){
-    fetch('/api/dna/update', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({concept:G.topic, correct:youRight, response_ms:Math.round(Math.max(500,(20-G.timeLeft)*1000))})
-    }).catch(function(){});
-  }
-  document.getElementById('nextBtn').disabled = false;
-  document.getElementById('nextBtn').textContent = G.qNum >= G.totalQ ? '🏁 See Results' : 'Next Question →';
-}
-
-function nextQuestion(){ if(G.qNum >= G.totalQ){ showResults(); } else { loadNextQuestion(); } }
-
-function updateScoreboard(){
-  document.getElementById('yourScore').textContent = G.yourScore;
-  document.getElementById('aiScore').textContent   = G.aiScore;
-  document.getElementById('yourCorr').textContent  = G.yourCorr+' correct';
-  document.getElementById('aiCorr').textContent    = G.aiCorr+' correct';
-  document.getElementById('youSide').classList.toggle('winning', G.yourScore >= G.aiScore);
-  document.getElementById('aiSide').classList.toggle('winning',  G.aiScore >  G.yourScore);
-}
-
-function showResults(){
-  clearInterval(G.timerInterval);
-  hide('arenaScreen');
-  var youWon = G.yourScore > G.aiScore;
-  var tie    = G.yourScore === G.aiScore;
-  document.getElementById('resultEmoji').innerHTML = tie?'<span style="font-size:3rem">TIE</span>':youWon?'<span style="font-size:3rem">WIN</span>':'<span style="font-size:3rem">LOSS</span>';
-  document.getElementById('resultTitle').textContent = tie?"It's a Tie!":youWon?'You Win!':'AI Wins!';
-  document.getElementById('resultSub').textContent   = tie?'Perfectly matched — rematch?':youWon?'You beat the AI '+G.yourScore+' to '+G.aiScore+'!':'AI edges it '+G.aiScore+' to '+G.yourScore+'. Rematch?';
-  document.getElementById('finalYou').textContent = G.yourScore;
-  document.getElementById('finalAI').textContent  = G.aiScore;
-  document.getElementById('finalYou').style.color = youWon?'var(--success)':'var(--accent)';
-  document.getElementById('finalAI').style.color  = (!youWon&&!tie)?'var(--danger)':'var(--accent-2)';
-  document.getElementById('qHistory').innerHTML = G.history.map(function(h,i){
-    return '<div class="q-dot '+(h.y?'ok':'no')+'" title="Q'+(i+1)+': '+(h.y?'Correct':'Wrong')+'">'+(h.y?'✓':'✗')+'</div>';
-  }).join('');
-  document.getElementById('coinsEarnedCard').style.display='none';
-  fetch('/api/battle/save_score',{
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({score:G.yourScore, ai_score:G.aiScore, topic:G.topic})
-  }).then(r=>r.json()).then(data=>{
-    if(data.success && data.coins_earned > 0) {
-      document.getElementById('coinsEarnedCard').style.display='block';
-      document.getElementById('finalCoins').textContent = data.coins_earned;
+    // Add AI marker
+    if (ltr === aiChoice) {
+      const chip = document.createElement('span');
+      chip.className = 'ai-choice-chip';
+      chip.textContent = 'Cortex Pick';
+      b.appendChild(chip);
     }
-  }).catch(function(){});
-  show('resultScreen');
+  });
+
+  // Sound feedback
+  playSound(youRight ? 'correct' : 'wrong');
+
+  // Feedback callout
+  const fb = document.getElementById('feedbackBox');
+  const aiStatusMsg = aiRight ? 'Cortex AI answered correctly.' : 'Cortex AI missed this question.';
+  if (youRight) {
+    fb.className = 'arena-feedback-box correct';
+    fb.innerHTML = `<strong>Correct.</strong> ${escapeHtml(G.currentQ.explanation || '')} <br><span style="opacity:0.85">${aiStatusMsg}</span>`;
+  } else {
+    fb.className = 'arena-feedback-box wrong';
+    fb.innerHTML = `<strong>Incorrect.</strong> Answer was <strong>(${correct})</strong>. ${escapeHtml(G.currentQ.explanation || '')} <br><span style="opacity:0.85">${aiStatusMsg}</span>`;
+  }
+  fb.style.display = 'block';
+
+  processRoundOutcome(youRight, aiRight, chosenLetter);
 }
 
+function processRoundOutcome(youRight, aiRight, chosenLetter) {
+  const pts = G.currentQ.points || 20;
+  if (youRight) { G.yourScore += pts; G.yourCorr++; }
+  if (aiRight)  { G.aiScore  += pts; G.aiCorr++;  }
+
+  G.history.push({
+    youRight,
+    aiRight,
+    question: G.currentQ.question
+  });
+
+  updateScoreboard();
+
+  // Update DNA in background
+  fetch('/api/dna/update', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      concept: G.topic,
+      correct: youRight,
+      response_ms: Math.round(Math.max(600, (20 - G.timeLeft) * 1000))
+    })
+  }).catch(() => {});
+
+  const nextBtn = document.getElementById('nextDuelBtn');
+  nextBtn.disabled = false;
+  nextBtn.innerHTML = G.qNum >= G.totalQ ?
+    `<span>See Final Results</span> <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>` :
+    `<span>Next Question (${G.qNum + 1}/${G.totalQ})</span> <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>`;
+}
+
+function nextQuestion() {
+  if (G.qNum >= G.totalQ) {
+    showMatchResults();
+  } else {
+    loadNextQuestion();
+  }
+}
+
+function updateScoreboard() {
+  document.getElementById('yourScore').textContent = G.yourScore;
+  document.getElementById('aiScore').textContent = G.aiScore;
+  document.getElementById('yourCorr').textContent = `${G.yourCorr} correct`;
+  document.getElementById('aiCorr').textContent = `${G.aiCorr} correct`;
+}
+
+// ── MATCH RESULTS ────────────────────────────────────────────────────────
+function showMatchResults() {
+  clearInterval(G.timerInterval);
+  showScreen('resultScreen');
+
+  const won = G.yourScore > G.aiScore;
+  const tie = G.yourScore === G.aiScore;
+
+  const emoji = document.getElementById('outcomeEmoji');
+  const title = document.getElementById('outcomeTitle');
+  const sub = document.getElementById('outcomeSub');
+
+  if (tie) {
+    emoji.textContent = 'DRAW';
+    title.textContent = 'Match Drawn: A Competitive Duel';
+    sub.textContent = `You and Cortex AI ended tied at ${G.yourScore} points.`;
+  } else if (won) {
+    emoji.textContent = 'VICTORY';
+    title.textContent = 'Victory: You Outscored the AI';
+    sub.textContent = `You defeated Cortex AI ${G.yourScore} to ${G.aiScore} points.`;
+  } else {
+    emoji.textContent = 'DEFEAT';
+    title.textContent = 'AI Won the Match';
+    sub.textContent = `Cortex AI scored ${G.aiScore} to your ${G.yourScore} points.`;
+  }
+
+  document.getElementById('finalYou').textContent = G.yourScore;
+  document.getElementById('finalAI').textContent = G.aiScore;
+  document.getElementById('finalCoins').textContent = `+${Math.floor(G.yourScore / 10)} Coins`;
+
+  // Draw round dots
+  const dotsRow = document.getElementById('resultDotsRow');
+  dotsRow.innerHTML = G.history.map((h, i) => `
+    <div class="round-dot ${h.youRight ? 'won' : 'lost'}" title="Round ${i + 1}: ${h.youRight ? 'Correct' : 'Missed'}">
+      ${h.youRight ? '1' : '0'}
+    </div>
+  `).join('');
+
+  // Persist authentic match score & rewards to database
+  fetch('/api/battle/save_score', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      score: G.yourScore,
+      ai_score: G.aiScore,
+      topic: G.topic
+    })
+  }).then(r => r.json()).then(res => {
+    if (res && res.coins_earned !== undefined) {
+      document.getElementById('finalCoins').textContent = `+${res.coins_earned} Coins`;
+    }
+    // Pre-refresh stats and leaderboard with newly recorded data
+    loadUserStats();
+    loadLeaderboard();
+    loadMatchHistory();
+  }).catch(() => {});
+}
+
+function escapeHtml(text) {
+  if (!text) return '';
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+// Initial boot
 goLobby();
 </script>
+
 {% endblock %}

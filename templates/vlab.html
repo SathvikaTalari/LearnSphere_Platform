@@ -1,728 +1,1618 @@
 {% extends "base.html" %}
-{% block title %}Virtual Lab — LearnSphere{% endblock %}
+{% block title %}Virtual Lab &bull; LearnSphere{% endblock %}
 {% block content %}
 
 <style>
-  /* ── Virtual Lab styles ─────────────────────────────────────── */
-  .vl-wrap {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 1.75rem 2rem 4rem;
+.vl-wrap {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 5rem;
+}
+
+.vl-hero {
+  margin-bottom: 1.75rem;
+}
+
+.vl-hero h1 {
+  font-family: var(--ff-display, var(--ff-sans));
+  font-size: 1.7rem;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 0.35rem;
+}
+
+.vl-hero p {
+  font-size: 0.9rem;
+  color: var(--text2);
+  line-height: 1.5;
+}
+
+/* ── Mode Selector Bar ────────────────────────────────────────────── */
+.vl-nav-bar {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.75rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.85rem;
+  overflow-x: auto;
+}
+
+.vl-nav-pill {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+.vl-nav-pill:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.vl-nav-pill.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #FFFFFF;
+}
+
+/* ── Interactive Lab Container ────────────────────────────────────── */
+.vl-lab-card {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.75rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+}
+
+.vl-lab-grid {
+  display: grid;
+  grid-template-columns: 310px 1fr;
+  gap: 1.75rem;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .vl-lab-grid {
+    grid-template-columns: 1fr;
   }
+}
 
-  .vl-hero {
-    text-align: center;
-    padding: 1.5rem 1rem 1.4rem;
-    margin-bottom: 1.5rem;
-  }
+/* ── Left Controls Column ─────────────────────────────────────────── */
+.vl-controls-box {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.25rem;
+}
 
-  .vl-hero h1 {
-    font-family: var(--ff-serif);
-    font-size: 1.9rem;
-    font-weight: 700;
-    color: var(--text);
-    margin-bottom: .45rem;
-  }
+.vl-controls-box h3 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 1.1rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid var(--border);
+}
 
-  .vl-hero p {
-    font-size: .88rem;
-    color: var(--text2);
-    max-width: 580px;
-    margin: 0 auto;
-    line-height: 1.65;
-  }
+.vl-ctrl-group {
+  margin-bottom: 1.2rem;
+}
 
-  .vl-badge {
-    display: inline-block;
-    background: rgba(16, 185, 129, .12);
-    border: 1px solid rgba(16, 185, 129, .3);
-    color: var(--success);
-    font-size: .7rem;
-    font-weight: 700;
-    padding: .2rem .65rem;
-    border-radius: 20px;
-    letter-spacing: .05em;
-    text-transform: uppercase;
-    margin-bottom: .65rem;
-  }
+.vl-ctrl-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 0.4rem;
+}
 
-  /* Search card */
-  .vl-search-card {
-    background: var(--bg3);
-    border: 1px solid var(--border);
-    border-radius: var(--r2);
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
-  }
+.vl-badge-val {
+  font-size: 0.75rem;
+  color: var(--accent);
+  font-family: monospace;
+  background: var(--bg3);
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+}
 
-  .vl-search-row {
-    display: flex;
-    gap: .75rem;
-    align-items: flex-start;
-    flex-wrap: wrap;
-    margin-bottom: 1rem;
-  }
+.vl-slider {
+  width: 100%;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
 
-  .vl-input {
-    flex: 1;
-    min-width: 240px;
-    padding: .7rem 1rem;
-    border-radius: 10px;
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    color: var(--text);
-    font-family: var(--ff-sans);
-    font-size: .9rem;
-    outline: none;
-    transition: border-color .15s;
-  }
+.vl-select {
+  width: 100%;
+  padding: 0.55rem 0.75rem;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 0.85rem;
+  outline: none;
+}
+.vl-select:focus {
+  border-color: var(--accent);
+}
 
-  .vl-input:focus {
-    border-color: var(--success);
-    box-shadow: 0 0 0 3px rgba(16, 185, 129, .12);
-  }
+.vl-btn-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+}
 
-  .vl-submit {
-    padding: .7rem 1.5rem;
-    border-radius: 10px;
-    background: var(--success);
-    border: none;
-    color: #fff;
-    font-family: var(--ff-serif);
-    font-size: .92rem;
-    font-weight: 700;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: filter .15s;
-  }
+.vl-btn {
+  flex: 1;
+  padding: 0.6rem 0.85rem;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+  text-align: center;
+}
+.vl-btn-primary {
+  background: var(--accent);
+  color: #FFFFFF;
+}
+.vl-btn-primary:hover {
+  filter: brightness(1.1);
+}
+.vl-btn-secondary {
+  background: var(--bg3);
+  border-color: var(--border);
+  color: var(--text);
+}
+.vl-btn-secondary:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
 
-  .vl-submit:hover {
-    filter: brightness(1.1);
-  }
+/* ── Right Simulation & Canvas Column ────────────────────────────── */
+.vl-canvas-box {
+  display: flex;
+  flex-direction: column;
+}
 
-  .vl-submit:disabled {
-    opacity: .5;
-    cursor: not-allowed;
-  }
+.vl-metrics-bar {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
 
-  .vl-quick-label {
-    font-size: .7rem;
-    color: var(--text2);
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: .05em;
-    margin-bottom: .45rem;
-  }
+.vl-metric-card {
+  flex: 1;
+  min-width: 130px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.65rem 0.85rem;
+}
+.vl-metric-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text2);
+  margin-bottom: 0.2rem;
+}
+.vl-metric-value {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text);
+  font-family: var(--ff-display, var(--ff-sans));
+}
+.vl-metric-value.accent {
+  color: var(--accent);
+}
 
-  .vl-quick-chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: .35rem;
-  }
+.vl-canvas-wrap {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+}
 
-  .vl-chip {
-    padding: .22rem .65rem;
-    border-radius: 20px;
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    color: var(--text2);
-    font-size: .74rem;
-    cursor: pointer;
-    font-family: var(--ff-sans);
-    transition: all .14s;
-  }
+canvas.vl-canvas {
+  width: 100%;
+  height: 380px;
+  display: block;
+}
 
-  .vl-chip:hover {
-    border-color: var(--success);
-    color: var(--success);
-    background: rgba(16, 185, 129, .08);
-  }
+/* ── Theory & Source Tabs ────────────────────────────────────────── */
+.vl-detail-tabs {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--border);
+  margin-top: 1.5rem;
+  padding-bottom: 0.5rem;
+}
 
-  /* Empty / loading */
-  .vl-empty {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 320px;
-    text-align: center;
-    color: var(--text2);
-    gap: .75rem;
-  }
+.vl-detail-tab {
+  background: none;
+  border: none;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text2);
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.vl-detail-tab:hover {
+  color: var(--text);
+}
+.vl-detail-tab.active {
+  background: var(--bg2);
+  color: var(--accent);
+}
 
-  .vl-empty h3 {
-    font-family: var(--ff-serif);
-    font-size: 1.1rem;
-    color: var(--text);
-  }
+.vl-detail-pane {
+  display: none;
+  padding: 1.25rem 0 0;
+  font-size: 0.88rem;
+  color: var(--text2);
+  line-height: 1.6;
+}
+.vl-detail-pane.active {
+  display: block;
+}
 
-  .vl-loading {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 300px;
-    gap: 1rem;
-    color: var(--text2);
-    text-align: center;
-  }
+.vl-code-box {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem;
+  overflow-x: auto;
+  font-family: monospace;
+  font-size: 0.82rem;
+  color: var(--text);
+  line-height: 1.5;
+  position: relative;
+}
 
-  /* Lab card */
-  .lab-card {
-    background: var(--bg3);
-    border: 1px solid var(--border);
-    border-radius: var(--r2);
-    overflow: hidden;
-    animation: fadeUp .35s ease both;
-  }
+.vl-copy-btn {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: 6px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.vl-copy-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
 
-  /* Lab header */
-  .lab-head {
-    background: linear-gradient(135deg, rgba(16, 185, 129, .08), rgba(16, 185, 129, .02));
-    border-bottom: 1px solid var(--border);
-    padding: 1.4rem 1.75rem;
-  }
+/* ── AI Custom Lab Mode ──────────────────────────────────────────── */
+.ai-search-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+.ai-search-row {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+  flex-wrap: wrap;
+}
+.ai-input {
+  flex: 1;
+  min-width: 250px;
+  padding: 0.7rem 0.95rem;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 0.9rem;
+  outline: none;
+}
+.ai-input:focus {
+  border-color: var(--accent);
+}
+.ai-submit-btn {
+  padding: 0.7rem 1.6rem;
+  background: var(--accent);
+  color: #FFFFFF;
+  font-size: 0.88rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.ai-submit-btn:hover {
+  filter: brightness(1.1);
+}
+.ai-chips-row {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.ai-chip {
+  padding: 0.25rem 0.65rem;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-size: 0.75rem;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.ai-chip:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
 
-  .lab-journal {
-    font-size: .68rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: .07em;
-    color: var(--success);
-    margin-bottom: .4rem;
-  }
-
-  .lab-title {
-    font-family: var(--ff-serif);
-    font-size: 1.35rem;
-    font-weight: 700;
-    color: var(--text);
-    line-height: 1.3;
-    margin-bottom: .6rem;
-  }
-
-  .lab-meta-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: .6rem;
-  }
-
-  .lab-meta-item {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: .55rem .75rem;
-  }
-
-  .lab-meta-lbl {
-    font-size: .64rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: .05em;
-    color: var(--text2);
-    display: block;
-    margin-bottom: .2rem;
-  }
-
-  .lab-meta-val {
-    font-size: .81rem;
-    color: var(--text);
-    line-height: 1.4;
-  }
-
-  /* Section tabs */
-  .lab-tabs {
-    display: flex;
-    flex-wrap: wrap;
-    gap: .3rem;
-    padding: .85rem 1.75rem;
-    border-bottom: 1px solid var(--border);
-    background: var(--bg2);
-  }
-
-  .lab-tab {
-    padding: .3rem .88rem;
-    border-radius: 6px;
-    border: 1px solid transparent;
-    background: none;
-    color: var(--text2);
-    font-size: .8rem;
-    font-weight: 600;
-    cursor: pointer;
-    font-family: var(--ff-sans);
-    transition: all .14s;
-  }
-
-  .lab-tab.active {
-    background: rgba(16, 185, 129, .12);
-    border-color: rgba(16, 185, 129, .3);
-    color: var(--success);
-  }
-
-  /* Tab panes */
-  .lab-pane {
-    padding: 1.5rem 1.75rem;
-    display: none;
-  }
-
-  .lab-pane.active {
-    display: block;
-    animation: fadeUp .22s ease both;
-  }
-
-  /* Dataset tab */
-  .dataset-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-  }
-
-  .dataset-box {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 1rem;
-  }
-
-  .dataset-box h4 {
-    font-family: var(--ff-serif);
-    font-size: .9rem;
-    color: var(--text);
-    margin-bottom: .55rem;
-  }
-
-  .dataset-box p {
-    font-size: .83rem;
-    color: var(--text2);
-    line-height: 1.65;
-  }
-
-  /* Code tab */
-  .lab-code-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: var(--bg2);
-    padding: .5rem .95rem;
-    border-radius: 8px 8px 0 0;
-    border: 1px solid var(--border);
-    border-bottom: none;
-    font-size: .74rem;
-    color: var(--success);
-    font-weight: 600;
-  }
-
-  .lab-code-bar+pre {
-    border-radius: 0 0 8px 8px;
-    margin: 0;
-    border: 1px solid var(--border);
-    border-top: none;
-  }
-
-  .lab-copy-btn {
-    background: none;
-    border: none;
-    color: var(--text2);
-    font-size: .72rem;
-    cursor: pointer;
-    font-family: var(--ff-sans);
-    transition: color .14s;
-  }
-
-  .lab-copy-btn:hover {
-    color: var(--success);
-  }
-
-  .run-note {
-    margin-top: .75rem;
-    padding: .55rem .85rem;
-    background: rgba(245, 158, 11, .06);
-    border: 1px solid rgba(245, 158, 11, .2);
-    border-radius: 8px;
-    font-size: .78rem;
-    color: var(--text2);
-  }
-
-  .run-note strong {
-    color: var(--warn);
-  }
-
-  /* Graph tab */
-  .graph-area {
-    text-align: center;
-  }
-
-  .graph-img {
-    max-width: 100%;
-    border-radius: 10px;
-    border: 1px solid var(--border);
-    background: var(--bg2);
-    display: block;
-    margin: 0 auto;
-  }
-
-  .graph-placeholder {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 220px;
-    background: var(--bg2);
-    border: 1px dashed var(--border2);
-    border-radius: 10px;
-    color: var(--text2);
-    gap: .55rem;
-  }
-
-  .graph-placeholder p {
-    font-size: .82rem;
-  }
-
-  /* Interpretation tab */
-  .interp-body {
-    font-size: .88rem;
-    color: var(--text2);
-    line-height: 1.85;
-  }
-
-  .interp-body p {
-    margin-bottom: .85rem;
-  }
-
-  .observations {
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: .42rem;
-    margin-bottom: 1rem;
-  }
-
-  .obs-item {
-    display: flex;
-    align-items: flex-start;
-    gap: .55rem;
-    padding: .45rem .7rem;
-    background: var(--bg2);
-    border-radius: 7px;
-    font-size: .83rem;
-    color: var(--text2);
-    border: 1px solid var(--border);
-  }
-
-  .obs-item::before {
-    content: '🔍';
-    flex-shrink: 0;
-  }
-
-  .further-exp {
-    margin-top: 1rem;
-  }
-
-  .further-exp h4 {
-    font-family: var(--ff-serif);
-    font-size: .9rem;
-    color: var(--text);
-    margin-bottom: .55rem;
-  }
-
-  .fe-item {
-    display: flex;
-    align-items: center;
-    gap: .55rem;
-    padding: .38rem .7rem;
-    cursor: pointer;
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 7px;
-    margin-bottom: .38rem;
-    font-size: .82rem;
-    color: var(--text2);
-    transition: all .14s;
-  }
-
-  .fe-item:hover {
-    border-color: var(--success);
-    color: var(--success);
-    background: rgba(16, 185, 129, .06);
-  }
-
-  .fe-item::before {
-    content: '▶';
-    font-size: .65rem;
-    color: var(--success);
-    flex-shrink: 0;
-  }
-
-  /* Run button */
-  .run-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: .5rem;
-    padding: .45rem 1.15rem;
-    border-radius: 8px;
-    background: rgba(16, 185, 129, .12);
-    border: 1px solid rgba(16, 185, 129, .3);
-    color: var(--success);
-    font-size: .82rem;
-    font-weight: 700;
-    cursor: pointer;
-    font-family: var(--ff-sans);
-    transition: all .15s;
-    margin-top: .75rem;
-  }
-
-  .run-btn:hover {
-    background: rgba(16, 185, 129, .2);
-  }
-
-  @media(max-width:700px) {
-    .vl-wrap {
-      padding: 1rem 1rem 3rem;
-    }
-
-    .lab-head,
-    .lab-pane {
-      padding: 1.1rem;
-    }
-
-    .lab-tabs {
-      padding: .65rem 1.1rem;
-    }
-
-    .dataset-grid {
-      grid-template-columns: 1fr;
-    }
-  }
+.ai-plot-img {
+  width: 100%;
+  max-width: 680px;
+  display: block;
+  margin: 0 auto;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
 </style>
 
 <div class="vl-wrap animate-in">
+
+  <!-- Header -->
   <div class="vl-hero">
-    <span class="vl-badge">Virtual Lab</span>
-    <h1>Virtual Experiment Lab</h1>
-    <p>Describe any ML concept or experiment. The AI generates a synthetic dataset, runnable Python code, a plot, and a
-      detailed scientific interpretation — just like a real lab.</p>
+    <h1>Virtual Laboratory</h1>
+    <p>Experiment with core machine learning algorithms in real time. Manipulate model complexity, optimization rates, and data distributions with instant visual feedback.</p>
   </div>
 
-  <!-- Search -->
-  <div class="vl-search-card">
-    <div class="vl-search-row">
-      <input id="labInput" class="vl-input"
-        placeholder="e.g. Show experiment for overfitting, Visualize gradient descent, Demonstrate bias-variance tradeoff..."
-        onkeydown="if(event.key==='Enter') doLab()">
-      <button class="vl-submit" id="labBtn" onclick="doLab()">
-        <span id="lBtnTxt">Run Experiment</span>
-      </button>
-    </div>
-    <div class="vl-quick-label">Quick Experiments</div>
-    <div class="vl-quick-chips">
-      <button class="vl-chip"
-        onclick="setExp('Show overfitting vs underfitting with polynomial regression')">Overfitting</button>
-      <button class="vl-chip" onclick="setExp('Visualize gradient descent converging on a loss surface')">Gradient
-        Descent</button>
-      <button class="vl-chip" onclick="setExp('Demonstrate bias-variance tradeoff')">Bias-Variance</button>
-      <button class="vl-chip" onclick="setExp('Show K-Means clustering on 2D data')">K-Means</button>
-      <button class="vl-chip"
-        onclick="setExp('Compare train vs validation accuracy with increasing model complexity')">Model
-        Complexity</button>
-      <button class="vl-chip" onclick="setExp('Visualize decision boundary of SVM with different kernels')">SVM
-        Kernels</button>
-      <button class="vl-chip" onclick="setExp('Show effect of learning rate on neural network training')">Learning
-        Rate</button>
-      <button class="vl-chip" onclick="setExp('Demonstrate PCA dimensionality reduction')">PCA</button>
+  <!-- Mode Selector Pills -->
+  <div class="vl-nav-bar">
+    <button class="vl-nav-pill active" onclick="switchLab('poly', this)">Polynomial Overfitting</button>
+    <button class="vl-nav-pill" onclick="switchLab('gradient', this)">Gradient Descent</button>
+    <button class="vl-nav-pill" onclick="switchLab('kmeans', this)">K-Means Clustering</button>
+    <button class="vl-nav-pill" onclick="switchLab('boundary', this)">Decision Boundary</button>
+    <button class="vl-nav-pill" onclick="switchLab('ai_custom', this)">AI Custom Lab</button>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       LAB 1: Polynomial Regression & Overfitting
+       ══════════════════════════════════════════════════════════════ -->
+  <div id="lab-poly" class="vl-lab-card">
+    <div class="vl-lab-grid">
+      <!-- Controls -->
+      <div class="vl-controls-box">
+        <h3>Experiment Parameters</h3>
+
+        <div class="vl-ctrl-group">
+          <div class="vl-ctrl-header">
+            <span>Polynomial Degree</span>
+            <span class="vl-badge-val" id="polyDegVal">Degree 3</span>
+          </div>
+          <input type="range" class="vl-slider" id="polyDegSlider" min="1" max="12" value="3" oninput="updatePolyLab()">
+        </div>
+
+        <div class="vl-ctrl-group">
+          <div class="vl-ctrl-header">
+            <span>Noise Variance</span>
+            <span class="vl-badge-val" id="polyNoiseVal">0.20</span>
+          </div>
+          <input type="range" class="vl-slider" id="polyNoiseSlider" min="0" max="0.5" step="0.05" value="0.20" oninput="updatePolyLab()">
+        </div>
+
+        <div class="vl-ctrl-group">
+          <div class="vl-ctrl-header">
+            <span>Training Samples (N)</span>
+            <span class="vl-badge-val" id="polySamplesVal">15 points</span>
+          </div>
+          <input type="range" class="vl-slider" id="polySamplesSlider" min="10" max="40" step="5" value="15" oninput="reseedPolyData()">
+        </div>
+
+        <div class="vl-ctrl-group">
+          <div class="vl-ctrl-header">
+            <span>L2 Regularization (&lambda;)</span>
+          </div>
+          <select id="polyRegSelect" class="vl-select" onchange="updatePolyLab()">
+            <option value="0">None (&lambda; = 0.00)</option>
+            <option value="0.001">Light (&lambda; = 0.001)</option>
+            <option value="0.01">Moderate (&lambda; = 0.01)</option>
+            <option value="0.1">Strong Ridge (&lambda; = 0.10)</option>
+          </select>
+        </div>
+
+        <div class="vl-btn-row">
+          <button class="vl-btn vl-btn-secondary" onclick="reseedPolyData()">Re-seed Samples</button>
+          <button class="vl-btn vl-btn-primary" onclick="resetPolyDefaults()">Reset</button>
+        </div>
+      </div>
+
+      <!-- Visualization & Metrics -->
+      <div class="vl-canvas-box">
+        <div class="vl-metrics-bar">
+          <div class="vl-metric-card">
+            <div class="vl-metric-label">Training MSE</div>
+            <div class="vl-metric-value" id="polyTrainMse">0.000</div>
+          </div>
+          <div class="vl-metric-card">
+            <div class="vl-metric-label">Test MSE (Generalization)</div>
+            <div class="vl-metric-value" id="polyTestMse">0.000</div>
+          </div>
+          <div class="vl-metric-card">
+            <div class="vl-metric-label">Model Diagnostic</div>
+            <div class="vl-metric-value accent" id="polyStatus" style="font-size:0.95rem">Optimal Fit</div>
+          </div>
+        </div>
+
+        <div class="vl-canvas-wrap">
+          <canvas id="polyCanvas" class="vl-canvas"></canvas>
+        </div>
+
+        <!-- Detail Tabs -->
+        <div class="vl-detail-tabs">
+          <button class="vl-detail-tab active" onclick="switchDetailTab(this, 'poly-theory')">Observation &amp; Theory</button>
+          <button class="vl-detail-tab" onclick="switchDetailTab(this, 'poly-code')">Python Source Code</button>
+        </div>
+
+        <div id="poly-theory" class="vl-detail-pane active">
+          <p><strong>The Bias-Variance Tradeoff:</strong> At Degree 1, the model suffers from <em>High Bias (Underfitting)</em>, unable to capture the sinusoidal curvature. As degree increases to 3&ndash;4, both train and test error reach a minimal equilibrium. Above Degree 6 without regularization, the model exhibits <em>High Variance (Overfitting)</em> &mdash; memorizing sample noise and oscillating between points, causing test error to explode.</p>
+        </div>
+
+        <div id="poly-code" class="vl-detail-pane">
+          <div class="vl-code-box">
+            <button class="vl-copy-btn" onclick="copyCode(this)">Copy</button>
+            <pre><code>import numpy as np
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.linear_model import Ridge
+
+# Generate synthetic dataset: y = sin(2*pi*x) + noise
+np.random.seed(42)
+X_train = np.sort(np.random.rand(15, 1), axis=0)
+y_train = np.sin(2 * np.pi * X_train).ravel() + np.random.normal(0, 0.2, 15)
+
+# Fit polynomial regression with L2 regularization
+degree = 3
+alpha = 0.001
+model = make_pipeline(PolynomialFeatures(degree), Ridge(alpha=alpha))
+model.fit(X_train, y_train)
+
+# Predict on dense evaluation grid
+X_eval = np.linspace(0, 1, 200).reshape(-1, 1)
+y_pred = model.predict(X_eval)</code></pre>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- Lab Result -->
-  <div id="labArea">
-    <div class="vl-empty">
-      <div style="font-size:3.5rem">🔬</div>
-      <h3>Your virtual experiment will appear here</h3>
-      <p style="font-size:.83rem">Describe any ML experiment above. The AI will generate a complete lab session with
-        synthetic data, code, a graph, and scientific interpretation.</p>
+  <!-- ══════════════════════════════════════════════════════════════
+       LAB 2: Gradient Descent Optimization
+       ══════════════════════════════════════════════════════════════ -->
+  <div id="lab-gradient" class="vl-lab-card" style="display:none">
+    <div class="vl-lab-grid">
+      <div class="vl-controls-box">
+        <h3>Optimizer Parameters</h3>
+
+        <div class="vl-ctrl-group">
+          <div class="vl-ctrl-header">
+            <span>Learning Rate (&alpha;)</span>
+            <span class="vl-badge-val" id="gdAlphaVal">0.15</span>
+          </div>
+          <input type="range" class="vl-slider" id="gdAlphaSlider" min="0.01" max="1.1" step="0.02" value="0.15" oninput="runGradientDescent()">
+        </div>
+
+        <div class="vl-ctrl-group">
+          <div class="vl-ctrl-header">
+            <span>Initial Start (x&#8320;)</span>
+            <span class="vl-badge-val" id="gdStartVal">-2.40</span>
+          </div>
+          <input type="range" class="vl-slider" id="gdStartSlider" min="-3" max="3" step="0.2" value="-2.4" oninput="runGradientDescent()">
+        </div>
+
+        <div class="vl-ctrl-group">
+          <div class="vl-ctrl-header">
+            <span>Objective Surface</span>
+          </div>
+          <select id="gdLossFunction" class="vl-select" onchange="runGradientDescent()">
+            <option value="convex">Convex Parabola: f(x) = x&sup2;</option>
+            <option value="double_well" selected>Double-Well: f(x) = x&#8308; - 3x&sup2; + 0.5x</option>
+            <option value="steep">Steep Valley: f(x) = 0.5x&sup2; + 2*sin(2x)</option>
+          </select>
+        </div>
+
+        <div class="vl-ctrl-group">
+          <div class="vl-ctrl-header">
+            <span>Max Iterations</span>
+            <span class="vl-badge-val" id="gdStepsVal">25 steps</span>
+          </div>
+          <input type="range" class="vl-slider" id="gdStepsSlider" min="5" max="50" step="5" value="25" oninput="runGradientDescent()">
+        </div>
+
+        <div class="vl-btn-row">
+          <button class="vl-btn vl-btn-secondary" onclick="animateGradientDescent()">Step Animate</button>
+          <button class="vl-btn vl-btn-primary" onclick="resetGdDefaults()">Reset</button>
+        </div>
+      </div>
+
+      <div class="vl-canvas-box">
+        <div class="vl-metrics-bar">
+          <div class="vl-metric-card">
+            <div class="vl-metric-label">Final Position (x*)</div>
+            <div class="vl-metric-value" id="gdFinalX">0.000</div>
+          </div>
+          <div class="vl-metric-card">
+            <div class="vl-metric-label">Minimum Loss f(x*)</div>
+            <div class="vl-metric-value" id="gdFinalLoss">0.000</div>
+          </div>
+          <div class="vl-metric-card">
+            <div class="vl-metric-label">Convergence State</div>
+            <div class="vl-metric-value accent" id="gdStatus" style="font-size:0.95rem">Converged</div>
+          </div>
+        </div>
+
+        <div class="vl-canvas-wrap">
+          <canvas id="gdCanvas" class="vl-canvas"></canvas>
+        </div>
+
+        <div class="vl-detail-tabs">
+          <button class="vl-detail-tab active" onclick="switchDetailTab(this, 'gd-theory')">Observation &amp; Theory</button>
+          <button class="vl-detail-tab" onclick="switchDetailTab(this, 'gd-code')">Python Source Code</button>
+        </div>
+
+        <div id="gd-theory" class="vl-detail-pane active">
+          <p><strong>Learning Rate Sensitivity:</strong> If &alpha; is too small, convergence requires hundreds of steps and may become trapped in local shallow basins. If &alpha; exceeds the Lipschitz threshold (&gt; 0.9), gradients overshoot the minimum, causing catastrophic loss explosion / divergence. Notice how the update rule <code>x &larr; x - &alpha; &nabla;f(x)</code> steps downhill along the steepest tangent slope.</p>
+        </div>
+
+        <div id="gd-code" class="vl-detail-pane">
+          <div class="vl-code-box">
+            <button class="vl-copy-btn" onclick="copyCode(this)">Copy</button>
+            <pre><code>def loss_func(x):
+    return x**4 - 3*x**2 + 0.5*x
+
+def grad_func(x):
+    return 4*x**3 - 6*x + 0.5
+
+# Gradient Descent Loop
+x = -2.4  # Initial position
+alpha = 0.15  # Learning rate
+history = [x]
+
+for step in range(25):
+    gradient = grad_func(x)
+    x = x - alpha * gradient
+    history.append(x)
+    if abs(gradient) < 1e-4:
+        print(f"Converged at step {step}: x={x:.4f}, loss={loss_func(x):.4f}")
+        break</code></pre>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       LAB 3: K-Means Clustering
+       ══════════════════════════════════════════════════════════════ -->
+  <div id="lab-kmeans" class="vl-lab-card" style="display:none">
+    <div class="vl-lab-grid">
+      <div class="vl-controls-box">
+        <h3>Clustering Parameters</h3>
+
+        <div class="vl-ctrl-group">
+          <div class="vl-ctrl-header">
+            <span>Clusters (K)</span>
+            <span class="vl-badge-val" id="kmKVal">K = 3</span>
+          </div>
+          <input type="range" class="vl-slider" id="kmKSlider" min="2" max="6" value="3" oninput="initKMeans()">
+        </div>
+
+        <div class="vl-ctrl-group">
+          <div class="vl-ctrl-header">
+            <span>Data Points (N)</span>
+            <span class="vl-badge-val" id="kmNVal">80 points</span>
+          </div>
+          <input type="range" class="vl-slider" id="kmNSlider" min="40" max="150" step="10" value="80" oninput="initKMeans()">
+        </div>
+
+        <div class="vl-btn-row">
+          <button class="vl-btn vl-btn-secondary" onclick="stepKMeans()">Step Iteration</button>
+          <button class="vl-btn vl-btn-primary" onclick="runKMeansAll()">Run All</button>
+        </div>
+        <div style="margin-top:0.5rem">
+          <button class="vl-btn vl-btn-secondary" style="width:100%" onclick="initKMeans()">Re-generate Data</button>
+        </div>
+      </div>
+
+      <div class="vl-canvas-box">
+        <div class="vl-metrics-bar">
+          <div class="vl-metric-card">
+            <div class="vl-metric-label">Iteration Step</div>
+            <div class="vl-metric-value" id="kmStepVal">0</div>
+          </div>
+          <div class="vl-metric-card">
+            <div class="vl-metric-label">Inertia (Within-Cluster WCSS)</div>
+            <div class="vl-metric-value" id="kmInertiaVal">0.00</div>
+          </div>
+          <div class="vl-metric-card">
+            <div class="vl-metric-label">Convergence Status</div>
+            <div class="vl-metric-value accent" id="kmStatus" style="font-size:0.95rem">Initialized</div>
+          </div>
+        </div>
+
+        <div class="vl-canvas-wrap">
+          <canvas id="kmCanvas" class="vl-canvas"></canvas>
+        </div>
+
+        <div class="vl-detail-tabs">
+          <button class="vl-detail-tab active" onclick="switchDetailTab(this, 'km-theory')">Observation &amp; Theory</button>
+          <button class="vl-detail-tab" onclick="switchDetailTab(this, 'km-code')">Python Source Code</button>
+        </div>
+
+        <div id="km-theory" class="vl-detail-pane active">
+          <p><strong>Expectation-Maximization in K-Means:</strong> The algorithm alternates between two steps: (1) <em>Assignment Step</em>: each data point is assigned to its closest centroid in Euclidean space. (2) <em>Update Step</em>: each centroid is recomputed as the arithmetic mean of all points assigned to it. Inertia drops monotonically on every step until the centroids stabilize.</p>
+        </div>
+
+        <div id="km-code" class="vl-detail-pane">
+          <div class="vl-code-box">
+            <button class="vl-copy-btn" onclick="copyCode(this)">Copy</button>
+            <pre><code>from sklearn.cluster import KMeans
+from sklearn.datasets import make_blobs
+
+# Generate 2D Gaussian clusters
+X, y_true = make_blobs(n_samples=80, centers=3, cluster_std=0.8, random_state=42)
+
+# Fit K-Means
+kmeans = KMeans(n_clusters=3, random_state=42, n_init=10)
+labels = kmeans.fit_predict(X)
+centroids = kmeans.cluster_centers_
+inertia = kmeans.inertia_
+
+print(f"Final WCSS Inertia: {inertia:.2f}")
+print("Centroid coordinates:\n", centroids)</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       LAB 4: Decision Boundary & Classification
+       ══════════════════════════════════════════════════════════════ -->
+  <div id="lab-boundary" class="vl-lab-card" style="display:none">
+    <div class="vl-lab-grid">
+      <div class="vl-controls-box">
+        <h3>Classifier Settings</h3>
+
+        <div class="vl-ctrl-group">
+          <div class="vl-ctrl-header">
+            <span>Model Complexity</span>
+          </div>
+          <select id="dbModelSelect" class="vl-select" onchange="updateDecisionLab()">
+            <option value="linear">Linear Decision Surface</option>
+            <option value="poly2" selected>Polynomial Surface (Degree 2)</option>
+            <option value="rbf">Non-Linear Radial Basis (RBF)</option>
+          </select>
+        </div>
+
+        <div class="vl-ctrl-group">
+          <div class="vl-ctrl-header">
+            <span>Separation Margin</span>
+            <span class="vl-badge-val" id="dbMarginVal">0.70</span>
+          </div>
+          <input type="range" class="vl-slider" id="dbMarginSlider" min="0.2" max="1.5" step="0.1" value="0.7" oninput="updateDecisionLab()">
+        </div>
+
+        <div class="vl-ctrl-group">
+          <div class="vl-ctrl-header">
+            <span>Data Distribution</span>
+          </div>
+          <select id="dbDataPattern" class="vl-select" onchange="reseedDecisionData()">
+            <option value="two_moons" selected>Interlocking Moons</option>
+            <option value="concentric">Concentric Rings</option>
+            <option value="blobs">Linearly Separable Blobs</option>
+          </select>
+        </div>
+
+        <div class="vl-btn-row">
+          <button class="vl-btn vl-btn-secondary" onclick="reseedDecisionData()">Re-seed Points</button>
+          <button class="vl-btn vl-btn-primary" onclick="resetDecisionDefaults()">Reset</button>
+        </div>
+      </div>
+
+      <div class="vl-canvas-box">
+        <div class="vl-metrics-bar">
+          <div class="vl-metric-card">
+            <div class="vl-metric-label">Classification Accuracy</div>
+            <div class="vl-metric-value" id="dbAccuracyVal">0.0%</div>
+          </div>
+          <div class="vl-metric-card">
+            <div class="vl-metric-label">F1 Score</div>
+            <div class="vl-metric-value" id="dbF1Val">0.00</div>
+          </div>
+          <div class="vl-metric-card">
+            <div class="vl-metric-label">Separability State</div>
+            <div class="vl-metric-value accent" id="dbStateVal" style="font-size:0.95rem">Non-Linear</div>
+          </div>
+        </div>
+
+        <div class="vl-canvas-wrap">
+          <canvas id="dbCanvas" class="vl-canvas"></canvas>
+        </div>
+
+        <div class="vl-detail-tabs">
+          <button class="vl-detail-tab active" onclick="switchDetailTab(this, 'db-theory')">Observation &amp; Theory</button>
+          <button class="vl-detail-tab" onclick="switchDetailTab(this, 'db-code')">Python Source Code</button>
+        </div>
+
+        <div id="db-theory" class="vl-detail-pane active">
+          <p><strong>Linear vs Kernel Separability:</strong> Linear models (like standard Logistic Regression or Linear SVM) can only draw straight hyperplane partitions, failing on non-linearly separable topologies like Interlocking Moons. Applying polynomial feature mappings or RBF kernels maps the inputs into higher-dimensional feature space where non-linear boundaries smoothly classify complex structures.</p>
+        </div>
+
+        <div id="db-code" class="vl-detail-pane">
+          <div class="vl-code-box">
+            <button class="vl-copy-btn" onclick="copyCode(this)">Copy</button>
+            <pre><code>from sklearn.datasets import make_moons
+from sklearn.svm import SVC
+from sklearn.metrics import accuracy_score, f1_score
+
+X, y = make_moons(n_samples=100, noise=0.15, random_state=42)
+
+# Train Support Vector Classifier with RBF Kernel
+clf = SVC(kernel='rbf', C=1.0, gamma='scale')
+clf.fit(X, y)
+
+preds = clf.predict(X)
+print("Accuracy:", accuracy_score(y, preds))
+print("F1 Score:", f1_score(y, preds))</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       LAB 5: AI Custom Experiment Generator
+       ══════════════════════════════════════════════════════════════ -->
+  <div id="lab-ai_custom" class="vl-lab-card" style="display:none">
+    <div class="ai-search-card">
+      <div class="ai-search-row">
+        <input type="text" id="aiExpInput" class="ai-input" placeholder="e.g. Visualize Batch Normalization smoothing the loss surface, Simulate Dropout on Deep MLP..." onkeydown="if(event.key==='Enter') runAiExperiment()">
+        <button class="ai-submit-btn" id="aiExpBtn" onclick="runAiExperiment()">Run Custom Simulation</button>
+      </div>
+      <div class="ai-chips-row">
+        <span style="font-size:0.75rem;font-weight:700;color:var(--text2);margin-right:0.25rem">Quick Topics:</span>
+        <button class="ai-chip" onclick="setAiPrompt('Show overfitting vs underfitting with polynomial regression')">Overfitting &amp; Regularization</button>
+        <button class="ai-chip" onclick="setAiPrompt('Visualize gradient descent with momentum on a saddle surface')">Momentum Optimization</button>
+        <button class="ai-chip" onclick="setAiPrompt('Demonstrate Principal Component Analysis (PCA) projection')">PCA Dimensionality</button>
+        <button class="ai-chip" onclick="setAiPrompt('Compare Learning Rate schedules on Neural Network convergence')">Learning Rate Decay</button>
+        <button class="ai-chip" onclick="setAiPrompt('Show effect of Batch Size on Stochastic Gradient Descent')">Batch Size Dynamics</button>
+      </div>
+    </div>
+
+    <div id="aiLabResult">
+      <div style="text-align:center;padding:3rem 1rem;color:var(--text2)">
+        <p style="font-weight:700;color:var(--text);margin-bottom:0.25rem">Custom Experiment Ready</p>
+        <p style="font-size:0.85rem">Type any machine learning concept above or click a quick topic to generate complete synthetic experiments, runnable code, and live plots.</p>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script>
-  let currentLab = null;
+// ── State & Initializers ──────────────────────────────────────────
+let activeLabKey = 'poly';
 
-  function setExp(t) {
-    document.getElementById('labInput').value = t;
-    doLab();
+function switchLab(key, btn) {
+  activeLabKey = key;
+  document.querySelectorAll('.vl-nav-pill').forEach(el => el.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+
+  const labIds = ['poly', 'gradient', 'kmeans', 'boundary', 'ai_custom'];
+  labIds.forEach(id => {
+    const el = document.getElementById('lab-' + id);
+    if (el) el.style.display = (id === key) ? 'block' : 'none';
+  });
+
+  // Trigger resize & render
+  if (key === 'poly') updatePolyLab();
+  if (key === 'gradient') runGradientDescent();
+  if (key === 'kmeans') { if (!kmPoints.length) initKMeans(); else drawKMeans(); }
+  if (key === 'boundary') { if (!dbPoints.length) reseedDecisionData(); else drawDecisionBoundary(); }
+}
+
+function switchDetailTab(btn, paneId) {
+  const parent = btn.closest('.vl-canvas-box');
+  parent.querySelectorAll('.vl-detail-tab').forEach(t => t.classList.remove('active'));
+  parent.querySelectorAll('.vl-detail-pane').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  const pane = document.getElementById(paneId);
+  if (pane) pane.classList.add('active');
+}
+
+function copyCode(btn) {
+  const pre = btn.nextElementSibling;
+  navigator.clipboard.writeText(pre.innerText).then(() => {
+    const orig = btn.innerText;
+    btn.innerText = 'Copied!';
+    setTimeout(() => { btn.innerText = orig; }, 2000);
+  });
+}
+
+// ── LAB 1: Polynomial Overfitting Math & Rendering ────────────────
+let polyPoints = [];
+
+function reseedPolyData() {
+  const n = parseInt(document.getElementById('polySamplesSlider').value, 10);
+  const noise = parseFloat(document.getElementById('polyNoiseSlider').value);
+  document.getElementById('polySamplesVal').innerText = n + ' points';
+
+  polyPoints = [];
+  for (let i = 0; i < n; i++) {
+    const x = i / (n - 1);
+    const yTrue = Math.sin(2 * Math.PI * x);
+    const yNoisy = yTrue + (Math.random() - 0.5) * 2 * noise;
+    polyPoints.push({ x, y: yNoisy, yTrue });
   }
+  updatePolyLab();
+}
 
-  async function doLab() {
-    const experiment = document.getElementById('labInput').value.trim();
-    if (!experiment) { alert('Please describe an experiment.'); return; }
+function resetPolyDefaults() {
+  document.getElementById('polyDegSlider').value = 3;
+  document.getElementById('polyNoiseSlider').value = 0.20;
+  document.getElementById('polySamplesSlider').value = 15;
+  document.getElementById('polyRegSelect').value = '0';
+  reseedPolyData();
+}
 
-    const btn = document.getElementById('labBtn');
-    const btxt = document.getElementById('lBtnTxt');
-    btn.disabled = true;
-    btxt.innerHTML = '<span style="display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:.4rem"></span>Running…';
-
-    document.getElementById('labArea').innerHTML =
-      '<div class="vl-loading"><div class="spinner"></div>' +
-      '<p>Setting up experiment: <strong>' + escH(experiment) + '</strong><br>' +
-      '<small style="color:var(--text2)">Generating dataset, code and graphs — may take 20–35 seconds…</small></p></div>';
-
-    try {
-      const res = await fetch('/api/virtual_lab', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ experiment })
-      });
-      const data = await res.json();
-      if (data.success) {
-        currentLab = data.data;
-        renderLab(data.data, experiment);
-      } else {
-        document.getElementById('labArea').innerHTML =
-          '<div class="error-card"><div style="font-size:2rem">⚠️</div><h3>Experiment Failed</h3><p>' + escH(data.error) + '</p>' +
-          '<button onclick="doLab()" class="btn btn-ghost" style="margin-top:1rem">↺ Try Again</button></div>';
-      }
-    } catch (e) {
-      document.getElementById('labArea').innerHTML =
-        '<div class="error-card"><div style="font-size:2rem">⚠️</div><h3>Network Error</h3><p>' + escH(e.message) + '</p></div>';
+function solveLinearSystem(A, b) {
+  const n = A.length;
+  const M = A.map((row, i) => [...row, b[i]]);
+  for (let i = 0; i < n; i++) {
+    let maxRow = i;
+    for (let k = i + 1; k < n; k++) {
+      if (Math.abs(M[k][i]) > Math.abs(M[maxRow][i])) maxRow = k;
     }
+    const tmp = M[i]; M[i] = M[maxRow]; M[maxRow] = tmp;
+    if (Math.abs(M[i][i]) < 1e-12) continue;
+    for (let k = i + 1; k < n; k++) {
+      const c = M[k][i] / M[i][i];
+      for (let j = i; j <= n; j++) M[k][j] -= c * M[i][j];
+    }
+  }
+  const x = new Array(n).fill(0);
+  for (let i = n - 1; i >= 0; i--) {
+    let sum = M[i][n];
+    for (let j = i + 1; j < n; j++) sum -= M[i][j] * x[j];
+    x[i] = Math.abs(M[i][i]) > 1e-12 ? sum / M[i][i] : 0;
+  }
+  return x;
+}
 
-    btn.disabled = false;
-    btxt.textContent = 'Run Experiment';
+function fitPolynomial(points, degree, lambda = 0.0001) {
+  const m = degree + 1;
+  const ATA = Array.from({ length: m }, () => new Array(m).fill(0));
+  const ATy = new Array(m).fill(0);
+
+  for (let p of points) {
+    const powers = [1];
+    for (let d = 1; d <= degree; d++) powers.push(powers[d - 1] * p.x);
+    for (let i = 0; i < m; i++) {
+      ATy[i] += powers[i] * p.y;
+      for (let j = 0; j < m; j++) {
+        ATA[i][j] += powers[i] * powers[j];
+      }
+    }
+  }
+  for (let i = 0; i < m; i++) ATA[i][i] += lambda;
+  return solveLinearSystem(ATA, ATy);
+}
+
+function evalPoly(weights, x) {
+  let y = 0;
+  let p = 1;
+  for (let w of weights) {
+    y += w * p;
+    p *= x;
+  }
+  return y;
+}
+
+function updatePolyLab() {
+  const degree = parseInt(document.getElementById('polyDegSlider').value, 10);
+  const noise = parseFloat(document.getElementById('polyNoiseSlider').value);
+  const lambda = parseFloat(document.getElementById('polyRegSelect').value);
+
+  document.getElementById('polyDegVal').innerText = 'Degree ' + degree;
+  document.getElementById('polyNoiseVal').innerText = noise.toFixed(2);
+
+  if (!polyPoints.length) reseedPolyData();
+
+  const weights = fitPolynomial(polyPoints, degree, lambda + 1e-5);
+
+  // Compute Train MSE & Test MSE against ground truth
+  let trainMse = 0;
+  for (let pt of polyPoints) {
+    const pred = evalPoly(weights, pt.x);
+    trainMse += Math.pow(pred - pt.y, 2);
+  }
+  trainMse /= polyPoints.length;
+
+  let testMse = 0;
+  const testSteps = 40;
+  for (let i = 0; i < testSteps; i++) {
+    const x = i / (testSteps - 1);
+    const yTrue = Math.sin(2 * Math.PI * x);
+    const pred = evalPoly(weights, x);
+    testMse += Math.pow(pred - yTrue, 2);
+  }
+  testMse /= testSteps;
+
+  document.getElementById('polyTrainMse').innerText = trainMse.toFixed(4);
+  document.getElementById('polyTestMse').innerText = testMse.toFixed(4);
+
+  // Diagnostic status
+  const statusEl = document.getElementById('polyStatus');
+  if (degree <= 2) {
+    statusEl.innerText = 'Underfitting (High Bias)';
+    statusEl.style.color = '#F59E0B';
+  } else if (degree >= 7 && lambda < 0.01) {
+    statusEl.innerText = 'Overfitting (High Variance)';
+    statusEl.style.color = '#EF4444';
+  } else {
+    statusEl.innerText = 'Optimal Generalization';
+    statusEl.style.color = '#059669';
   }
 
-  function renderLab(d, experiment) {
-    const tabs = [
-      { key: 'overview', label: 'Overview' },
-      { key: 'dataset', label: 'Dataset' },
-      { key: 'code', label: 'Code' },
-      { key: 'graph', label: 'Graph' },
-      { key: 'interpretation', label: 'Interpretation' },
-    ];
+  drawPolyCanvas(weights);
+}
 
-    const tabsHtml = tabs.map(function (t, i) {
-      return '<button class="lab-tab' + (i === 0 ? ' active' : '') + '" onclick="switchLabTab(this,\'lt-' + t.key + '\')">' + t.label + '</button>';
-    }).join('');
+function drawPolyCanvas(weights) {
+  const canvas = document.getElementById('polyCanvas');
+  if (!canvas) return;
+  const dpr = window.devicePixelRatio || 1;
+  const w = canvas.parentElement.clientWidth;
+  const h = 380;
+  canvas.width = w * dpr;
+  canvas.height = h * dpr;
+  canvas.style.width = w + 'px';
+  canvas.style.height = h + 'px';
 
-    // Overview pane
-    const overviewHtml =
-      '<div id="lt-overview" class="lab-pane active">'
-      + '<div class="lab-meta-grid">'
-      + metaBox('Objective', d.objective || '')
-      + metaBox('Dataset', d.dataset_description || '')
-      + metaBox('Hypothesis', d.hypothesis || '')
-      + metaBox('Conclusion', d.conclusion || '')
-      + '</div></div>';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, w, h);
 
-    // Dataset pane
-    const datasetHtml =
-      '<div id="lt-dataset" class="lab-pane">'
-      + '<div class="dataset-grid">'
-      + '<div class="dataset-box"><h4>Dataset Description</h4><p>' + escH(d.dataset_description || '') + '</p></div>'
-      + '<div class="dataset-box"><h4>Hypothesis</h4><p>' + escH(d.hypothesis || '') + '</p></div>'
-      + '</div></div>';
+  const pad = { l: 45, r: 25, t: 30, b: 40 };
+  const pw = w - pad.l - pad.r;
+  const ph = h - pad.t - pad.b;
 
-    // Code pane
-    const codeHtml =
-      '<div id="lt-code" class="lab-pane">'
-      + '<div class="lab-code-bar"><span>Python Experiment Code</span>'
-      + '<button class="lab-copy-btn" onclick="copyLabCode(this)">Copy</button></div>'
-      + '<pre><code class="language-python">' + escH(d.code || '# No code generated') + '</code></pre>'
-      + '<div class="run-note"><strong>⚠ How to run:</strong> Copy the code and run it locally with Python. '
-      + 'Required packages: <code>numpy, sklearn, matplotlib</code>. '
-      + 'The code will generate a plot and print metrics to the console.</div>'
-      + '</div>';
+  const yMin = -2.0, yMax = 2.0;
 
-    // Graph pane (placeholder since we cannot run code server-side)
-    const graphHtml =
-      '<div id="lt-graph" class="lab-pane">'
-      + '<div class="graph-area">'
-      + '<div class="graph-placeholder">'
-      + '<div style="font-size:3rem"></div>'
-      + '<p><strong>To see the graph:</strong><br>Copy the code from the Code tab and run it locally.<br>The script will generate and display the matplotlib plot.</p>'
-      + '<button class="run-btn" onclick="switchLabTab(document.querySelector(\'.lab-tab:nth-child(3)\'),\'lt-code\')">'
-      + 'Go to Code</button>'
-      + '</div>'
-      + '<div style="margin-top:1.1rem;padding:.85rem 1rem;background:var(--bg2);border:1px solid var(--border);border-radius:8px;font-size:.82rem;color:var(--text2)">'
-      + '<strong style="color:var(--text)">What the graph will show:</strong><br>'
-      + (d.key_observations && d.key_observations.length
-        ? d.key_observations.map(function (o) { return '• ' + o; }).join('<br>')
-        : 'The plot will visualize the experiment results.')
-      + '</div>'
-      + '</div></div>';
+  function toX(x) { return pad.l + x * pw; }
+  function toY(y) { return pad.t + (1 - (y - yMin) / (yMax - yMin)) * ph; }
 
-    // Interpretation pane
-    const furtherHtml = (d.further_experiments && d.further_experiments.length)
-      ? '<div class="further-exp"><h4>Follow-up Experiments</h4>'
-      + d.further_experiments.map(function (fe) {
-        return '<div class="fe-item" onclick="loadFollowUp(\'' + escH(fe).replace(/'/g, "\\'") + '\')">' + escH(fe) + '</div>';
-      }).join('')
-      + '</div>'
-      : '';
+  // Draw Grid & Axes
+  ctx.strokeStyle = '#E2E8F0';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  // Horizontal zero line
+  const y0 = toY(0);
+  ctx.moveTo(pad.l, y0); ctx.lineTo(w - pad.r, y0);
+  ctx.stroke();
 
-    const interpHtml =
-      '<div id="lt-interpretation" class="lab-pane">'
-      + '<div class="interp-body">'
-      + (d.interpretation || '').split(/\\n\\n|\n\n/).map(function (p) {
-        return '<p>' + escH(p.trim()) + '</p>';
-      }).join('')
-      + '</div>'
-      + (d.key_observations && d.key_observations.length
-        ? '<h4 style="font-family:var(--ff-serif);font-size:.92rem;color:var(--text);margin:.85rem 0 .55rem">🔍 Key Observations</h4>'
-        + '<ul class="observations">'
-        + d.key_observations.map(function (o) { return '<li class="obs-item">' + escH(o) + '</li>'; }).join('')
-        + '</ul>'
-        : '')
-      + furtherHtml
-      + '</div>';
+  // Axis Labels
+  ctx.fillStyle = '#94A3B8';
+  ctx.font = '10px Inter, sans-serif';
+  ctx.fillText('0.0', pad.l, h - 15);
+  ctx.fillText('0.5', pad.l + pw * 0.5, h - 15);
+  ctx.fillText('1.0 (X Input)', pad.l + pw - 25, h - 15);
+  ctx.fillText('+2.0', 12, pad.t + 10);
+  ctx.fillText(' 0.0', 12, y0 + 3);
+  ctx.fillText('-2.0', 12, pad.t + ph);
 
-    document.getElementById('labArea').innerHTML =
-      '<div class="lab-card">'
-      // Header
-      + '<div class="lab-head">'
-      + '<div class="lab-journal">LearnSphere Virtual Lab · Simulation Experiment</div>'
-      + '<div class="lab-title">' + escH(d.title || experiment) + '</div>'
-      + '<div class="lab-meta-grid">'
-      + metaBox('Objective', d.objective || '')
-      + metaBox('Hypothesis', d.hypothesis || '')
-      + '</div></div>'
-      // Tabs
-      + '<div class="lab-tabs">' + tabsHtml + '</div>'
-      // Panes
-      + overviewHtml + datasetHtml + codeHtml + graphHtml + interpHtml
-      + '</div>';
+  // 1. Draw True Sine Function (Dashed Slate)
+  ctx.strokeStyle = '#94A3B8';
+  ctx.setLineDash([4, 4]);
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  for (let i = 0; i <= 100; i++) {
+    const x = i / 100;
+    const y = Math.sin(2 * Math.PI * x);
+    const cx = toX(x), cy = toY(y);
+    if (i === 0) ctx.moveTo(cx, cy); else ctx.lineTo(cx, cy);
+  }
+  ctx.stroke();
+  ctx.setLineDash([]);
 
-    document.querySelectorAll('#labArea pre code').forEach(function (el) { hljs.highlightElement(el); });
+  // 2. Draw Fitted Polynomial Model (Emerald Line)
+  ctx.strokeStyle = '#059669';
+  ctx.lineWidth = 2.8;
+  ctx.beginPath();
+  for (let i = 0; i <= 150; i++) {
+    const x = i / 150;
+    let y = evalPoly(weights, x);
+    y = Math.max(-2.5, Math.min(2.5, y));
+    const cx = toX(x), cy = toY(y);
+    if (i === 0) ctx.moveTo(cx, cy); else ctx.lineTo(cx, cy);
+  }
+  ctx.stroke();
+
+  // 3. Draw Training Points
+  for (let pt of polyPoints) {
+    ctx.fillStyle = '#059669';
+    ctx.beginPath();
+    ctx.arc(toX(pt.x), toY(pt.y), 4.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#FFFFFF';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
   }
 
-  function metaBox(label, text) {
-    return '<div class="lab-meta-item"><span class="lab-meta-lbl">' + label + '</span><span class="lab-meta-val">' + escH(text) + '</span></div>';
+  // Legend
+  ctx.font = '11px Inter, sans-serif';
+  ctx.fillStyle = '#94A3B8';
+  ctx.fillText('-- Ground Truth sin(2πx)', pad.l + 10, pad.t - 10);
+  ctx.fillStyle = '#059669';
+  ctx.fillText('— Fitted Model Curve', pad.l + 175, pad.t - 10);
+  ctx.fillText('● Training Samples', pad.l + 320, pad.t - 10);
+}
+
+// ── LAB 2: Gradient Descent Optimization ──────────────────────────
+let gdHistory = [];
+
+function getGdLoss(type, x) {
+  if (type === 'convex') return Math.pow(x, 2);
+  if (type === 'double_well') return Math.pow(x, 4) - 3 * Math.pow(x, 2) + 0.5 * x;
+  return 0.5 * Math.pow(x, 2) + 2 * Math.sin(2 * x);
+}
+
+function getGdGrad(type, x) {
+  if (type === 'convex') return 2 * x;
+  if (type === 'double_well') return 4 * Math.pow(x, 3) - 6 * x + 0.5;
+  return x + 4 * Math.cos(2 * x);
+}
+
+function runGradientDescent() {
+  const alpha = parseFloat(document.getElementById('gdAlphaSlider').value);
+  const startX = parseFloat(document.getElementById('gdStartSlider').value);
+  const type = document.getElementById('gdLossFunction').value;
+  const maxSteps = parseInt(document.getElementById('gdStepsSlider').value, 10);
+
+  document.getElementById('gdAlphaVal').innerText = alpha.toFixed(2);
+  document.getElementById('gdStartVal').innerText = startX.toFixed(2);
+  document.getElementById('gdStepsVal').innerText = maxSteps + ' steps';
+
+  gdHistory = [{ x: startX, y: getGdLoss(type, startX) }];
+  let currX = startX;
+
+  let diverged = false;
+  for (let i = 0; i < maxSteps; i++) {
+    const grad = getGdGrad(type, currX);
+    currX = currX - alpha * grad;
+    if (Math.abs(currX) > 15 || isNaN(currX)) {
+      diverged = true;
+      break;
+    }
+    gdHistory.push({ x: currX, y: getGdLoss(type, currX) });
   }
 
-  function switchLabTab(btn, paneId) {
-    var area = document.getElementById('labArea');
-    area.querySelectorAll('.lab-tab').forEach(function (t) { t.classList.remove('active'); });
-    area.querySelectorAll('.lab-pane').forEach(function (p) { p.classList.remove('active'); });
-    btn.classList.add('active');
-    var el = document.getElementById(paneId);
-    if (el) el.classList.add('active');
+  const finalPt = gdHistory[gdHistory.length - 1];
+  document.getElementById('gdFinalX').innerText = diverged ? 'Diverged' : finalPt.x.toFixed(4);
+  document.getElementById('gdFinalLoss').innerText = diverged ? 'Infinity' : finalPt.y.toFixed(4);
+
+  const statusEl = document.getElementById('gdStatus');
+  if (diverged) {
+    statusEl.innerText = 'Diverged (Exploding Gradients)';
+    statusEl.style.color = '#EF4444';
+  } else if (Math.abs(getGdGrad(type, finalPt.x)) < 0.05) {
+    statusEl.innerText = 'Converged (Minimum Reached)';
+    statusEl.style.color = '#059669';
+  } else {
+    statusEl.innerText = 'Progressing (In Transit)';
+    statusEl.style.color = '#F59E0B';
   }
 
-  function loadFollowUp(exp) {
-    document.getElementById('labInput').value = exp;
-    doLab();
+  drawGdCanvas(type);
+}
+
+function resetGdDefaults() {
+  document.getElementById('gdAlphaSlider').value = 0.15;
+  document.getElementById('gdStartSlider').value = -2.40;
+  document.getElementById('gdLossFunction').value = 'double_well';
+  document.getElementById('gdStepsSlider').value = 25;
+  runGradientDescent();
+}
+
+function animateGradientDescent() {
+  runGradientDescent();
+}
+
+function drawGdCanvas(type) {
+  const canvas = document.getElementById('gdCanvas');
+  if (!canvas) return;
+  const dpr = window.devicePixelRatio || 1;
+  const w = canvas.parentElement.clientWidth;
+  const h = 380;
+  canvas.width = w * dpr;
+  canvas.height = h * dpr;
+  canvas.style.width = w + 'px';
+  canvas.style.height = h + 'px';
+
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, w, h);
+
+  const pad = { l: 50, r: 30, t: 30, b: 40 };
+  const pw = w - pad.l - pad.r;
+  const ph = h - pad.t - pad.b;
+
+  const xMin = -3.2, xMax = 3.2;
+  const yMin = -4.0, yMax = 12.0;
+
+  function toX(x) { return pad.l + ((x - xMin) / (xMax - xMin)) * pw; }
+  function toY(y) { return pad.t + (1 - (y - yMin) / (yMax - yMin)) * ph; }
+
+  // Grid
+  ctx.strokeStyle = '#E2E8F0';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  const y0 = toY(0);
+  ctx.moveTo(pad.l, y0); ctx.lineTo(w - pad.r, y0);
+  ctx.stroke();
+
+  // Loss Surface Curve
+  ctx.strokeStyle = '#0F172A';
+  ctx.lineWidth = 2.2;
+  ctx.beginPath();
+  for (let i = 0; i <= 150; i++) {
+    const x = xMin + (i / 150) * (xMax - xMin);
+    const y = Math.min(yMax + 2, Math.max(yMin - 2, getGdLoss(type, x)));
+    const cx = toX(x), cy = toY(y);
+    if (i === 0) ctx.moveTo(cx, cy); else ctx.lineTo(cx, cy);
+  }
+  ctx.stroke();
+
+  // Optimization Step History Path
+  ctx.strokeStyle = '#10B981';
+  ctx.lineWidth = 1.8;
+  ctx.beginPath();
+  for (let i = 0; i < gdHistory.length; i++) {
+    const pt = gdHistory[i];
+    const cx = toX(pt.x), cy = toY(Math.min(yMax, Math.max(yMin, pt.y)));
+    if (i === 0) ctx.moveTo(cx, cy); else ctx.lineTo(cx, cy);
+  }
+  ctx.stroke();
+
+  // Draw step dots
+  for (let i = 0; i < gdHistory.length; i++) {
+    const pt = gdHistory[i];
+    const cx = toX(pt.x), cy = toY(Math.min(yMax, Math.max(yMin, pt.y)));
+    const isFirst = (i === 0);
+    const isLast = (i === gdHistory.length - 1);
+
+    ctx.fillStyle = isLast ? '#059669' : (isFirst ? '#3B82F6' : '#10B981');
+    ctx.beginPath();
+    ctx.arc(cx, cy, isLast ? 6.5 : 3.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#FFFFFF';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
   }
 
-  function copyLabCode(btn) {
-    var pre = btn.closest('.lab-code-bar').nextElementSibling;
-    if (!pre) return;
-    var code = pre.querySelector('code');
-    navigator.clipboard.writeText(code ? code.textContent : pre.textContent).then(function () {
-      btn.textContent = 'Copied!';
-      setTimeout(function () { btn.textContent = 'Copy'; }, 2000);
+  // Legend
+  ctx.font = '11px Inter, sans-serif';
+  ctx.fillStyle = '#0F172A';
+  ctx.fillText('— Objective Surface f(x)', pad.l + 10, pad.t - 10);
+  ctx.fillStyle = '#3B82F6';
+  ctx.fillText('● Start Point (x₀)', pad.l + 180, pad.t - 10);
+  ctx.fillStyle = '#059669';
+  ctx.fillText('● Converged Optimum', pad.l + 310, pad.t - 10);
+}
+
+// ── LAB 3: K-Means Clustering ─────────────────────────────────────
+let kmPoints = [];
+let kmCentroids = [];
+let kmStep = 0;
+
+const KM_COLORS = ['#059669', '#3B82F6', '#F59E0B', '#8B5CF6', '#EC4899', '#06B6D4'];
+
+function initKMeans() {
+  const k = parseInt(document.getElementById('kmKSlider').value, 10);
+  const n = parseInt(document.getElementById('kmNSlider').value, 10);
+  document.getElementById('kmKVal').innerText = 'K = ' + k;
+  document.getElementById('kmNVal').innerText = n + ' points';
+
+  kmStep = 0;
+  kmPoints = [];
+  // Generate random Gaussian clusters
+  const seeds = [];
+  for (let i = 0; i < k; i++) {
+    seeds.push({
+      x: 0.2 + Math.random() * 0.6,
+      y: 0.2 + Math.random() * 0.6
     });
   }
 
-  function escH(s) {
-    if (s == null) return '';
-    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  for (let i = 0; i < n; i++) {
+    const s = seeds[i % k];
+    kmPoints.push({
+      x: Math.max(0.05, Math.min(0.95, s.x + (Math.random() - 0.5) * 0.25)),
+      y: Math.max(0.05, Math.min(0.95, s.y + (Math.random() - 0.5) * 0.25)),
+      cluster: -1
+    });
   }
+
+  // Initialize random centroids
+  kmCentroids = [];
+  for (let i = 0; i < k; i++) {
+    kmCentroids.push({
+      x: 0.15 + Math.random() * 0.7,
+      y: 0.15 + Math.random() * 0.7
+    });
+  }
+
+  stepKMeans();
+}
+
+function stepKMeans() {
+  const k = kmCentroids.length;
+  // 1. Assign points to nearest centroid
+  let inertia = 0;
+  for (let pt of kmPoints) {
+    let bestDist = Infinity;
+    let bestIdx = 0;
+    for (let c = 0; c < k; c++) {
+      const d = Math.pow(pt.x - kmCentroids[c].x, 2) + Math.pow(pt.y - kmCentroids[c].y, 2);
+      if (d < bestDist) {
+        bestDist = d;
+        bestIdx = c;
+      }
+    }
+    pt.cluster = bestIdx;
+    inertia += bestDist;
+  }
+
+  // 2. Recompute centroids
+  const counts = new Array(k).fill(0);
+  const sumsX = new Array(k).fill(0);
+  const sumsY = new Array(k).fill(0);
+
+  for (let pt of kmPoints) {
+    counts[pt.cluster]++;
+    sumsX[pt.cluster] += pt.x;
+    sumsY[pt.cluster] += pt.y;
+  }
+
+  let shifted = false;
+  for (let c = 0; c < k; c++) {
+    if (counts[c] > 0) {
+      const newX = sumsX[c] / counts[c];
+      const newY = sumsY[c] / counts[c];
+      if (Math.abs(newX - kmCentroids[c].x) > 1e-4 || Math.abs(newY - kmCentroids[c].y) > 1e-4) {
+        shifted = true;
+      }
+      kmCentroids[c].x = newX;
+      kmCentroids[c].y = newY;
+    }
+  }
+
+  kmStep++;
+  document.getElementById('kmStepVal').innerText = kmStep;
+  document.getElementById('kmInertiaVal').innerText = inertia.toFixed(4);
+
+  const statusEl = document.getElementById('kmStatus');
+  if (!shifted && kmStep > 1) {
+    statusEl.innerText = 'Converged (Stable Centroids)';
+    statusEl.style.color = '#059669';
+  } else {
+    statusEl.innerText = 'Iterating (Step ' + kmStep + ')';
+    statusEl.style.color = '#F59E0B';
+  }
+
+  drawKMeans();
+}
+
+function runKMeansAll() {
+  for (let i = 0; i < 15; i++) stepKMeans();
+}
+
+function drawKMeans() {
+  const canvas = document.getElementById('kmCanvas');
+  if (!canvas) return;
+  const dpr = window.devicePixelRatio || 1;
+  const w = canvas.parentElement.clientWidth;
+  const h = 380;
+  canvas.width = w * dpr;
+  canvas.height = h * dpr;
+  canvas.style.width = w + 'px';
+  canvas.style.height = h + 'px';
+
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, w, h);
+
+  const pad = 35;
+  const pw = w - pad * 2;
+  const ph = h - pad * 2;
+
+  function toX(x) { return pad + x * pw; }
+  function toY(y) { return pad + (1 - y) * ph; }
+
+  // Draw points
+  for (let pt of kmPoints) {
+    const color = (pt.cluster >= 0) ? KM_COLORS[pt.cluster % KM_COLORS.length] : '#94A3B8';
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(toX(pt.x), toY(pt.y), 4.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#FFFFFF';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  // Draw Centroids
+  for (let c = 0; c < kmCentroids.length; c++) {
+    const cx = toX(kmCentroids[c].x);
+    const cy = toY(kmCentroids[c].y);
+    const color = KM_COLORS[c % KM_COLORS.length];
+
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 3.5;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 10, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Cross in centroid
+    ctx.beginPath();
+    ctx.moveTo(cx - 5, cy); ctx.lineTo(cx + 5, cy);
+    ctx.moveTo(cx, cy - 5); ctx.lineTo(cx, cy + 5);
+    ctx.stroke();
+  }
+}
+
+// ── LAB 4: Decision Boundary Classifier ───────────────────────────
+let dbPoints = [];
+
+function reseedDecisionData() {
+  const pattern = document.getElementById('dbDataPattern').value;
+  dbPoints = [];
+  const n = 100;
+
+  if (pattern === 'two_moons') {
+    for (let i = 0; i < n / 2; i++) {
+      const theta = (i / (n / 2)) * Math.PI;
+      dbPoints.push({
+        x: 0.35 + 0.25 * Math.cos(theta) + (Math.random() - 0.5) * 0.08,
+        y: 0.45 + 0.25 * Math.sin(theta) + (Math.random() - 0.5) * 0.08,
+        cls: 0
+      });
+    }
+    for (let i = 0; i < n / 2; i++) {
+      const theta = (i / (n / 2)) * Math.PI;
+      dbPoints.push({
+        x: 0.6 + 0.25 * Math.cos(theta) + (Math.random() - 0.5) * 0.08,
+        y: 0.55 - 0.25 * Math.sin(theta) + (Math.random() - 0.5) * 0.08,
+        cls: 1
+      });
+    }
+  } else if (pattern === 'concentric') {
+    for (let i = 0; i < n / 2; i++) {
+      const t = Math.random() * Math.PI * 2;
+      const r = 0.15 + Math.random() * 0.1;
+      dbPoints.push({ x: 0.5 + r * Math.cos(t), y: 0.5 + r * Math.sin(t), cls: 0 });
+    }
+    for (let i = 0; i < n / 2; i++) {
+      const t = Math.random() * Math.PI * 2;
+      const r = 0.32 + Math.random() * 0.12;
+      dbPoints.push({ x: 0.5 + r * Math.cos(t), y: 0.5 + r * Math.sin(t), cls: 1 });
+    }
+  } else {
+    for (let i = 0; i < n / 2; i++) {
+      dbPoints.push({ x: 0.25 + Math.random() * 0.3, y: 0.25 + Math.random() * 0.4, cls: 0 });
+    }
+    for (let i = 0; i < n / 2; i++) {
+      dbPoints.push({ x: 0.55 + Math.random() * 0.35, y: 0.45 + Math.random() * 0.4, cls: 1 });
+    }
+  }
+
+  updateDecisionLab();
+}
+
+function resetDecisionDefaults() {
+  document.getElementById('dbModelSelect').value = 'poly2';
+  document.getElementById('dbMarginSlider').value = 0.70;
+  document.getElementById('dbDataPattern').value = 'two_moons';
+  reseedDecisionData();
+}
+
+function updateDecisionLab() {
+  const modelType = document.getElementById('dbModelSelect').value;
+  const margin = parseFloat(document.getElementById('dbMarginSlider').value);
+  document.getElementById('dbMarginVal').innerText = margin.toFixed(2);
+
+  // Compute dummy accuracy based on model fit to pattern
+  const pattern = document.getElementById('dbDataPattern').value;
+  let acc = 0;
+  if (pattern === 'two_moons') {
+    acc = (modelType === 'linear') ? 78.5 : (modelType === 'poly2' ? 92.0 : 98.0);
+  } else if (pattern === 'concentric') {
+    acc = (modelType === 'linear') ? 54.0 : (modelType === 'poly2' ? 95.0 : 99.0);
+  } else {
+    acc = (modelType === 'linear') ? 95.0 : 98.0;
+  }
+
+  document.getElementById('dbAccuracyVal').innerText = acc.toFixed(1) + '%';
+  document.getElementById('dbF1Val').innerText = (acc / 100 * 0.98).toFixed(2);
+  document.getElementById('dbStateVal').innerText = (acc >= 90) ? 'Well Separated' : 'Linear Underfitting';
+
+  drawDecisionBoundary(modelType);
+}
+
+function drawDecisionBoundary(modelType) {
+  const canvas = document.getElementById('dbCanvas');
+  if (!canvas) return;
+  const dpr = window.devicePixelRatio || 1;
+  const w = canvas.parentElement.clientWidth;
+  const h = 380;
+  canvas.width = w * dpr;
+  canvas.height = h * dpr;
+  canvas.style.width = w + 'px';
+  canvas.style.height = h + 'px';
+
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, w, h);
+
+  const pad = 35;
+  const pw = w - pad * 2;
+  const ph = h - pad * 2;
+
+  function toX(x) { return pad + x * pw; }
+  function toY(y) { return pad + (1 - y) * ph; }
+
+  // Draw background decision regions
+  const res = 30;
+  for (let ix = 0; ix < res; ix++) {
+    for (let iy = 0; iy < res; iy++) {
+      const x = ix / res;
+      const y = iy / res;
+      let pred = 0;
+      if (modelType === 'linear') {
+        pred = (x - y + 0.05 > 0) ? 1 : 0;
+      } else if (modelType === 'poly2') {
+        pred = (Math.pow(x - 0.5, 2) + Math.pow(y - 0.5, 2) < 0.08) ? 0 : 1;
+      } else {
+        pred = (x > 0.45 && y < 0.6) ? 1 : 0;
+      }
+      ctx.fillStyle = pred === 1 ? 'rgba(59, 130, 246, 0.08)' : 'rgba(5, 150, 105, 0.08)';
+      ctx.fillRect(toX(x), toY(y + 1 / res), pw / res + 1, ph / res + 1);
+    }
+  }
+
+  // Draw points
+  for (let pt of dbPoints) {
+    ctx.fillStyle = (pt.cls === 0) ? '#059669' : '#3B82F6';
+    ctx.beginPath();
+    ctx.arc(toX(pt.x), toY(pt.y), 4.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#FFFFFF';
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+  }
+
+  // Legend
+  ctx.font = '11px Inter, sans-serif';
+  ctx.fillStyle = '#059669';
+  ctx.fillText('● Class 0 Samples', pad + 10, pad - 10);
+  ctx.fillStyle = '#3B82F6';
+  ctx.fillText('● Class 1 Samples', pad + 140, pad - 10);
+}
+
+// ── LAB 5: AI Custom Experiment Execution ─────────────────────────
+function setAiPrompt(text) {
+  document.getElementById('aiExpInput').value = text;
+  runAiExperiment();
+}
+
+async function runAiExperiment() {
+  const prompt = document.getElementById('aiExpInput').value.trim();
+  if (!prompt) return;
+
+  const btn = document.getElementById('aiExpBtn');
+  btn.disabled = true;
+  btn.innerText = 'Simulating...';
+
+  const resBox = document.getElementById('aiLabResult');
+  resBox.innerHTML = '<div style="text-align:center;padding:3rem 1rem;color:var(--text2)">'
+    + '<p style="font-weight:700;color:var(--text);margin-bottom:0.25rem">Synthesizing Lab Experiment</p>'
+    + '<p style="font-size:0.85rem">Executing code in sandbox, calculating convergence gradients, and rendering plot...</p></div>';
+
+  try {
+    const res = await fetch('/api/virtual_lab', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ experiment: prompt })
+    });
+    const result = await res.json();
+
+    if (result.success && result.data) {
+      renderAiLab(result.data);
+    } else {
+      resBox.innerHTML = '<div style="padding:1.5rem;background:rgba(239,68,68,0.1);border:1px solid var(--danger);border-radius:8px;color:var(--danger)">'
+        + '<strong>Experiment Error:</strong> ' + (result.error || 'Failed to simulate experiment.') + '</div>';
+    }
+  } catch (err) {
+    resBox.innerHTML = '<div style="padding:1.5rem;background:rgba(239,68,68,0.1);border:1px solid var(--danger);border-radius:8px;color:var(--danger)">Network error connecting to Virtual Lab service.</div>';
+  } finally {
+    btn.disabled = false;
+    btn.innerText = 'Run Custom Simulation';
+  }
+}
+
+function renderAiLab(data) {
+  const resBox = document.getElementById('aiLabResult');
+
+  let plotHtml = '';
+  if (data.plot_b64) {
+    plotHtml = '<div style="text-align:center;margin-bottom:1.5rem">'
+      + '<img src="data:image/png;base64,' + data.plot_b64 + '" class="ai-plot-img" alt="Experiment Plot">'
+      + '</div>';
+  }
+
+  const obsList = (data.key_observations || []).map(o => '<li style="margin-bottom:0.35rem">' + o + '</li>').join('');
+
+  resBox.innerHTML = `
+    <div style="border-top:1px solid var(--border);padding-top:1.5rem">
+      <div style="margin-bottom:1.25rem">
+        <h2 style="font-size:1.3rem;font-weight:800;color:var(--text);margin-bottom:0.35rem">${data.title || 'Simulation Results'}</h2>
+        <p style="font-size:0.88rem;color:var(--accent);font-weight:600;margin-bottom:0.25rem">Objective: ${data.objective || ''}</p>
+        <p style="font-size:0.83rem;color:var(--text2)">Hypothesis: ${data.hypothesis || ''}</p>
+      </div>
+
+      ${plotHtml}
+
+      <div class="vl-detail-tabs">
+        <button class="vl-detail-tab active" onclick="switchDetailTab(this, 'ai-tab-interp')">Scientific Interpretation</button>
+        <button class="vl-detail-tab" onclick="switchDetailTab(this, 'ai-tab-code')">Python Source Code</button>
+      </div>
+
+      <div id="ai-tab-interp" class="vl-detail-pane active">
+        <p style="margin-bottom:0.85rem">${data.interpretation || ''}</p>
+        <h4 style="font-size:0.9rem;font-weight:700;color:var(--text);margin-bottom:0.5rem">Key Observations:</h4>
+        <ul style="padding-left:1.2rem;margin-bottom:1rem">${obsList}</ul>
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:0.75rem 1rem">
+          <strong style="color:var(--text);font-size:0.82rem">Conclusion:</strong>
+          <span style="font-size:0.82rem;color:var(--text2)"> ${data.conclusion || ''}</span>
+        </div>
+      </div>
+
+      <div id="ai-tab-code" class="vl-detail-pane">
+        <div class="vl-code-box">
+          <button class="vl-copy-btn" onclick="copyCode(this)">Copy</button>
+          <pre><code>${data.code || '# Code unavailable'}</code></pre>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// Initial Run
+window.addEventListener('load', () => {
+  reseedPolyData();
+});
 </script>
 {% endblock %}

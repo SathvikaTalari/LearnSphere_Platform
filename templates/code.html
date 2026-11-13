@@ -1,972 +1,958 @@
 {% extends "base.html" %}
-{% block title %}Code Lab — LearnSphere{% endblock %}
+{% block title %}Code Lab &bull; LearnSphere{% endblock %}
 {% block content %}
 
 <style>
-  /* ── Code Lab specific styles ─────────────────────────────────── */
-  .cl-wrap {
-    max-width: 1300px;
-    margin: 0 auto;
-    padding: 1.75rem 2rem 4rem;
-  }
-
-  .cl-header {
-    margin-bottom: 1.5rem;
-  }
-
-  .cl-header h1 {
-    font-family: var(--ff-serif);
-    font-size: 1.65rem;
-    font-weight: 700;
-    color: var(--text);
-    margin-bottom: .25rem;
-  }
-
-  .cl-header p {
-    font-size: .84rem;
-    color: var(--text2);
-  }
-
-  .cl-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.4rem;
-    align-items: start;
-  }
-
-  /* ── Panel card ── */
-  .cl-card {
-    background: var(--bg3);
-    border: 1px solid var(--border);
-    border-radius: var(--r2);
-    overflow: hidden;
-  }
-
-  .cl-card-head {
-    display: flex;
-    align-items: center;
-    padding: .75rem 1.2rem;
-    border-bottom: 1px solid var(--border);
-    gap: .35rem;
-  }
-
-  .cl-card-title {
-    font-family: var(--ff-serif);
-    font-size: .95rem;
-    font-weight: 700;
-    color: var(--text);
-    margin-left: .1rem;
-  }
-
-  /* ── Input side tabs ── */
-  /* IMPORTANT: use class "itab" and "ipane" so they are 100% isolated from
-   the result panel — switchPanel() only touches these, never the result */
-  .itab {
-    padding: .28rem .8rem;
-    border-radius: 6px;
-    border: 1px solid transparent;
-    background: none;
-    color: var(--text2);
-    font-size: .8rem;
-    font-weight: 600;
-    cursor: pointer;
-    font-family: var(--ff-sans);
-    transition: all .14s;
-  }
-
-  .itab.active {
-    background: var(--accent-glow);
-    border-color: var(--border2);
-    color: var(--accent);
-  }
-
-  .ipane {
-    padding: 1.2rem;
-    display: none;
-  }
-
-  .ipane.active {
-    display: block;
-  }
-
-  .cl-label {
-    display: block;
-    font-size: .7rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: .05em;
-    color: var(--text2);
-    margin-bottom: .45rem;
-  }
-
-  .cl-textarea {
-    width: 100%;
-    padding: .65rem .85rem;
-    border-radius: 8px;
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    color: var(--text);
-    font-family: var(--ff-sans);
-    font-size: .84rem;
-    outline: none;
-    resize: vertical;
-    min-height: 110px;
-    line-height: 1.65;
-    transition: border-color .15s;
-    margin-bottom: .85rem;
-  }
-
-  .cl-textarea:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px var(--accent-glow);
-  }
-
-  .cl-textarea.tall {
-    min-height: 200px;
-    font-family: var(--ff-mono);
-    font-size: .78rem;
-  }
-
-  .cl-templates {
-    display: flex;
-    flex-wrap: wrap;
-    gap: .35rem;
-    align-items: center;
-    margin-bottom: .85rem;
-  }
-
-  .cl-tpl-lbl {
-    font-size: .7rem;
-    color: var(--text2);
-    white-space: nowrap;
-  }
-
-  .cl-tpl-btn {
-    padding: .18rem .58rem;
-    border-radius: 20px;
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    color: var(--text2);
-    font-size: .7rem;
-    cursor: pointer;
-    font-family: var(--ff-sans);
-    transition: all .14s;
-  }
-
-  .cl-tpl-btn:hover {
-    border-color: var(--accent);
-    color: var(--accent);
-    background: var(--accent-glow);
-  }
-
-  .cl-submit {
-    width: 100%;
-    padding: .65rem;
-    border-radius: 9px;
-    background: var(--accent);
-    border: none;
-    color: #fff;
-    font-family: var(--ff-serif);
-    font-size: .92rem;
-    font-weight: 700;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: .5rem;
-    transition: all .18s;
-  }
-
-  .cl-submit:hover {
-    filter: brightness(1.08);
-    transform: translateY(-1px);
-  }
-
-  .cl-submit:disabled {
-    opacity: .5;
-    cursor: not-allowed;
-    transform: none;
-  }
-
-  /* ── Result panel ── 
-   Uses class "cl-result-body" — NOT "panel-body" so switchPanel NEVER touches it */
-  .cl-result-body {
-    padding: 1.2rem;
-    min-height: 400px;
-    overflow-y: auto;
-  }
-
-  /* Empty / loading states */
-  .cl-empty {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 300px;
-    text-align: center;
-    color: var(--text2);
-    gap: .7rem;
-  }
-
-  .cl-empty h3 {
-    font-family: var(--ff-serif);
-    font-size: 1rem;
-    color: var(--text);
-  }
-
-  .cl-loading {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 300px;
-    gap: 1rem;
-    color: var(--text2);
-    text-align: center;
-  }
-
-  .cl-loading small {
-    color: var(--text2);
-    opacity: .7;
-  }
-
-  /* ── Score header (inside result, not in nav) ── */
-  .cl-score-wrap {
-    display: flex;
-    align-items: center;
-    gap: .95rem;
-    padding: .85rem 1.1rem;
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: var(--r2);
-    margin-bottom: 1.1rem;
-  }
-
-  .cl-score-ring {
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    border: 4px solid;
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .cl-score-val {
-    font-family: var(--ff-serif);
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: var(--text);
-  }
-
-  .cl-score-right {
-    flex: 1;
-  }
-
-  .cl-score-title {
-    font-size: .82rem;
-    font-weight: 700;
-    color: var(--text);
-    margin-bottom: .3rem;
-  }
-
-  .cl-score-bar {
-    height: 6px;
-    background: var(--bg4);
-    border-radius: 3px;
-    overflow: hidden;
-    margin-bottom: .2rem;
-  }
-
-  .cl-score-fill {
-    height: 100%;
-    border-radius: 3px;
-    width: 0;
-    transition: width .8s ease;
-  }
-
-  .cl-score-lbl {
-    font-size: .7rem;
-    color: var(--text2);
-  }
-
-  /* ── Result tabs (scoped inside result panel) ── */
-  /* Use class "rtab" / "rpane" — completely separate from itab/ipane */
-  .rtabs {
-    display: flex;
-    gap: .3rem;
-    margin-bottom: 1rem;
-    border-bottom: 1px solid var(--border);
-    padding-bottom: .6rem;
-  }
-
-  .rtab {
-    padding: .28rem .78rem;
-    border-radius: 6px;
-    border: 1px solid transparent;
-    background: none;
-    color: var(--text2);
-    font-size: .78rem;
-    font-weight: 600;
-    cursor: pointer;
-    font-family: var(--ff-sans);
-    transition: all .14s;
-  }
-
-  .rtab.active {
-    background: var(--accent-glow);
-    border-color: var(--border2);
-    color: var(--accent);
-  }
-
-  .rpane {
-    display: none;
-  }
-
-  .rpane.active {
-    display: block;
-    animation: fadeUp .22s ease;
-  }
-
-  /* Code block styling */
-  .cl-code-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: var(--bg2);
-    padding: .5rem .95rem;
-    border-radius: 8px 8px 0 0;
-    border: 1px solid var(--border);
-    border-bottom: none;
-    font-size: .74rem;
-    color: var(--accent);
-    font-weight: 600;
-  }
-
-  .cl-code-bar+pre {
-    border-radius: 0 0 8px 8px;
-    margin: 0;
-    border: 1px solid var(--border);
-    border-top: none;
-  }
-
-  .cl-copy-btn {
-    background: none;
-    border: none;
-    color: var(--text2);
-    font-size: .72rem;
-    cursor: pointer;
-    font-family: var(--ff-sans);
-    transition: color .14s;
-  }
-
-  .cl-copy-btn:hover {
-    color: var(--accent);
-  }
-
-  .cl-libs-badge {
-    font-size: .66rem;
-    color: var(--text2);
-    background: var(--bg3);
-    padding: .1rem .38rem;
-    border-radius: 4px;
-    border: 1px solid var(--border);
-  }
-
-  /* Expected output */
-  .cl-output {
-    margin-top: .75rem;
-    padding: .65rem .9rem;
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-  }
-
-  .cl-output-lbl {
-    font-size: .67rem;
-    color: var(--text2);
-    font-weight: 700;
-    display: block;
-    margin-bottom: .32rem;
-    text-transform: uppercase;
-    letter-spacing: .04em;
-  }
-
-  .cl-output-pre {
-    font-family: var(--ff-mono);
-    font-size: .77rem;
-    color: var(--text2);
-    white-space: pre-wrap;
-  }
-
-  /* Explanation box */
-  .cl-explain-box {
-    padding: .9rem 1rem;
-    background: var(--bg2);
-    border-radius: 8px;
-  }
-
-  .cl-explain-box h4 {
-    font-size: .85rem;
-    color: var(--text);
-    margin-bottom: .5rem;
-    font-family: var(--ff-serif);
-  }
-
-  .cl-explain-box p {
-    font-size: .83rem;
-    color: var(--text2);
-    line-height: 1.75;
-  }
-
-  /* Tips boxes */
-  .cl-tip-box,
-  .cl-warn-box {
-    padding: .75rem .95rem;
-    background: var(--bg2);
-    border-radius: 8px;
-    margin-bottom: .7rem;
-  }
-
-  .cl-tip-box h4,
-  .cl-warn-box h4 {
-    font-size: .82rem;
-    font-weight: 700;
-    color: var(--text);
-    margin-bottom: .4rem;
-  }
-
-  .cl-tip-box p {
-    font-size: .81rem;
-    color: var(--text2);
-  }
-
-  .cl-warn-box ul {
-    list-style: none;
-  }
-
-  .cl-warn-box li {
-    font-size: .8rem;
-    color: var(--text2);
-    padding: .18rem 0;
-  }
-
-  .cl-warn-box li::before {
-    content: '⚠ ';
-  }
-
-  /* Assessment */
-  .cl-assess {
-    padding: .75rem .9rem;
-    background: var(--bg2);
-    border-radius: 8px;
-    margin-bottom: 1rem;
-  }
-
-  .cl-assess h4 {
-    font-size: .72rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: .05em;
-    color: var(--text2);
-    margin-bottom: .4rem;
-  }
-
-  .cl-assess p {
-    font-size: .84rem;
-    color: var(--text);
-    line-height: 1.65;
-  }
-
-  /* Error items */
-  .cl-err-list {
-    margin-bottom: 1rem;
-  }
-
-  .cl-err-list h4 {
-    font-family: var(--ff-serif);
-    font-size: .9rem;
-    margin-bottom: .55rem;
-    color: var(--text);
-  }
-
-  .cl-err-item {
-    padding: .62rem .88rem;
-    background: rgba(239, 68, 68, .05);
-    border: 1px solid rgba(239, 68, 68, .15);
-    border-radius: 8px;
-    margin-bottom: .45rem;
-  }
-
-  .cl-err-line {
-    font-size: .66rem;
-    background: rgba(239, 68, 68, .12);
-    color: var(--danger);
-    padding: .08rem .35rem;
-    border-radius: 4px;
-    margin-right: .38rem;
-  }
-
-  .cl-err-issue {
-    font-size: .82rem;
-    color: var(--text2);
-    margin: .2rem 0;
-  }
-
-  .cl-err-fix {
-    font-size: .76rem;
-    color: var(--text2);
-  }
-
-  .cl-no-errors {
-    padding: .62rem .88rem;
-    background: rgba(16, 185, 129, .07);
-    border: 1px solid rgba(16, 185, 129, .2);
-    border-radius: 8px;
-    color: var(--success);
-    font-size: .82rem;
-    margin-bottom: 1rem;
-  }
-
-  /* Improvements */
-  .cl-improve {
-    margin-bottom: 1rem;
-  }
-
-  .cl-improve h4 {
-    font-family: var(--ff-serif);
-    font-size: .9rem;
-    margin-bottom: .5rem;
-    color: var(--text);
-  }
-
-  .cl-improve li {
-    font-size: .81rem;
-    color: var(--text2);
-    padding: .24rem 0;
-    border-bottom: 1px solid var(--border);
-    list-style: none;
-  }
-
-  .cl-improve li:last-child {
-    border: none;
-  }
-
-  /* Best practices */
-  .cl-practices {
-    margin-bottom: 1rem;
-  }
-
-  .cl-practices h4 {
-    font-family: var(--ff-serif);
-    font-size: .9rem;
-    margin-bottom: .5rem;
-    color: var(--text);
-  }
-
-  .cl-prac-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: .35rem;
-  }
-
-  .cl-prac-item {
-    padding: .22rem .58rem;
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    font-size: .7rem;
-    color: var(--text2);
-  }
-
-  @media(max-width:900px) {
-    .cl-grid {
-      grid-template-columns: 1fr;
-    }
-  }
-
-  @media(max-width:700px) {
-    .cl-wrap {
-      padding: 1rem 1rem 3rem;
-    }
-  }
+/* ── Clean & Unified Code Lab Layout ─────────────────────────────── */
+.cl-container {
+  max-width: 1260px;
+  margin: 0 auto;
+  padding: 1.75rem 1.5rem 4rem;
+}
+
+.cl-hero {
+  margin-bottom: 1.25rem;
+}
+
+.cl-hero h1 {
+  font-family: var(--ff-display, var(--ff-sans));
+  font-size: 1.65rem;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 0.25rem;
+}
+
+.cl-hero p {
+  font-size: 0.88rem;
+  color: var(--text2);
+}
+
+/* ── Top Preset Chips Bar ────────────────────────────────────────── */
+.cl-presets-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 1.25rem;
+  overflow-x: auto;
+  padding-bottom: 0.35rem;
+}
+
+.cl-preset-lbl {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text2);
+  white-space: nowrap;
+  margin-right: 0.25rem;
+}
+
+.cl-chip-btn {
+  padding: 0.32rem 0.75rem;
+  border-radius: 20px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+.cl-chip-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.cl-chip-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #FFFFFF;
+}
+
+/* ── Main Split Workspace ────────────────────────────────────────── */
+.cl-workspace-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+@media (max-width: 960px) {
+  .cl-workspace-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Studio Cards ────────────────────────────────────────────────── */
+.cl-panel {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+}
+
+.cl-panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1.15rem;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+}
+
+.cl-panel-title {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.cl-tag-py {
+  font-size: 0.7rem;
+  background: var(--bg3);
+  color: var(--accent);
+  padding: 0.12rem 0.45rem;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  font-family: monospace;
+  font-weight: 700;
+}
+
+/* ── Editor Styling (Clean, Light Theme) ─────────────────────────── */
+.cl-editor-wrap {
+  position: relative;
+  background: var(--bg4);
+  border-bottom: 1px solid var(--border);
+}
+
+.cl-editor-textarea {
+  width: 100%;
+  height: 420px;
+  padding: 1rem 1.15rem;
+  background: transparent;
+  color: var(--text);
+  border: none;
+  outline: none;
+  font-family: "Consolas", "Monaco", "Courier New", monospace;
+  font-size: 0.86rem;
+  line-height: 1.65;
+  tab-size: 4;
+  resize: vertical;
+  white-space: pre;
+}
+
+/* ── AI Prompt Bar Under Editor ──────────────────────────────────── */
+.cl-ai-bar {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.75rem 1.15rem;
+  background: var(--bg3);
+  align-items: center;
+}
+
+.cl-ai-input {
+  flex: 1;
+  padding: 0.55rem 0.85rem;
+  border-radius: 7px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 0.82rem;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.cl-ai-input:focus {
+  border-color: var(--accent);
+}
+
+/* ── Action Buttons ──────────────────────────────────────────────── */
+.cl-btn {
+  padding: 0.48rem 1rem;
+  border-radius: 7px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  white-space: nowrap;
+}
+
+.cl-btn-primary {
+  background: var(--accent);
+  color: #FFFFFF;
+}
+.cl-btn-primary:hover {
+  filter: brightness(1.1);
+}
+.cl-btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.cl-btn-ghost {
+  background: var(--bg3);
+  border-color: var(--border);
+  color: var(--text);
+}
+.cl-btn-ghost:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ── Right Panel Tabs ────────────────────────────────────────────── */
+.cl-tab-nav {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.cl-tab-btn {
+  background: none;
+  border: none;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.14s ease;
+}
+.cl-tab-btn:hover {
+  color: var(--text);
+}
+.cl-tab-btn.active {
+  background: var(--bg3);
+  color: var(--accent);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.cl-badge-plot {
+  font-size: 0.68rem;
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--accent);
+  padding: 0.1rem 0.4rem;
+  border-radius: 10px;
+  margin-left: 0.3rem;
+  font-weight: 800;
+}
+
+/* ── Right Panel Output Panes ────────────────────────────────────── */
+.cl-pane-content {
+  padding: 1.15rem;
+  height: 480px;
+  overflow-y: auto;
+}
+
+.cl-console-box {
+  width: 100%;
+  height: 100%;
+  background: #111827;
+  color: #E5E7EB;
+  border-radius: 8px;
+  padding: 1rem;
+  font-family: "Consolas", "Monaco", "Courier New", monospace;
+  font-size: 0.82rem;
+  line-height: 1.6;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  border: 1px solid #1F2937;
+}
+
+.console-empty {
+  color: #6B7280;
+  font-style: italic;
+}
+
+.console-err {
+  color: #F87171;
+  background: rgba(239, 68, 68, 0.12);
+  border-left: 3px solid #EF4444;
+  padding: 0.6rem 0.75rem;
+  border-radius: 4px;
+  margin-top: 0.5rem;
+}
+
+.cl-plot-img {
+  width: 100%;
+  max-width: 520px;
+  display: block;
+  margin: 0.5rem auto;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: #FFFFFF;
+}
+
+/* ── Code Quality Gauge & Review ─────────────────────────────────── */
+.cl-score-card {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem 1.15rem;
+  margin-bottom: 1.15rem;
+}
+
+.cl-score-badge {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  border: 4px solid var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--text);
+  flex-shrink: 0;
+}
+
+.cl-issue-item {
+  background: rgba(239, 68, 68, 0.05);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 6px;
+  padding: 0.6rem 0.8rem;
+  margin-bottom: 0.45rem;
+  font-size: 0.82rem;
+}
+
+/* Challenge Banner */
+.cl-challenge-header {
+  background: rgba(16, 185, 129, 0.07);
+  border-bottom: 1px solid rgba(16, 185, 129, 0.2);
+  padding: 0.65rem 1.15rem;
+  font-size: 0.82rem;
+  color: var(--text);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 </style>
 
-<div class="cl-wrap animate-in">
-  <div class="cl-header">
+<div class="cl-container animate-in">
+
+  <!-- Header -->
+  <div class="cl-hero">
     <h1>Code Lab</h1>
-    <p>Generate ML code, analyze your code, and get intelligent feedback</p>
+    <p>Interactive Python machine learning studio. Write, execute, and visualize models in real time with automated unit testing and AI assistance.</p>
   </div>
 
-  <div class="cl-grid">
+  <!-- Top Preset Starters & Challenges Bar -->
+  <div class="cl-presets-bar">
+    <span class="cl-preset-lbl">Presets:</span>
+    <button class="cl-chip-btn active" onclick="loadScriptPreset('linear_reg', this)">Linear Regression</button>
+    <button class="cl-chip-btn" onclick="loadScriptPreset('neural_net', this)">Neural Net Forward Pass</button>
+    <button class="cl-chip-btn" onclick="loadScriptPreset('kmeans_plot', this)">K-Means &amp; Visual Plot</button>
+    <button class="cl-chip-btn" onclick="loadScriptPreset('eval_metrics', this)">Confusion Matrix</button>
+    <button class="cl-chip-btn" onclick="loadScriptPreset('tensor_math', this)">NumPy Tensor Math</button>
+    <span class="cl-preset-lbl" style="margin-left:0.5rem">Challenges:</span>
+    <button class="cl-chip-btn" onclick="loadChallengePreset('softmax', this)">Stable Softmax</button>
+    <button class="cl-chip-btn" onclick="loadChallengePreset('mse_loss', this)">MSE &amp; Gradient</button>
+    <button class="cl-chip-btn" onclick="loadChallengePreset('one_hot', this)">One-Hot Encoding</button>
+    <button class="cl-chip-btn" onclick="loadScriptPreset('blank', this)">Blank Script</button>
+  </div>
 
-    <!-- ════════════════════════════════════════════════════════
-         LEFT: Input panel
-         Uses classes  itab / ipane  — completely isolated
-         ════════════════════════════════════════════════════════ -->
-    <div class="cl-card">
-      <div class="cl-card-head">
-        <!-- itab: only these are toggled by switchInput() -->
-        <button class="itab active" onclick="switchInput(this,'ipane-generate')">Generate Code</button>
-        <button class="itab" onclick="switchInput(this,'ipane-analyze')">Analyze Code</button>
-      </div>
+  <!-- Main Split Studio Workspace -->
+  <div class="cl-workspace-grid">
 
-      <!-- Generate pane -->
-      <div id="ipane-generate" class="ipane active">
-        <label class="cl-label">What ML code do you want to generate?</label>
-        <textarea id="generateQuery" class="cl-textarea" placeholder="e.g. 'Implement a neural network for MNIST using PyTorch'
-'Random Forest with cross-validation on Iris'
-'K-Means clustering from scratch'"></textarea>
-
-        <div class="cl-templates">
-          <span class="cl-tpl-lbl">Quick:</span>
-          <button class="cl-tpl-btn" onclick="setQuery('Linear Regression from scratch in Python')">Linear
-            Regression</button>
-          <button class="cl-tpl-btn" onclick="setQuery('Neural Network with backpropagation from scratch')">Neural
-            Network</button>
-          <button class="cl-tpl-btn" onclick="setQuery('K-Means Clustering implementation')">K-Means</button>
-          <button class="cl-tpl-btn" onclick="setQuery('Decision Tree Classifier with scikit-learn')">Decision
-            Tree</button>
-          <button class="cl-tpl-btn" onclick="setQuery('LSTM for time series prediction')">LSTM</button>
+    <!-- ── LEFT: Code Editor Panel ────────────────────────────────── -->
+    <div class="cl-panel">
+      <!-- Challenge banner (shown only when a challenge is active) -->
+      <div id="challengeNotice" class="cl-challenge-header" style="display:none">
+        <div>
+          <strong id="challengeTitle" style="color:var(--accent)">Challenge Active:</strong>
+          <span id="challengeDesc" style="color:var(--text2);margin-left:0.35rem"></span>
         </div>
-
-        <button class="cl-submit" id="genBtn" onclick="doGenerate()">
-          <span id="genBtnTxt">⚡ Generate Code</span>
-        </button>
+        <span style="font-size:0.7rem;font-weight:800;background:rgba(16,185,129,0.15);color:var(--accent);padding:0.15rem 0.5rem;border-radius:4px">Unit Tested</span>
       </div>
 
-      <!-- Analyze pane -->
-      <div id="ipane-analyze" class="ipane">
-        <label class="cl-label">Paste your Python ML code for analysis:</label>
-        <textarea id="analyzeCode" class="cl-textarea tall" placeholder="# Paste your Python ML code here
-import numpy as np
-from sklearn.linear_model import LinearRegression
+      <div class="cl-panel-head">
+        <div class="cl-panel-title">
+          <span class="cl-tag-py">main.py</span>
+          <span id="scriptTitleLbl" style="color:var(--text2);font-weight:600">Linear Regression</span>
+        </div>
+        <div style="display:flex;gap:0.4rem">
+          <button class="cl-btn cl-btn-ghost" onclick="clearEditor()">Clear</button>
+          <button class="cl-btn cl-btn-ghost" onclick="auditCurrentCode()">Audit Code</button>
+          <button class="cl-btn cl-btn-primary" id="runCodeMainBtn" onclick="executeCurrentCode()">
+            <span>Run</span>
+            <span style="font-size:0.7rem;opacity:0.85;margin-left:0.2rem">(Ctrl+Enter)</span>
+          </button>
+        </div>
+      </div>
 
-X = [[1],[2],[3]]
-y = [1,2,3]
-model = LinearRegression()
-model.fit(X, y)
-print(model.coef_)"></textarea>
+      <div class="cl-editor-wrap">
+        <textarea id="codeEditorArea" class="cl-editor-textarea" spellcheck="false" placeholder="# Write or paste Python code here..."></textarea>
+      </div>
 
-        <button class="cl-submit" id="analyzeBtn" onclick="doAnalyze()">
-          <span id="analyzeBtnTxt">🔍 Analyze Code</span>
-        </button>
+      <!-- Quick AI Assistant Input Bar -->
+      <div class="cl-ai-bar">
+        <input type="text" id="aiInstructionInput" class="cl-ai-input" placeholder="Ask AI to modify or write ML code (e.g. 'Add L2 regularization', 'Vectorize with NumPy', 'Plot ROC curve')..." onkeydown="if(event.key==='Enter') applyAiCodeEdit()">
+        <button class="cl-btn cl-btn-primary" id="aiEditBtn" onclick="applyAiCodeEdit()">Apply AI</button>
       </div>
     </div>
 
-    <!-- ════════════════════════════════════════════════════════
-         RIGHT: Result panel
-         Uses class  cl-result-body  — switchInput() NEVER touches this
-         ════════════════════════════════════════════════════════ -->
-    <div class="cl-card">
-      <div class="cl-card-head">
-        <span class="cl-card-title">Results</span>
+    <!-- ── RIGHT: Execution Console & Visualizer Panel ────────────── -->
+    <div class="cl-panel">
+      <div class="cl-panel-head">
+        <div class="cl-tab-nav">
+          <button class="cl-tab-btn active" id="tabBtn-console" onclick="switchRightTab('console', this)">Console Output</button>
+          <button class="cl-tab-btn" id="tabBtn-plot" onclick="switchRightTab('plot', this)">
+            <span>Plot Visualizer</span>
+            <span id="plotBadge" class="cl-badge-plot" style="display:none">1 Plot</span>
+          </button>
+          <button class="cl-tab-btn" id="tabBtn-review" onclick="switchRightTab('review', this)">AI Review</button>
+        </div>
+        <span id="runTimingBadge" style="font-size:0.75rem;font-weight:700;color:var(--text2)">Ready</span>
       </div>
-      <!-- cl-result-body is NOT panel-body — safe from switchInput() -->
-      <div class="cl-result-body" id="codeResult">
-        <div class="cl-empty">
-          <div style="font-size:3rem">💡</div>
-          <h3>Results appear here</h3>
-          <p style="font-size:.82rem">Generate code or paste code for analysis</p>
+
+      <!-- Tab 1: Terminal Console -->
+      <div id="pane-console" class="cl-pane-content">
+        <div id="consoleTerminal" class="cl-console-box">
+          <span class="console-empty">&gt; Ready. Click "Run" or press Ctrl+Enter to execute this code in the Python sandbox.
+Standard output, execution time, and runtime diagnostics will appear here.</span>
+        </div>
+      </div>
+
+      <!-- Tab 2: Rendered Plot Visualizer -->
+      <div id="pane-plot" class="cl-pane-content" style="display:none">
+        <div id="plotViewArea" style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1.5rem">
+          <p style="font-size:0.86rem;color:var(--text2);margin-bottom:0.75rem">No plot generated yet.<br>When your script uses <code>matplotlib.pyplot</code> or calls <code>plt.show()</code>, the chart renders here automatically.</p>
+          <button class="cl-btn cl-btn-ghost" onclick="loadScriptPreset('kmeans_plot')">Load Sample Plot Script</button>
+        </div>
+      </div>
+
+      <!-- Tab 3: AI Code Review & Health -->
+      <div id="pane-review" class="cl-pane-content" style="display:none">
+        <div id="reviewViewArea">
+          <div style="text-align:center;padding:3rem 1rem;color:var(--text2)">
+            <p style="font-size:0.92rem;font-weight:700;color:var(--text);margin-bottom:0.25rem">Ready to Audit</p>
+            <p style="font-size:0.82rem">Click "Audit Code" in the top bar to analyze quality score, detect computational bottlenecks, and generate an optimized version.</p>
+          </div>
         </div>
       </div>
     </div>
 
   </div>
+
 </div>
 
+<!-- ══════════════════════════════════════════════════════════════
+     JavaScript Engine for Unified Code Lab
+     ══════════════════════════════════════════════════════════════ -->
 <script>
-  /* ═══════════════════════════════════════════════════════════════
-     ISOLATED TAB SWITCHING
-     switchInput() only touches .itab and .ipane elements
-     — it NEVER touches the result panel
-     ═══════════════════════════════════════════════════════════════ */
-  function switchInput(btn, paneId) {
-    document.querySelectorAll('.itab').forEach(function (t) { t.classList.remove('active'); });
-    document.querySelectorAll('.ipane').forEach(function (p) { p.classList.remove('active'); });
-    btn.classList.add('active');
-    document.getElementById(paneId).classList.add('active');
+// Preset Library
+const SCRIPTS = {
+  linear_reg: {
+    title: "Linear Regression (Scikit-Learn)",
+    is_challenge: false,
+    code: `import numpy as np
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error, r2_score
+
+# Generate synthetic dataset: y = 2.5x + 5 + Gaussian noise
+np.random.seed(42)
+X = np.sort(np.random.rand(40, 1) * 10, axis=0)
+y = 2.5 * X.squeeze() + 5.0 + np.random.normal(0, 1.5, 40)
+
+# Fit Ordinary Least Squares
+model = LinearRegression()
+model.fit(X, y)
+predictions = model.predict(X)
+
+print("=== Linear Regression Results ===")
+print(f"Fitted Slope (W):    {model.coef_[0]:.4f} (Ground Truth: 2.5000)")
+print(f"Fitted Intercept (b): {model.intercept_:.4f} (Ground Truth: 5.0000)")
+print(f"Mean Squared Error:  {mean_squared_error(y, predictions):.4f}")
+print(f"R-squared Score:     {r2_score(y, predictions):.4f}")
+`
+  },
+
+  neural_net: {
+    title: "Neural Net Forward Pass (NumPy)",
+    is_challenge: false,
+    code: `import numpy as np
+
+# 2-layer Neural Network forward pass from scratch
+def relu(x):
+    return np.maximum(0, x)
+
+def softmax(z):
+    shift_z = z - np.max(z, axis=-1, keepdims=True)
+    exp_z = np.exp(shift_z)
+    return exp_z / np.sum(exp_z, axis=-1, keepdims=True)
+
+# Synthetic batch: 4 samples, 3 input features
+np.random.seed(42)
+X = np.random.randn(4, 3)
+
+# Layer weights & biases
+W1 = np.random.randn(3, 5) * 0.1
+b1 = np.zeros((1, 5))
+W2 = np.random.randn(5, 2) * 0.1
+b2 = np.zeros((1, 2))
+
+# Forward propagation
+A1 = relu(np.dot(X, W1) + b1)
+Z2 = np.dot(A1, W2) + b2
+probs = softmax(Z2)
+
+print("=== Neural Network Forward Pass ===")
+print("Input Shape: ", X.shape)
+print("Hidden Layer Activations Shape:", A1.shape)
+print("Output Probabilities (Sum to 1.0):\\n", np.round(probs, 4))
+print("Predicted Class Labels:", np.argmax(probs, axis=1))
+`
+  },
+
+  kmeans_plot: {
+    title: "K-Means Clustering & Visual Plot",
+    is_challenge: false,
+    code: `import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.cluster import KMeans
+from sklearn.datasets import make_blobs
+
+# Generate 3 cluster blobs
+X, y_true = make_blobs(n_samples=160, centers=3, cluster_std=0.7, random_state=42)
+
+# Fit K-Means
+kmeans = KMeans(n_clusters=3, random_state=42, n_init='auto')
+y_kmeans = kmeans.fit_predict(X)
+centers = kmeans.cluster_centers_
+
+print("=== K-Means Clustering ===")
+print("Inertia (Within-cluster WCSS):", round(kmeans.inertia_, 2))
+print("Cluster Centroids:\\n", np.round(centers, 2))
+
+# Render visualization chart
+plt.figure(figsize=(6, 4))
+plt.scatter(X[:, 0], X[:, 1], c=y_kmeans, s=35, cmap='viridis', alpha=0.8, edgecolors='k')
+plt.scatter(centers[:, 0], centers[:, 1], c='red', s=160, marker='X', label='Centroids')
+plt.title("K-Means 2D Voronoi Clusters")
+plt.legend()
+plt.tight_layout()
+plt.show()
+`
+  },
+
+  eval_metrics: {
+    title: "Confusion Matrix & Evaluation",
+    is_challenge: false,
+    code: `import numpy as np
+from sklearn.metrics import confusion_matrix, classification_report, accuracy_score
+
+# Ground truth vs predicted class labels
+y_true = np.array([0, 1, 2, 2, 0, 1, 1, 0, 2, 1, 2, 0])
+y_pred = np.array([0, 1, 2, 1, 0, 1, 0, 0, 2, 1, 2, 0])
+
+acc = accuracy_score(y_true, y_pred)
+cm = confusion_matrix(y_true, y_pred)
+
+print("=== Model Evaluation Report ===")
+print(f"Accuracy: {acc * 100:.2f}%")
+print("\\nConfusion Matrix:\\n", cm)
+print("\\nDetailed Metrics:")
+print(classification_report(y_true, y_pred, target_names=["Class A", "Class B", "Class C"]))
+`
+  },
+
+  tensor_math: {
+    title: "NumPy Tensor Mathematics",
+    is_challenge: false,
+    code: `import numpy as np
+
+# Tensor Broadcasting and Eigenvalues
+A = np.array([[4.0, 2.0], [1.0, 3.0]])
+B = np.array([10.0, 20.0])
+
+prod = np.dot(A, B)
+eigenvalues, eigenvectors = np.linalg.eig(A)
+
+print("=== Tensor Mathematics ===")
+print("Matrix A:\\n", A)
+print("Vector B:\\n", B)
+print("Dot Product A @ B:\\n", prod)
+print("Eigenvalues:\\n", np.round(eigenvalues, 4))
+print("L2 Norm of product:", round(np.linalg.norm(prod), 4))
+`
+  },
+
+  blank: {
+    title: "Blank Python Script",
+    is_challenge: false,
+    code: `# LearnSphere Code Lab - Python 3.14
+import numpy as np
+
+print("Hello from Code Lab!")
+`
+  }
+};
+
+const CHALLENGES = {
+  softmax: {
+    title: "Challenge: Numerically Stable Softmax",
+    desc: "Subtract max(z) from logits to prevent floating-point overflow. Must support 1D & 2D arrays.",
+    code: `import numpy as np
+
+def softmax(z):
+    # TODO: Implement numerically stable softmax
+    # Hint: subtract np.max(z, axis=-1, keepdims=True)
+    pass
+`
+  },
+  mse_loss: {
+    title: "Challenge: Mean Squared Error & Gradient",
+    desc: "Compute MSE loss and analytical gradient with respect to predictions. Return tuple (loss, grad).",
+    code: `import numpy as np
+
+def mse_and_grad(y_true, y_pred):
+    # TODO: Return tuple of (loss, grad)
+    pass
+`
+  },
+  one_hot: {
+    title: "Challenge: One-Hot Matrix Encoding",
+    desc: "Convert 1D integer label array to a 2D binary one-hot matrix of shape (N, num_classes).",
+    code: `import numpy as np
+
+def one_hot_encode(labels, num_classes):
+    # TODO: Return 2D one-hot array
+    pass
+`
+  }
+};
+
+let currentChallengeId = null;
+
+// Initialize on page load
+window.addEventListener('DOMContentLoaded', () => {
+  loadScriptPreset('linear_reg');
+  setupEditorKeyboardShortcuts();
+});
+
+function setupEditorKeyboardShortcuts() {
+  const textarea = document.getElementById('codeEditorArea');
+  textarea.addEventListener('keydown', function(e) {
+    // Tab key: insert 4 spaces
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      const start = this.selectionStart;
+      const end = this.selectionEnd;
+      this.value = this.value.substring(0, start) + "    " + this.value.substring(end);
+      this.selectionStart = this.selectionEnd = start + 4;
+    }
+    // Ctrl + Enter or Cmd + Enter: run code
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      e.preventDefault();
+      executeCurrentCode();
+    }
+  });
+}
+
+function loadScriptPreset(key, btnEl) {
+  if (btnEl) {
+    document.querySelectorAll('.cl-chip-btn').forEach(b => b.classList.remove('active'));
+    btnEl.classList.add('active');
   }
 
-  function setQuery(q) {
-    document.getElementById('generateQuery').value = q;
-    // Auto-switch to generate pane
-    var genBtn = document.querySelector('.itab:first-child');
-    if (genBtn) switchInput(genBtn, 'ipane-generate');
+  currentChallengeId = null;
+  document.getElementById('challengeNotice').style.display = 'none';
+
+  const item = SCRIPTS[key];
+  if (!item) return;
+
+  document.getElementById('scriptTitleLbl').innerText = item.title;
+  document.getElementById('codeEditorArea').value = item.code;
+}
+
+function loadChallengePreset(cKey, btnEl) {
+  if (btnEl) {
+    document.querySelectorAll('.cl-chip-btn').forEach(b => b.classList.remove('active'));
+    btnEl.classList.add('active');
   }
 
-  function escHtml(s) {
-    if (s == null) return '';
-    return String(s)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
+  const c = CHALLENGES[cKey];
+  if (!c) return;
+
+  currentChallengeId = cKey;
+  document.getElementById('scriptTitleLbl').innerText = c.title;
+  document.getElementById('challengeTitle').innerText = c.title + ":";
+  document.getElementById('challengeDesc').innerText = c.desc;
+  document.getElementById('challengeNotice').style.display = 'flex';
+  document.getElementById('codeEditorArea').value = c.code;
+
+  // Set console message
+  document.getElementById('consoleTerminal').innerHTML =
+    `<span style="color:#60A5FA">&gt; Challenge Loaded: ${escapeHtml(c.title)}\n${escapeHtml(c.desc)}\n\nImplement the function and click "Run" (or press Ctrl+Enter) to test against automated assertions.</span>`;
+}
+
+function clearEditor() {
+  document.getElementById('codeEditorArea').value = '';
+  document.getElementById('codeEditorArea').focus();
+}
+
+// Right panel tab switching
+function switchRightTab(tabKey, btnEl) {
+  document.querySelectorAll('.cl-tab-btn').forEach(b => b.classList.remove('active'));
+  btnEl.classList.add('active');
+
+  document.querySelectorAll('.cl-pane-content').forEach(p => p.style.display = 'none');
+  const target = document.getElementById('pane-' + tabKey);
+  if (target) target.style.display = 'block';
+}
+
+// Code Execution
+async function executeCurrentCode() {
+  const code = document.getElementById('codeEditorArea').value.trim();
+  if (!code) {
+    alert('Please enter some Python code to run.');
+    return;
   }
 
-  function setResult(html) {
-    document.getElementById('codeResult').innerHTML = html;
-  }
+  const runBtn = document.getElementById('runCodeMainBtn');
+  const timingBadge = document.getElementById('runTimingBadge');
+  const consoleBox = document.getElementById('consoleTerminal');
+  const plotBadge = document.getElementById('plotBadge');
+  const plotViewArea = document.getElementById('plotViewArea');
 
-  function setBtnLoading(btnId, txtId, loadingText) {
-    var btn = document.getElementById(btnId);
-    var txt = document.getElementById(txtId);
-    btn.disabled = true;
-    txt.innerHTML = '<span class="btn-spinner" style="width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:inline-block;vertical-align:middle;margin-right:.4rem"></span>' + loadingText;
-  }
+  runBtn.disabled = true;
+  timingBadge.innerText = 'Executing...';
+  consoleBox.innerHTML = '<span style="color:#FBBF24">&gt; Running code in Python sandbox...</span>';
 
-  function resetBtn(btnId, txtId, label) {
-    var btn = document.getElementById(btnId);
-    var txt = document.getElementById(txtId);
-    btn.disabled = false;
-    txt.textContent = label;
-  }
+  // Automatically switch to console tab
+  const consoleTabBtn = document.getElementById('tabBtn-console');
+  if (consoleTabBtn) switchRightTab('console', consoleTabBtn);
 
-  /* ═══════════════════════════════════════════════════════════════
-     GENERATE
-     ═══════════════════════════════════════════════════════════════ */
-  async function doGenerate() {
-    var query = document.getElementById('generateQuery').value.trim();
-    if (!query) { alert('Please describe the ML code you want to generate.'); return; }
-
-    setBtnLoading('genBtn', 'genBtnTxt', 'Generating…');
-    setResult('<div class="cl-loading"><div class="spinner"></div><p>Generating code for: <strong>' + escHtml(query) + '</strong><br><small>This may take 15–25 seconds…</small></p></div>');
-
+  // If in Challenge mode, run against challenge endpoint
+  if (currentChallengeId) {
     try {
-      var res = await fetch('/api/generate_code', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: query })
+      const res = await fetch('/api/run_challenge', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ challenge_id: currentChallengeId, code: code })
       });
-      var data = await res.json();
-      if (data.success) {
-        renderGenerated(data.data);
+      const result = await res.json();
+
+      if (result.success && result.passed) {
+        timingBadge.innerText = `Passed in ${result.elapsed_ms}ms`;
+        consoleBox.innerHTML = `
+          <div style="color:#34D399;font-weight:700;margin-bottom:0.5rem">&check; ALL UNIT TESTS PASSED (${result.elapsed_ms}ms)</div>
+          <div style="color:#9CA3AF">${escapeHtml(result.feedback || 'Your solution passed all automated assertions.')}</div>
+          <div style="color:#60A5FA;margin-top:0.75rem">&gt; Progress logged to Learning DNA. Excellent work!</div>
+        `;
       } else {
-        renderError('Generation Failed', data.error, 'doGenerate()');
+        timingBadge.innerText = 'Tests Failed';
+        consoleBox.innerHTML = `
+          <div style="color:#F87171;font-weight:700;margin-bottom:0.5rem">&cross; UNIT TEST FAILED</div>
+          <div class="console-err">${escapeHtml(result.feedback || 'One or more assertions failed.')}</div>
+          ${result.stderr ? `<div style="color:#9CA3AF;margin-top:0.5rem;font-size:0.78rem">${escapeHtml(result.stderr)}</div>` : ''}
+          <div style="color:#9CA3AF;margin-top:0.75rem">&gt; Check for numerical stability, array shapes, or edge cases and try again.</div>
+        `;
       }
-    } catch (e) {
-      renderError('Network Error', e.message, 'doGenerate()');
+    } catch (err) {
+      timingBadge.innerText = 'Error';
+      consoleBox.innerHTML = '<div class="console-err">Network error connecting to Challenge test runner.</div>';
+    } finally {
+      runBtn.disabled = false;
     }
-    resetBtn('genBtn', 'genBtnTxt', '⚡ Generate Code');
+    return;
   }
 
-  function renderGenerated(d) {
-    var tabsHtml =
-      '<div class="rtabs">'
-      + '<button class="rtab active" onclick="switchRTab(this,\'rt-code\')">Code</button>'
-      + '<button class="rtab"        onclick="switchRTab(this,\'rt-explain\')">Explanation</button>'
-      + '<button class="rtab"        onclick="switchRTab(this,\'rt-tips\')">Tips & Mistakes</button>'
-      + '</div>';
-
-    /* Code tab */
-    var libsBadge = (d.libraries_needed && d.libraries_needed.length)
-      ? '<span class="cl-libs-badge">' + escHtml(d.libraries_needed.join(', ')) + '</span>' : '';
-
-    var codeTab =
-      '<div id="rt-code" class="rpane active">'
-      + '<div class="cl-code-bar"><span>Python</span>'
-      + '<div style="display:flex;gap:.5rem;align-items:center">' + libsBadge
-      + '<button class="cl-copy-btn" onclick="copyCode(this)">Copy</button></div></div>'
-      + '<pre><code class="language-python">' + escHtml(d.code || '') + '</code></pre>'
-      + (d.expected_output
-        ? '<div class="cl-output"><span class="cl-output-lbl">Expected Output</span>'
-        + '<pre class="cl-output-pre">' + escHtml(d.expected_output) + '</pre></div>'
-        : '')
-      + '</div>';
-
-    /* Explanation tab */
-    var explainTab =
-      '<div id="rt-explain" class="rpane">'
-      + '<div class="cl-explain-box">'
-      + '<h4>Step-by-Step Explanation</h4>'
-      + '<p>' + escHtml(d.explanation || 'See the code comments for details.') + '</p>'
-      + '</div></div>';
-
-    /* Tips tab */
-    var mistakesHtml = '';
-    if (d.common_mistakes && d.common_mistakes.length) {
-      mistakesHtml = '<div class="cl-warn-box"><h4>⚠️ Common Mistakes</h4><ul>'
-        + d.common_mistakes.map(function (m) { return '<li>' + escHtml(m) + '</li>'; }).join('')
-        + '</ul></div>';
-    }
-    var tipsTab =
-      '<div id="rt-tips" class="rpane">'
-      + (d.variations ? '<div class="cl-tip-box"><h4>🔧 Variations & Extensions</h4><p>' + escHtml(d.variations) + '</p></div>' : '')
-      + mistakesHtml
-      + '</div>';
-
-    setResult(
-      '<div style="animation:fadeUp .3s ease both">'
-      + '<p style="font-family:var(--ff-serif);font-size:1.05rem;font-weight:700;color:var(--text);margin-bottom:1rem">'
-      + escHtml(d.title || 'Generated Code') + '</p>'
-      + tabsHtml + codeTab + explainTab + tipsTab
-      + '</div>'
-    );
-
-    /* Highlight all code blocks inside result panel only */
-    document.querySelectorAll('#codeResult pre code').forEach(function (el) { hljs.highlightElement(el); });
-  }
-
-  /* ═══════════════════════════════════════════════════════════════
-     ANALYZE
-     ═══════════════════════════════════════════════════════════════ */
-  async function doAnalyze() {
-    var code = document.getElementById('analyzeCode').value.trim();
-    if (!code) { alert('Please paste some Python code to analyze.'); return; }
-
-    setBtnLoading('analyzeBtn', 'analyzeBtnTxt', 'Analyzing…');
-    setResult('<div class="cl-loading"><div class="spinner"></div><p>Analyzing your code…<br><small>This may take 15–25 seconds…</small></p></div>');
-
-    try {
-      var res = await fetch('/api/analyze_code', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: code })
-      });
-      var data = await res.json();
-      if (data.success) {
-        renderAnalysis(data.data);
-      } else {
-        renderError('Analysis Failed', data.error, 'doAnalyze()');
-      }
-    } catch (e) {
-      renderError('Network Error', e.message, 'doAnalyze()');
-    }
-    resetBtn('analyzeBtn', 'analyzeBtnTxt', '🔍 Analyze Code');
-  }
-
-  function renderAnalysis(d) {
-    var score = parseInt(d.score) || 70;
-    var scoreColor = score >= 80 ? 'var(--success)' : score >= 60 ? 'var(--warn)' : 'var(--danger)';
-
-    /* Errors section */
-    var errorsHtml = '';
-    if (d.errors && d.errors.length) {
-      errorsHtml = '<div class="cl-err-list"><h4>🐛 Issues Found (' + d.errors.length + ')</h4>'
-        + d.errors.map(function (e) {
-          return '<div class="cl-err-item">'
-            + (e.line ? '<span class="cl-err-line">Line ' + e.line + '</span>' : '')
-            + '<p class="cl-err-issue">' + escHtml(e.issue) + '</p>'
-            + (e.fix ? '<div class="cl-err-fix">Fix: <code>' + escHtml(e.fix) + '</code></div>' : '')
-            + '</div>';
-        }).join('')
-        + '</div>';
-    } else {
-      errorsHtml = '<div class="cl-no-errors">✅ No major issues found!</div>';
-    }
-
-    /* Improvements */
-    var impHtml = '';
-    if (d.improvements && d.improvements.length) {
-      impHtml = '<div class="cl-improve"><h4>💡 Improvements</h4><ul>'
-        + d.improvements.map(function (i) { return '<li>' + escHtml(i) + '</li>'; }).join('')
-        + '</ul></div>';
-    }
-
-    /* Best practices */
-    var practHtml = '';
-    if (d.best_practices && d.best_practices.length) {
-      practHtml = '<div class="cl-practices"><h4>📋 Best Practices</h4><div class="cl-prac-grid">'
-        + d.best_practices.map(function (p) { return '<div class="cl-prac-item">✓ ' + escHtml(p) + '</div>'; }).join('')
-        + '</div></div>';
-    }
-
-    /* Optimised code */
-    var optHtml = '';
-    if (d.optimized_code) {
-      optHtml = '<div style="margin-top:1.2rem">'
-        + '<div class="cl-code-bar"><span>✨ Optimised Version</span>'
-        + '<button class="cl-copy-btn" onclick="copyCode(this)">Copy</button></div>'
-        + '<pre><code class="language-python">' + escHtml(d.optimized_code) + '</code></pre>'
-        + '</div>';
-    }
-
-    /* FIX: score ring is INSIDE the result HTML so it exists in DOM before animation */
-    var html =
-      '<div style="animation:fadeUp .3s ease both">'
-
-      /* Score ring — rendered inside result box, not in header */
-      + '<div class="cl-score-wrap">'
-      + '<div class="cl-score-ring" id="clScoreRing" style="border-color:' + scoreColor + '">'
-      + '<span class="cl-score-val" id="clScoreVal">0</span>'
-      + '</div>'
-      + '<div class="cl-score-right">'
-      + '<div class="cl-score-title">Code Quality Score</div>'
-      + '<div class="cl-score-bar"><div class="cl-score-fill" id="clScoreBar" style="background:' + scoreColor + '"></div></div>'
-      + '<span class="cl-score-lbl">' + score + ' / 100</span>'
-      + '</div></div>'
-
-      /* Assessment */
-      + '<div class="cl-assess"><h4>Overall Assessment</h4>'
-      + '<p>' + escHtml(d.overall_assessment || '') + '</p></div>'
-
-      + errorsHtml + impHtml + practHtml + optHtml
-      + '</div>';
-
-    setResult(html);
-
-    /* FIX: animate score AFTER setResult() so #clScoreVal and #clScoreBar exist in DOM */
-    var current = 0;
-    var interval = setInterval(function () {
-      current = Math.min(current + 2, score);
-      var valEl = document.getElementById('clScoreVal');
-      var barEl = document.getElementById('clScoreBar');
-      if (valEl) valEl.textContent = current;
-      if (barEl) barEl.style.width = current + '%';
-      if (current >= score) clearInterval(interval);
-    }, 18);
-
-    document.querySelectorAll('#codeResult pre code').forEach(function (el) { hljs.highlightElement(el); });
-  }
-
-  /* ═══════════════════════════════════════════════════════════════
-     RESULT TAB SWITCHING  (scoped to #codeResult only)
-     Uses classes  rtab / rpane — zero overlap with itab / ipane
-     ═══════════════════════════════════════════════════════════════ */
-  function switchRTab(btn, paneId) {
-    /* Scope querySelectorAll inside the result box only */
-    var box = document.getElementById('codeResult');
-    box.querySelectorAll('.rtab').forEach(function (t) { t.classList.remove('active'); });
-    box.querySelectorAll('.rpane').forEach(function (p) { p.classList.remove('active'); });
-    btn.classList.add('active');
-    var el = document.getElementById(paneId);
-    if (el) el.classList.add('active');
-  }
-
-  /* ═══════════════════════════════════════════════════════════════
-     COPY BUTTON
-     FIX: walk from button → parent cl-code-bar → next sibling pre → code
-     ═══════════════════════════════════════════════════════════════ */
-  function copyCode(btn) {
-    var bar = btn.closest('.cl-code-bar');
-    if (!bar) return;
-    var pre = bar.nextElementSibling;   /* the <pre> tag */
-    if (!pre) return;
-    var code = pre.querySelector('code');
-    var text = code ? code.textContent : pre.textContent;
-    navigator.clipboard.writeText(text).then(function () {
-      btn.textContent = 'Copied!';
-      setTimeout(function () { btn.textContent = 'Copy'; }, 2000);
-    }).catch(function () {
-      btn.textContent = 'Error';
-      setTimeout(function () { btn.textContent = 'Copy'; }, 2000);
+  // Normal sandbox execution
+  try {
+    const res = await fetch('/api/run_code', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: code })
     });
+    const result = await res.json();
+
+    if (result.success) {
+      timingBadge.innerText = `Finished in ${result.elapsed_ms}ms`;
+
+      let stdoutText = result.stdout || '';
+      let stderrHtml = '';
+      if (result.stderr) {
+        stderrHtml = `<div class="console-err"><strong>Runtime Diagnostic / Warning:</strong>\n${escapeHtml(result.stderr)}</div>`;
+      }
+
+      if (!stdoutText && !stderrHtml) {
+        stdoutText = '<span style="color:#9CA3AF">&gt; Script finished with return code 0 (no stdout).</span>';
+      } else {
+        stdoutText = escapeHtml(stdoutText);
+      }
+
+      consoleBox.innerHTML = stdoutText + stderrHtml;
+
+      // Handle plots
+      if (result.plots && result.plots.length > 0) {
+        plotBadge.style.display = 'inline-block';
+        plotBadge.innerText = `${result.plots.length} Plot`;
+        plotViewArea.innerHTML = result.plots.map(b64 => `
+          <img src="data:image/png;base64,${b64}" class="cl-plot-img" alt="Matplotlib Plot">
+        `).join('');
+
+        // Switch to plot tab automatically
+        const plotTabBtn = document.getElementById('tabBtn-plot');
+        if (plotTabBtn) switchRightTab('plot', plotTabBtn);
+      } else {
+        plotBadge.style.display = 'none';
+        plotViewArea.innerHTML = '<p style="color:var(--text2);font-size:0.84rem;text-align:center">No plot generated by this script.<br>Use <code>plt.show()</code> or <code>plt.figure()</code> to create Matplotlib figures.</p>';
+      }
+    } else {
+      timingBadge.innerText = 'Failed';
+      consoleBox.innerHTML = `<div class="console-err"><strong>Execution Error:</strong>\n${escapeHtml(result.error || 'Failed to run script.')}</div>`;
+    }
+  } catch (err) {
+    timingBadge.innerText = 'Connection Error';
+    consoleBox.innerHTML = '<div class="console-err">Network error connecting to Code Lab sandbox.</div>';
+  } finally {
+    runBtn.disabled = false;
+  }
+}
+
+// AI Assistant Code Edit
+async function applyAiCodeEdit() {
+  const prompt = document.getElementById('aiInstructionInput').value.trim();
+  const currentCode = document.getElementById('codeEditorArea').value.trim();
+  if (!prompt) {
+    alert('Please enter an instruction for the AI (e.g. "Add L2 regularization" or "Implement K-Means").');
+    return;
   }
 
-  /* ═══════════════════════════════════════════════════════════════
-     ERROR DISPLAY
-     ═══════════════════════════════════════════════════════════════ */
-  function renderError(title, msg, retryCall) {
-    setResult(
-      '<div class="error-card">'
-      + '<div style="font-size:2.5rem">⚠️</div>'
-      + '<h3>' + escHtml(title) + '</h3>'
-      + '<p style="font-size:.84rem">' + escHtml(msg) + '</p>'
-      + '<p style="font-size:.75rem;color:var(--text2);margin-top:.5rem">'
-      + 'Ensure GROQ_API_KEY is set. Free key at '
-      + '<a href="https://console.groq.com" target="_blank" style="color:var(--accent)">console.groq.com</a></p>'
-      + '<button onclick="' + retryCall + '" class="btn btn-ghost" style="margin-top:1rem">↺ Try Again</button>'
-      + '</div>'
-    );
+  const aiBtn = document.getElementById('aiEditBtn');
+  aiBtn.disabled = true;
+  aiBtn.innerText = 'Applying...';
+
+  const fullQuery = currentCode 
+    ? `Modify this Python code according to the instruction "${prompt}":\n\n${currentCode}`
+    : prompt;
+
+  try {
+    const res = await fetch('/api/generate_code', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: fullQuery })
+    });
+    const result = await res.json();
+
+    if (result.success && result.data && result.data.code) {
+      document.getElementById('codeEditorArea').value = result.data.code;
+      document.getElementById('scriptTitleLbl').innerText = result.data.title || 'AI Generated Code';
+      document.getElementById('aiInstructionInput').value = '';
+
+      // Immediately run the updated code!
+      executeCurrentCode();
+    } else {
+      alert(result.error || 'Failed to apply AI code modification.');
+    }
+  } catch (err) {
+    alert('Network error connecting to AI assistant.');
+  } finally {
+    aiBtn.disabled = false;
+    aiBtn.innerText = 'Apply AI';
   }
+}
+
+// Audit Current Code
+async function auditCurrentCode() {
+  const code = document.getElementById('codeEditorArea').value.trim();
+  if (!code) {
+    alert('Please enter some code to audit.');
+    return;
+  }
+
+  const reviewTabBtn = document.getElementById('tabBtn-review');
+  if (reviewTabBtn) switchRightTab('review', reviewTabBtn);
+
+  const reviewBox = document.getElementById('reviewViewArea');
+  reviewBox.innerHTML = '<div style="text-align:center;padding:2.5rem 1rem;color:var(--text2)">Auditing code quality, security, and algorithmic complexity...</div>';
+
+  try {
+    const res = await fetch('/api/analyze_code', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: code })
+    });
+    const result = await res.json();
+
+    if (result.success && result.data) {
+      const d = result.data;
+      const score = parseInt(d.score) || 75;
+      const issues = (d.errors || []).map(e => `
+        <div class="cl-issue-item">
+          ${e.line ? `<strong style="color:#EF4444">Line ${e.line}:</strong> ` : ''}
+          <span>${escapeHtml(e.issue)}</span>
+          ${e.fix ? `<div style="font-size:0.75rem;color:var(--text2);margin-top:0.2rem">Fix: <code>${escapeHtml(e.fix)}</code></div>` : ''}
+        </div>
+      `).join('');
+
+      const improvements = (d.improvements || []).map(i => `<li style="margin-bottom:0.35rem">${escapeHtml(i)}</li>`).join('');
+
+      reviewBox.innerHTML = `
+        <div class="cl-score-card">
+          <div class="cl-score-badge">${score}</div>
+          <div>
+            <div style="font-size:0.92rem;font-weight:800;color:var(--text)">Code Health Score</div>
+            <p style="font-size:0.8rem;color:var(--text2);margin:0.2rem 0 0">${escapeHtml(d.overall_assessment || '')}</p>
+          </div>
+        </div>
+
+        ${issues ? `
+          <div style="margin-bottom:1rem">
+            <h4 style="font-size:0.8rem;font-weight:800;color:#EF4444;text-transform:uppercase;margin-bottom:0.4rem">Detected Issues</h4>
+            ${issues}
+          </div>
+        ` : `
+          <div style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.25);border-radius:6px;padding:0.65rem;color:var(--accent);font-size:0.8rem;font-weight:600;margin-bottom:1rem">
+            &check; No critical bugs or syntax flaws detected. Clean implementation!
+          </div>
+        `}
+
+        ${improvements ? `
+          <div style="margin-bottom:1rem">
+            <h4 style="font-size:0.8rem;font-weight:800;color:var(--text);text-transform:uppercase;margin-bottom:0.35rem">Suggested Enhancements</h4>
+            <ul style="padding-left:1.15rem;font-size:0.82rem;color:var(--text2);line-height:1.5">${improvements}</ul>
+          </div>
+        ` : ''}
+
+        ${d.optimized_code ? `
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.4rem">
+              <h4 style="font-size:0.8rem;font-weight:800;color:var(--text);text-transform:uppercase">Optimized Version</h4>
+              <button class="cl-btn cl-btn-primary" style="padding:0.25rem 0.65rem;font-size:0.75rem" onclick="applyOptimizedCode()">Replace Editor with Optimized</button>
+            </div>
+            <pre style="background:#111827;color:#E5E7EB;padding:0.85rem;border-radius:8px;font-family:monospace;font-size:0.78rem;line-height:1.5;overflow-x:auto;max-height:180px"><code>${escapeHtml(d.optimized_code)}</code></pre>
+          </div>
+        ` : ''}
+      `;
+
+      // Store optimized code globally
+      window.lastOptimizedCode = d.optimized_code;
+    }
+  } catch (err) {
+    reviewBox.innerHTML = '<div style="color:var(--danger)">Error auditing code. Please try again.</div>';
+  }
+}
+
+function applyOptimizedCode() {
+  if (!window.lastOptimizedCode) return;
+  document.getElementById('codeEditorArea').value = window.lastOptimizedCode;
+  executeCurrentCode();
+}
+
+function escapeHtml(s) {
+  if (s == null) return '';
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
 </script>
+
 {% endblock %}

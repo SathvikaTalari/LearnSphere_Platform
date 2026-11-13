@@ -7,7 +7,7 @@
   <div class="dash-header-row">
     <div>
       <h1 class="dash-title">Student Dashboard</h1>
-      <p class="dash-sub">Welcome back, <strong id="dashWelcomeName">Student</strong> 👋 Track your learning progress, courses, and AI performance.</p>
+      <p class="dash-sub">Welcome back, <strong id="dashWelcomeName">Student</strong>. Track your learning progress, courses, and AI performance.</p>
     </div>
     <div class="dash-search">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -140,14 +140,14 @@
          ══════════════════════════════════════════════════════════════ -->
     <div class="dash-v4-side">
 
-      <!-- Student Profile Card -->
-      <div class="dash-user-card">
-        <div class="dash-user-avatar" id="sideUserAvatar">?</div>
-        <div class="dash-user-info">
-          <div class="dash-user-name" id="sideUserName">Learner</div>
-          <div class="dash-user-role-pill">Student • <span id="sideUserLevel">Beginner</span></div>
+      <!-- User Profile Card -->
+      <a href="/profile" class="dash-user-card" style="text-decoration:none; cursor:pointer;" title="View & Edit Profile">
+        <div class="dash-user-avatar" id="dashUserAvatar">{{ session.get('username','S')[0]|upper }}</div>
+        <div>
+          <div class="dash-user-name" id="dashUserName">{{ session.get('username','Student') }}</div>
+          <div class="dash-user-role-pill" id="dashUserRolePill">Student &bull; {{ session.get('level', 'Beginner')|capitalize }}</div>
         </div>
-      </div>
+      </a>
 
       <!-- Calendar Schedule -->
       <div class="dash-calendar-card">
@@ -165,7 +165,7 @@
       <!-- Notice Board -->
       <div class="dash-notice-card">
         <div class="dash-notice-head">
-          <span>📢 Announcements</span>
+          <span>Announcements</span>
         </div>
         <div class="notice-list" id="noticeList">
           <div class="notice-item">
@@ -232,18 +232,15 @@ async function loadDash() {
     avgProg = Math.round(sum / enrollments.length);
   }
 
-  // Welcome Header & Sidebar
+  // Welcome Header
   var welcomeEl = document.getElementById('dashWelcomeName');
   if (welcomeEl) welcomeEl.textContent = name;
-  
-  var avatarEl = document.getElementById('sideUserAvatar');
-  if (avatarEl) avatarEl.textContent = name.charAt(0).toUpperCase();
-
-  var sideNameEl = document.getElementById('sideUserName');
-  if (sideNameEl) sideNameEl.textContent = name;
-
-  var sideLevelEl = document.getElementById('sideUserLevel');
-  if (sideLevelEl) sideLevelEl.textContent = level.charAt(0).toUpperCase() + level.slice(1);
+  var dashAvatar = document.getElementById('dashUserAvatar');
+  if (dashAvatar) dashAvatar.textContent = name.charAt(0).toUpperCase();
+  var dashName = document.getElementById('dashUserName');
+  if (dashName) dashName.textContent = name;
+  var dashRolePill = document.getElementById('dashUserRolePill');
+  if (dashRolePill) dashRolePill.textContent = 'Student • ' + (level.charAt(0).toUpperCase() + level.slice(1));
 
   // Stat cards
   document.getElementById('dsiCourses').textContent = enrolled;
@@ -281,9 +278,14 @@ function drawBarChart(enrollments) {
   canvas.style.width = w + 'px'; canvas.style.height = h + 'px';
   ctx.scale(dpr, dpr);
 
+  var isDay = document.documentElement.getAttribute('data-theme') === 'day';
+  var textColor = isDay ? '#1A2332' : 'rgba(248, 250, 252, 0.85)';
+  var subColor = isDay ? '#6B7E92' : 'rgba(148, 163, 184, 0.6)';
+  var gridLineColor = isDay ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.05)';
+
   var items = enrollments.slice(0, 6);
   if (!items.length) {
-    ctx.fillStyle = 'rgba(148, 163, 184, 0.4)';
+    ctx.fillStyle = subColor;
     ctx.font = '500 13px Inter, sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText('Enroll in courses to view progress metrics', w / 2, h / 2);
@@ -301,9 +303,9 @@ function drawBarChart(enrollments) {
   ctx.font = '10px Inter, sans-serif';
   for (var p = 0; p <= 100; p += 25) {
     var y = padT + chartH - (p / 100 * chartH);
-    ctx.fillStyle = 'rgba(148, 163, 184, 0.35)';
+    ctx.fillStyle = subColor;
     ctx.fillText(p + '%', padL - 6, y + 3);
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+    ctx.strokeStyle = gridLineColor;
     ctx.setLineDash([3, 3]);
     ctx.beginPath(); 
     ctx.moveTo(padL, y); 
@@ -318,11 +320,11 @@ function drawBarChart(enrollments) {
     var pct = Math.min(100, Math.max(0, e.progress || 0));
     var barH = Math.max(4, pct / 100 * chartH);
     var by = padT + chartH - barH;
-    var color = e.thumbnail_color || '#00D4FF';
+    var color = e.thumbnail_color || '#10B981';
 
     var grad = ctx.createLinearGradient(x, by, x, padT + chartH);
     grad.addColorStop(0, color);
-    grad.addColorStop(1, 'rgba(2, 132, 199, 0.3)');
+    grad.addColorStop(1, isDay ? 'rgba(5, 150, 105, 0.15)' : 'rgba(5, 150, 105, 0.3)');
     ctx.fillStyle = grad;
 
     var r = 4;
@@ -337,13 +339,13 @@ function drawBarChart(enrollments) {
     ctx.fill();
 
     // Value label
-    ctx.fillStyle = 'rgba(248, 250, 252, 0.85)';
+    ctx.fillStyle = textColor;
     ctx.font = '600 10px Inter, sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText(pct + '%', x + barW / 2, by - 5);
 
     // Title label
-    ctx.fillStyle = 'rgba(148, 163, 184, 0.6)';
+    ctx.fillStyle = subColor;
     ctx.font = '500 10px Inter, sans-serif';
     var label = (e.title || '').length > 10 ? (e.title || '').substring(0, 9) + '…' : (e.title || '');
     ctx.fillText(label, x + barW / 2, h - 8);
@@ -360,15 +362,20 @@ function drawDonut(enrollments, avgProg) {
   canvas.style.width = '150px'; canvas.style.height = '150px';
   ctx.scale(dpr, dpr);
 
+  var isDay = document.documentElement.getAttribute('data-theme') === 'day';
+  var centerTextColor = isDay ? '#1A2332' : '#FFFFFF';
+  var ringBgColor = isDay ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.06)';
+  var subTextColor = isDay ? '#6B7E92' : 'rgba(148, 163, 184, 0.4)';
+
   var cx = 75, cy = 75, radius = 54, lineW = 16;
 
   if (!enrollments.length) {
     ctx.beginPath();
     ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+    ctx.strokeStyle = ringBgColor;
     ctx.lineWidth = lineW;
     ctx.stroke();
-    ctx.fillStyle = 'rgba(148, 163, 184, 0.4)';
+    ctx.fillStyle = subTextColor;
     ctx.font = '600 12px Inter, sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText('0%', cx, cy + 4);
@@ -376,12 +383,11 @@ function drawDonut(enrollments, avgProg) {
   }
 
   var completedPart = avgProg / 100;
-  var inProgressPart = 1 - completedPart;
 
   // Background ring
   ctx.beginPath();
   ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
+  ctx.strokeStyle = ringBgColor;
   ctx.lineWidth = lineW;
   ctx.stroke();
 
@@ -392,14 +398,14 @@ function drawDonut(enrollments, avgProg) {
   if (completedPart > 0) {
     ctx.beginPath();
     ctx.arc(cx, cy, radius, startAngle, endAngle);
-    ctx.strokeStyle = '#00D4FF';
+    ctx.strokeStyle = isDay ? '#059669' : '#10B981';
     ctx.lineWidth = lineW;
     ctx.lineCap = 'round';
     ctx.stroke();
   }
 
   // Center text
-  ctx.fillStyle = '#FFFFFF';
+  ctx.fillStyle = centerTextColor;
   ctx.font = '700 24px Plus Jakarta Sans, sans-serif';
   ctx.textAlign = 'center';
   ctx.fillText(avgProg + '%', cx, cy + 8);
@@ -408,7 +414,7 @@ function drawDonut(enrollments, avgProg) {
   var legend = document.getElementById('donutLegend');
   if (legend) {
     legend.innerHTML =
-      '<div class="donut-legend-item"><div class="donut-dot" style="background:#00D4FF"></div> Completed (' + avgProg + '%)</div>'
+      '<div class="donut-legend-item"><div class="donut-dot" style="background:' + (isDay ? '#059669' : '#10B981') + '"></div> Completed (' + avgProg + '%)</div>'
       + '<div class="donut-legend-item"><div class="donut-dot" style="background:rgba(148,163,184,0.4)"></div> In Progress (' + (100 - avgProg) + '%)</div>';
   }
 }
@@ -421,7 +427,6 @@ function renderTable(enrollments) {
   if (!enrollments || !enrollments.length) {
     tbody.innerHTML = '<tr><td colspan="5">'
       + '<div class="empty-enrolled-state">'
-      + '<div class="empty-icon">📚</div>'
       + '<h4>No Enrolled Courses Yet</h4>'
       + '<p>Start learning machine learning concepts, models, and architectures today.</p>'
       + '<a href="/student/courses" class="dash-primary-btn">Browse Course Catalog →</a>'
@@ -431,7 +436,7 @@ function renderTable(enrollments) {
 
   tbody.innerHTML = enrollments.map(function(e) {
     var prog = Math.min(100, Math.max(0, e.progress || 0));
-    var color = e.thumbnail_color || '#00D4FF';
+    var color = e.thumbnail_color || '#10B981';
     var initial = (e.title || 'C')[0].toUpperCase();
     var enrollDate = e.enrolled_at ? new Date(e.enrolled_at).toLocaleDateString() : 'Active';
     var isDone = prog >= 100;
@@ -457,7 +462,7 @@ function renderTable(enrollments) {
       + '<td><span class="dash-date-text">' + enrollDate + '</span></td>'
       + '<td><span class="status-badge ' + statusClass + '">' + statusText + '</span></td>'
       + '<td style="text-align:right">'
-      +   '<a href="/student/course/' + e.id + '" class="dash-action-btn">' + (isDone ? 'Review' : 'Continue') + ' →</a>'
+      +   '<a href="/student/course/' + (e.course_id || e.id) + '" class="dash-action-btn">' + (isDone ? 'Review' : 'Continue') + ' →</a>'
       + '</td>'
       + '</tr>';
   }).join('');

@@ -9,8 +9,8 @@
             <p class="page-sub" id="courseSub"></p>
         </div>
         <div style="display:flex;gap:0.75rem;flex-wrap:wrap">
-            <a href="/educator/course/{{ course_id }}/edit" class="btn btn-ghost">✏️ Edit Course</a>
-            <a href="/educator/course/{{ course_id }}/assessments" class="btn btn-ghost" style="border-color:var(--warn);color:var(--warn)">📝 Assessments</a>
+            <a href="/educator/course/{{ course_id }}/edit" class="btn btn-ghost">Edit Course</a>
+            <a href="/educator/course/{{ course_id }}/assessments" class="btn btn-ghost" style="border-color:var(--warn);color:var(--warn)">Assessments</a>
             <a href="/educator/lecture/new/{{ course_id }}" class="btn btn-primary">+ Add Lecture</a>
         </div>
     </div>
@@ -38,11 +38,11 @@ async function load() {
                 <div class="lec-order">${i+1}</div>
                 <div class="lec-manage-info">
                     <strong>${l.title}</strong>
-                    <span>⏱ ${l.duration_mins} min · ${l.lecture_type} ${l.code_example?'· 💻 has code':''}</span>
+                    <span>${l.duration_mins} min · ${l.lecture_type} ${l.code_example?'· has code':''}</span>
                 </div>
                 <div class="lec-manage-actions">
-                    <a href="/educator/lecture/${l.id}/edit" class="act-btn">✏️ Edit</a>
-                    <button onclick="delLec('${l.id}',this)" class="act-btn danger">🗑</button>
+                    <a href="/educator/lecture/${l.id}/edit" class="act-btn">Edit</a>
+                    <button onclick="delLec('${l.id}',this)" class="act-btn danger">Delete</button>
                 </div>
             </div>`).join('')}
         </div>

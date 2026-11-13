@@ -1,86 +1,498 @@
 {% extends "base.html" %}
-{% block title %}Course — LearnSphere{% endblock %}
+{% block title %}Course &bull; LearnSphere{% endblock %}
 {% block content %}
 <style>
-.cv-wrap{max-width:1100px;margin:0 auto;padding:1.75rem 2rem 4rem}
-/* Hero */
-.cv-hero{border-radius:var(--r2);padding:2rem 2.5rem;margin-bottom:1.4rem;position:relative;overflow:hidden;border:1px solid var(--border)}
-.cv-hero-grid{display:grid;grid-template-columns:1fr auto;gap:2rem;align-items:start}
-.cv-category{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--accent);margin-bottom:.4rem}
-.cv-title{font-family:var(--ff-serif);font-size:1.8rem;font-weight:700;color:var(--text);line-height:1.25;margin-bottom:.5rem}
-.cv-desc{font-size:.87rem;color:var(--text2);line-height:1.6;margin-bottom:.85rem;max-width:600px}
-.cv-meta{display:flex;gap:1rem;flex-wrap:wrap;font-size:.78rem;color:var(--text2)}
-.cv-meta span{display:flex;align-items:center;gap:.3rem}
-.cv-diff{font-size:.68rem;font-weight:700;padding:.15rem .5rem;border-radius:4px;margin-left:.5rem}
-.cv-diff.beginner{background:rgba(16,185,129,.1);color:var(--success)}
-.cv-diff.intermediate{background:rgba(245,158,11,.1);color:var(--warn)}
-.cv-diff.advanced{background:rgba(239,68,68,.08);color:var(--danger)}
-/* Progress ring */
-.progress-ring-box{text-align:center;min-width:120px}
-/* Rating */
-.cv-rating{display:flex;align-items:center;gap:.4rem;margin-top:.65rem}
-.cv-stars{color:#f59e0b;font-size:1rem}
-.cv-star-val{font-weight:700;color:var(--text);font-size:.88rem}
-.cv-star-count{color:var(--text2);font-size:.78rem}
-.cv-rate-btn{padding:.22rem .6rem;border-radius:6px;border:1px solid var(--border);background:var(--bg2);color:var(--text2);font-size:.72rem;cursor:pointer;transition:all .13s}
-.cv-rate-btn:hover{border-color:var(--accent);color:var(--accent)}
-/* Layout */
-.cv-layout{display:grid;grid-template-columns:1fr 300px;gap:1.4rem;align-items:start}
-/* Lecture list */
-.lec-section h2{font-family:var(--ff-serif);font-size:1.05rem;font-weight:700;color:var(--text);margin-bottom:.85rem;display:flex;align-items:center;gap:.5rem}
-.lec-item{display:flex;align-items:center;gap:.85rem;padding:.85rem 1rem;background:var(--bg3);border:1px solid var(--border);border-radius:10px;margin-bottom:.5rem;text-decoration:none;transition:all .15s}
-.lec-item:hover{border-color:var(--border2);transform:translateX(3px)}
-.lec-item.done{border-color:rgba(16,185,129,.3)}
-.lec-num{width:32px;height:32px;border-radius:50%;background:var(--bg2);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:700;color:var(--text2);flex-shrink:0}
-.lec-num.done{background:var(--success);border-color:var(--success);color:#fff}
-.lec-info{flex:1;min-width:0}
-.lec-info strong{display:block;font-size:.87rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.lec-info span{font-size:.72rem;color:var(--text2)}
-.lec-type-icon{font-size:.8rem;flex-shrink:0}
-/* Right sidebar cards */
-.cv-sidebar{display:flex;flex-direction:column;gap:1rem}
-.cv-side-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden}
-.cv-side-head{padding:.75rem 1rem;border-bottom:1px solid var(--border);font-family:var(--ff-serif);font-size:.88rem;font-weight:700;color:var(--text);display:flex;align-items:center;gap:.4rem}
-.cv-side-body{padding:.9rem 1rem}
-/* Assessment cards */
-.ass-item{padding:.65rem .85rem;background:var(--bg2);border:1px solid var(--border);border-radius:8px;margin-bottom:.5rem;display:flex;align-items:center;justify-content:space-between;gap:.5rem}
-.ass-item:last-child{margin-bottom:0}
-.ass-item-info strong{display:block;font-size:.83rem;color:var(--text)}
-.ass-item-info span{font-size:.72rem;color:var(--text2)}
-.take-btn{padding:.28rem .72rem;border-radius:6px;background:var(--accent);border:none;color:#fff;font-size:.72rem;font-weight:700;cursor:pointer;white-space:nowrap;transition:filter .14s;text-decoration:none}
-.take-btn:hover{filter:brightness(1.1)}
-/* Certificate card */
-.cert-card{background:linear-gradient(135deg,rgba(16,185,129,.1),rgba(0,212,255,.06));border:1px solid rgba(16,185,129,.3);border-radius:var(--r2);padding:1.1rem;text-align:center}
-.cert-card h3{font-family:var(--ff-serif);font-size:.92rem;color:var(--success);margin-bottom:.3rem}
-.cert-dl-link{display:inline-flex;align-items:center;gap:.4rem;padding:.5rem 1.1rem;border-radius:7px;background:var(--success);color:#fff;font-size:.8rem;font-weight:700;text-decoration:none;transition:filter .14s;margin-top:.65rem}
-.cert-dl-link:hover{filter:brightness(1.1)}
-/* Progress bar */
-.cv-prog-bar{height:6px;border-radius:3px;background:var(--bg2);overflow:hidden;margin-top:.5rem}
-.cv-prog-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--accent),var(--success));transition:width .8s ease}
-/* Stars rating modal */
-.star-rating{display:flex;gap:.3rem;justify-content:center;margin:.65rem 0}
-.star-btn{font-size:1.8rem;background:none;border:none;cursor:pointer;color:#d1d5db;transition:color .12s}
-.star-btn:hover,.star-btn.on{color:#f59e0b}
+.cv-wrap {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 1.5rem 1.5rem 4rem;
+}
+
+.cv-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text2);
+  text-decoration: none;
+  margin-bottom: 1.25rem;
+  transition: color 0.15s ease;
+}
+.cv-back-link:hover {
+  color: var(--accent);
+}
+
+/* ── Hero Banner ─────────────────────────────────────────────────── */
+.cv-hero-card {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--r2, 14px);
+  padding: 2rem 2.25rem;
+  margin-bottom: 1.75rem;
+  position: relative;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+}
+
+.cv-pills-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.cv-cat-pill {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+  background: var(--accent-glow, rgba(5, 150, 105, 0.1));
+  padding: 0.25rem 0.65rem;
+  border-radius: 6px;
+}
+
+.cv-diff-pill {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+}
+.cv-diff-pill.beginner {
+  background: rgba(16, 185, 129, 0.12);
+  color: var(--success);
+}
+.cv-diff-pill.intermediate {
+  background: rgba(245, 158, 11, 0.12);
+  color: var(--warn);
+}
+.cv-diff-pill.advanced {
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--danger);
+}
+
+.cv-title {
+  font-family: var(--ff-display, var(--ff-sans));
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.25;
+  margin-bottom: 0.65rem;
+}
+
+.cv-desc {
+  font-size: 0.95rem;
+  color: var(--text2);
+  line-height: 1.6;
+  max-width: 820px;
+  margin-bottom: 1.25rem;
+}
+
+.cv-meta-strip {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  font-size: 0.82rem;
+  color: var(--text2);
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.cv-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.cv-meta-item strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.cv-rate-btn-inline {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text2);
+  padding: 0.2rem 0.55rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+  margin-left: 0.4rem;
+  transition: all 0.15s ease;
+}
+.cv-rate-btn-inline:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ── Progress Strip ──────────────────────────────────────────────── */
+.cv-prog-container {
+  margin-top: 1.25rem;
+  padding: 1rem 1.25rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.cv-prog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.85rem;
+}
+.cv-prog-label {
+  font-weight: 600;
+  color: var(--text);
+}
+.cv-prog-val {
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.cv-prog-bar-track {
+  height: 8px;
+  background: var(--bg2);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.cv-prog-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: var(--accent);
+  transition: width 0.6s ease;
+}
+
+.cv-hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+  flex-wrap: wrap;
+}
+
+/* ── Two Column Grid ─────────────────────────────────────────────── */
+.cv-main-grid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 1.75rem;
+  align-items: start;
+}
+
+/* ── Curriculum (Left) ───────────────────────────────────────────── */
+.cv-curriculum-panel {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--r2, 14px);
+  padding: 1.5rem;
+}
+
+.cv-section-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.cv-section-h2 {
+  font-family: var(--ff-display, var(--ff-sans));
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+
+.cv-section-sub {
+  font-size: 0.8rem;
+  color: var(--text2);
+}
+
+.cv-lessons-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.cv-lesson-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.15rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  gap: 1rem;
+  transition: all 0.15s ease;
+  text-decoration: none;
+}
+.cv-lesson-row:hover {
+  border-color: var(--accent);
+  transform: translateX(3px);
+  background: var(--bg2);
+}
+.cv-lesson-row.completed {
+  border-color: rgba(16, 185, 129, 0.35);
+  background: rgba(16, 185, 129, 0.04);
+}
+
+.cv-lesson-left {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  min-width: 0;
+}
+
+.cv-lec-circle {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--bg3);
+  border: 1.5px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text2);
+  flex-shrink: 0;
+}
+.cv-lesson-row.completed .cv-lec-circle {
+  background: var(--success);
+  border-color: var(--success);
+  color: #FFFFFF;
+}
+
+.cv-lec-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.cv-lec-title-text {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.3;
+  margin-bottom: 0.2rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cv-lec-meta-text {
+  font-size: 0.75rem;
+  color: var(--text2);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.cv-lesson-right {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-shrink: 0;
+}
+
+.cv-toggle-done {
+  padding: 0.3rem 0.65rem;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--bg3);
+  color: var(--text2);
+  transition: all 0.15s ease;
+}
+.cv-toggle-done:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.cv-toggle-done.done {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: var(--success);
+  color: var(--success);
+}
+
+.cv-lec-btn-link {
+  padding: 0.35rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-decoration: none;
+  background: var(--accent);
+  color: #FFFFFF;
+  transition: filter 0.15s ease;
+  white-space: nowrap;
+}
+.cv-lec-btn-link:hover {
+  filter: brightness(1.1);
+}
+.cv-lesson-row.completed .cv-lec-btn-link {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+/* ── Sidebar (Right) ─────────────────────────────────────────────── */
+.cv-sidebar-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.cv-card {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--r2, 14px);
+  padding: 1.35rem 1.4rem;
+}
+
+.cv-card h4 {
+  font-family: var(--ff-display, var(--ff-sans));
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-top: 0;
+  margin-bottom: 0.85rem;
+}
+
+/* Certificate Card */
+.cv-cert-card {
+  border: 1px solid var(--border);
+  transition: all 0.2s ease;
+}
+.cv-cert-card.completed {
+  border-color: rgba(16, 185, 129, 0.4);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, var(--bg3) 100%);
+}
+.cv-cert-pill-ready {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--success);
+  background: rgba(16, 185, 129, 0.12);
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+}
+.cv-cert-desc {
+  font-size: 0.82rem;
+  color: var(--text2);
+  line-height: 1.5;
+  margin-bottom: 1rem;
+}
+.cv-cert-download-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 0.65rem 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-decoration: none;
+  background: var(--accent);
+  color: #FFFFFF;
+  text-align: center;
+  transition: filter 0.15s ease;
+}
+.cv-cert-download-btn:hover {
+  filter: brightness(1.1);
+}
+
+.cv-bullets-list {
+  margin: 0;
+  padding-left: 1.15rem;
+  font-size: 0.83rem;
+  color: var(--text2);
+  line-height: 1.6;
+}
+.cv-bullets-list li {
+  margin-bottom: 0.45rem;
+}
+
+.cv-skill-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.cv-skill-chip {
+  font-size: 0.72rem;
+  padding: 0.25rem 0.55rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+}
+
+/* Discussion Forum at bottom */
+.cv-forum-panel {
+  margin-top: 2rem;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--r2, 14px);
+  padding: 1.5rem;
+}
+.cv-forum-input-row {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+.cv-forum-input {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 0.88rem;
+  outline: none;
+}
+.cv-forum-input:focus {
+  border-color: var(--accent);
+}
+
+@media (max-width: 860px) {
+  .cv-main-grid {
+    grid-template-columns: 1fr;
+  }
+}
 </style>
 
 <div class="cv-wrap animate-in">
-  <div id="courseContent"><div class="loading-card"><div class="spinner"></div><p>Loading course...</p></div></div>
+  <a href="/student/courses" class="cv-back-link">&larr; Back to All Courses</a>
+  <div id="courseContent">
+    <div class="loading-card" style="padding:3rem;text-align:center;">
+      <div class="spinner"></div>
+      <p style="margin-top:0.75rem;color:var(--text2)">Loading course curriculum...</p>
+    </div>
+  </div>
 </div>
 
-<!-- Rating modal -->
-<div id="rateModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:none;align-items:center;justify-content:center">
-  <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:1.75rem 2rem;max-width:360px;width:90%;text-align:center">
-    <h3 style="font-family:var(--ff-serif);margin-bottom:.5rem">Rate this Course</h3>
-    <p style="font-size:.82rem;color:var(--text2);margin-bottom:.75rem">How would you rate your learning experience?</p>
-    <div class="star-rating" id="starRow">
-      <button class="star-btn" onclick="setStar(1)">★</button>
-      <button class="star-btn" onclick="setStar(2)">★</button>
-      <button class="star-btn" onclick="setStar(3)">★</button>
-      <button class="star-btn" onclick="setStar(4)">★</button>
-      <button class="star-btn" onclick="setStar(5)">★</button>
+<!-- Rating Modal -->
+<div id="rateModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:2rem;max-width:380px;width:90%;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,0.3);">
+    <h3 style="font-family:var(--ff-display,var(--ff-sans));margin-top:0;margin-bottom:0.5rem;color:var(--text)">Rate this Course</h3>
+    <p style="font-size:0.85rem;color:var(--text2);margin-bottom:1rem">Share your feedback on the curriculum and depth.</p>
+    <div style="display:flex;gap:0.4rem;justify-content:center;margin-bottom:1.25rem" id="starRow">
+      <button class="star-btn" onclick="setStar(1)">1 &starf;</button>
+      <button class="star-btn" onclick="setStar(2)">2 &starf;</button>
+      <button class="star-btn" onclick="setStar(3)">3 &starf;</button>
+      <button class="star-btn" onclick="setStar(4)">4 &starf;</button>
+      <button class="star-btn" onclick="setStar(5)">5 &starf;</button>
     </div>
-    <textarea id="rateReview" placeholder="Write a review (optional)…" style="width:100%;padding:.55rem .8rem;border-radius:8px;background:var(--bg2);border:1px solid var(--border);color:var(--text);font-family:var(--ff-sans);font-size:.83rem;resize:vertical;outline:none;margin-bottom:.85rem" rows="3"></textarea>
-    <div style="display:flex;gap:.65rem;justify-content:center">
+    <textarea id="rateReview" placeholder="Write an optional review..." style="width:100%;padding:0.6rem 0.8rem;border-radius:8px;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--ff-sans);font-size:0.85rem;resize:vertical;outline:none;margin-bottom:1rem;box-sizing:border-box" rows="3"></textarea>
+    <div style="display:flex;gap:0.65rem;justify-content:center">
       <button onclick="submitRating()" class="btn btn-primary" id="rateSubmitBtn">Submit Rating</button>
       <button onclick="closeRateModal()" class="btn btn-ghost">Cancel</button>
     </div>
@@ -90,409 +502,339 @@
 <script>
 var courseId = '{{ course_id }}';
 var selectedStar = 0;
-var courseColor = '#00D4FF';
-
-function buildCourseOverview(course, lectures) {
-  // --- What You'll Learn: derive from lecture titles ---
-  var learnItems = lectures.map(function(l){ return escH(l.title); });
-  var catItems = {
-    'Machine Learning': ['Understand core ML algorithms', 'Build predictive models', 'Evaluate model performance', 'Apply ML to real-world problems'],
-    'Deep Learning': ['Design neural network architectures', 'Train deep learning models', 'Use TensorFlow & PyTorch', 'Implement CNNs, RNNs, Transformers'],
-    'NLP': ['Process and analyze text data', 'Build NLP pipelines', 'Understand word embeddings', 'Apply modern transformer models'],
-    'Natural Language Processing': ['Process and analyze text data', 'Build NLP pipelines', 'Understand word embeddings', 'Apply modern transformer models'],
-    'Data Science': ['Analyze real-world datasets', 'Create data visualizations', 'Apply statistical methods', 'Build end-to-end data pipelines'],
-    'Computer Vision': ['Build image classifiers', 'Implement object detection', 'Use transfer learning', 'Apply data augmentation'],
-    'Reinforcement Learning': ['Understand MDPs', 'Implement Q-Learning', 'Apply policy gradients', 'Build RL environments'],
-    'Generative AI': ['Understand transformer architecture', 'Fine-tune large models', 'Master prompt engineering', 'Build RAG pipelines'],
-    'MLOps': ['Deploy ML models', 'Build CI/CD pipelines', 'Monitor model performance', 'Containerize ML apps']
-  };
-  var extraItems = catItems[course.category] || ['Master key concepts', 'Apply theory to practice', 'Build real projects', 'Gain industry-ready skills'];
-  var allLearn = learnItems.concat(extraItems).slice(0, 8);
-
-  // --- Prerequisites based on difficulty ---
-  var prereqMap = {
-    'beginner': ['Basic understanding of programming', 'Familiarity with mathematics (algebra)', 'No prior ML experience needed'],
-    'intermediate': ['Basic Python programming skills', 'Understanding of statistics & probability', 'Introductory ML concepts'],
-    'advanced': ['Strong Python programming experience', 'Linear algebra & calculus fundamentals', 'Prior ML/DL project experience', 'Understanding of neural networks']
-  };
-  var prereqs = prereqMap[course.difficulty] || prereqMap['beginner'];
-
-  // --- Skills from category ---
-  var skillMap = {
-    'Machine Learning': ['Python', 'Scikit-learn', 'Data Analysis', 'Model Evaluation', 'Feature Engineering', 'Regression', 'Classification'],
-    'Deep Learning': ['TensorFlow', 'PyTorch', 'Neural Networks', 'Computer Vision', 'Model Optimization', 'GPU Training'],
-    'NLP': ['Text Processing', 'Tokenization', 'Word Embeddings', 'Transformers', 'Sentiment Analysis', 'BERT/GPT'],
-    'Natural Language Processing': ['Text Processing', 'Tokenization', 'Word Embeddings', 'Transformers', 'Sentiment Analysis', 'BERT/GPT'],
-    'Data Science': ['Python', 'Pandas', 'SQL', 'Data Visualization', 'Statistics', 'Excel'],
-    'Computer Vision': ['OpenCV', 'CNNs', 'Image Processing', 'Transfer Learning', 'YOLO', 'Segmentation'],
-    'Reinforcement Learning': ['Gym', 'Q-Learning', 'Policy Gradients', 'Deep RL', 'Multi-Agent'],
-    'Generative AI': ['Transformers', 'LLMs', 'Prompt Engineering', 'RAG', 'Fine-tuning', 'RLHF'],
-    'MLOps': ['Docker', 'Kubernetes', 'CI/CD', 'Model Serving', 'MLflow', 'Monitoring']
-  };
-  var skills = skillMap[course.category] || ['Python', 'Data Analysis', 'Machine Learning', 'Problem Solving'];
-
-  // --- Total duration ---
-  var totalMins = lectures.reduce(function(s,l){ return s + (l.duration_mins||15); }, 0);
-  var totalHrs = (totalMins / 60).toFixed(1);
-
-  var html = '<div class="course-overview">';
-
-  // Card 1: What You'll Learn
-  html += '<div class="co-card">'
-    + '<div class="co-card-header"><span class="co-icon">🎯</span> What You\'ll Learn</div>'
-    + '<div class="co-card-body"><div class="co-learn-grid">'
-    + allLearn.map(function(item){ return '<div class="co-learn-item">' + item + '</div>'; }).join('')
-    + '</div></div></div>';
-
-  // Card 2: Course Syllabus
-  html += '<div class="co-card">'
-    + '<div class="co-card-header"><span class="co-icon">📋</span> Course Syllabus <span style="font-size:.72rem;color:var(--text2);font-weight:400;margin-left:auto">' + lectures.length + ' lessons · ' + totalHrs + 'h total</span></div>'
-    + '<div class="co-card-body">'
-    + (lectures.length === 0 ? '<div style="font-size:.8rem;color:var(--text2);text-align:center;padding:1rem">No lessons added yet.</div>' :
-       lectures.map(function(l,i){
-         return '<div class="co-syllabus-item">'
-           + '<div class="co-syllabus-num">' + (i+1) + '</div>'
-           + '<div class="co-syllabus-info"><strong>' + escH(l.title) + '</strong>'
-           + '<span>' + (l.lecture_type||'text') + (l.code_example ? ' · includes code' : '') + '</span></div>'
-           + '<div class="co-syllabus-dur">' + (l.duration_mins||15) + ' min</div>'
-           + '</div>';
-       }).join(''))
-    + '</div></div>';
-
-  // Card 3: Prerequisites
-  html += '<div class="co-card">'
-    + '<div class="co-card-header"><span class="co-icon">📌</span> Prerequisites</div>'
-    + '<div class="co-card-body">'
-    + prereqs.map(function(p){ return '<div class="co-prereq-item">' + p + '</div>'; }).join('')
-    + '</div></div>';
-
-  // Card 4: Skills
-  html += '<div class="co-card">'
-    + '<div class="co-card-header"><span class="co-icon">🛠</span> Skills You\'ll Gain</div>'
-    + '<div class="co-card-body"><div class="co-skills">'
-    + skills.map(function(s){ return '<span class="co-skill-tag">' + s + '</span>'; }).join('')
-    + '</div></div></div>';
-
-  html += '</div>';
-  return html;
-}
-
-/* ── Build Sections & Chapters interface ─────────────────────────── */
-function buildSectionsView(course, lectures, done) {
-  if (!lectures.length) return '';
-
-  // Group lectures into logical sections (every 2-3 lectures)
-  var sections = [];
-  var sectionSize = Math.max(2, Math.ceil(lectures.length / Math.ceil(lectures.length / 3)));
-  for (var i = 0; i < lectures.length; i += sectionSize) {
-    var grp = lectures.slice(i, i + sectionSize);
-    var sectionTitle = '';
-    if (i === 0) sectionTitle = 'Introduction & Foundations';
-    else if (i + sectionSize >= lectures.length) sectionTitle = 'Advanced Topics & Applications';
-    else sectionTitle = 'Core Concepts (Part ' + Math.ceil((i)/sectionSize + 1) + ')';
-    sections.push({ title: sectionTitle, lectures: grp });
-  }
-
-  var totalChapters = lectures.length;
-
-  var html = '<div class="cv2-content-section">';
-  html += '<div class="cv2-content-head">';
-  html += '<h3>📄 Page Content <span class="sub">' + sections.length + ' sections · ' + totalChapters + ' chapters</span></h3>';
-  html += '<div class="cv2-add-section">+ Add section</div>';
-  html += '</div>';
-
-  sections.forEach(function(sec, si) {
-    var doneInSection = sec.lectures.filter(function(l){ return done.includes(l.id); }).length;
-    var isFirstSection = si === 0;
-    html += '<div class="cv2-section-item">';
-    html += '<div class="cv2-section-header" onclick="toggleSection(this)">';
-    html += '<span class="cv2-section-drag">⋮⋮</span>';
-    html += '<span class="cv2-section-title">' + escH(sec.title) + '</span>';
-    html += '<span class="cv2-section-count">' + sec.lectures.length + ' chapter' + (sec.lectures.length!==1?'s':'') + '</span>';
-    html += '<span class="cv2-section-toggle' + (isFirstSection?' open':'') + '">▼</span>';
-    html += '</div>';
-    html += '<div class="cv2-chapter-list' + (isFirstSection?' open':'') + '">';
-    sec.lectures.forEach(function(l) {
-      var isDone = done.includes(l.id);
-      var typeIcon = {text:'📄',video:'🎥',live:'🔴',quiz:'📝',meet:'📅'}[l.lecture_type] || '📄';
-      html += '<a href="/student/lecture/' + l.id + '" class="cv2-chapter-item' + (isDone?' done':'') + '" style="text-decoration:none;color:inherit">';
-      html += '<span class="cv2-chapter-drag">⋮⋮</span>';
-      html += '<span class="cv2-chapter-icon' + (isDone?' done':'') + '">' + (isDone?'✓':typeIcon) + '</span>';
-      html += '<span class="cv2-chapter-title">' + escH(l.title) + '</span>';
-      html += '</a>';
-    });
-    html += '<div class="cv2-add-chapter">+ Add new chapter</div>';
-    html += '</div>';
-    html += '</div>';
-  });
-
-  html += '</div>';
-  return html;
-}
 
 async function load() {
-  var data = await fetch('/api/courses/' + courseId).then(function(r){return r.json();});
-  var c = data.course, lecs = data.lectures, done = data.completed || [];
-  var isEnrolled = data.enrolled || false;
-  var pct = lecs.length ? Math.round(done.length/lecs.length*100) : 0;
-  courseColor = c.thumbnail_color || '#00D4FF';
+  try {
+    const data = await fetch('/api/courses/' + courseId).then(r => r.json());
+    if (data.error || !data.course) {
+      document.getElementById('courseContent').innerHTML = '<div style="padding:3rem;text-align:center;color:var(--danger)">Course not found.</div>';
+      return;
+    }
 
-  // Load rating
-  var ratingData = await fetch('/api/courses/' + courseId + '/rating').then(function(r){return r.json();});
-  var avgRating = ratingData.avg || 0;
-  var ratingCount = ratingData.count || 0;
+    const c = data.course;
+    const lecs = data.lectures || [];
+    const done = data.completed || [];
+    const isEnrolled = data.enrolled || false;
+    const doneCount = lecs.filter(l => done.includes(l.id)).length;
+    const pct = lecs.length ? Math.round((doneCount / lecs.length) * 100) : 0;
+    const isFullyComplete = pct === 100 && lecs.length > 0;
 
-  // Load assessments
-  var assessments = await fetch('/api/assessments/' + courseId).then(function(r){return r.json();});
+    // Fetch ratings & certificates in parallel
+    const [ratingData, certData] = await Promise.all([
+      fetch('/api/courses/' + courseId + '/rating').then(r => r.json()).catch(() => ({ avg: 0, count: 0 })),
+      fetch('/api/certificate/' + courseId).then(r => r.json()).catch(() => ({ success: false }))
+    ]);
 
-  // Check certificate
-  var certData = await fetch('/api/certificate/' + courseId).then(function(r){return r.json();});
-  var hasCert = certData.success;
+    const avgRating = ratingData.avg || 0;
+    const ratingCount = ratingData.count || 0;
+    const hasCert = certData.success || isFullyComplete;
 
-  function starsHtml(r) {
-    var full=Math.floor(r);var empty=5-full;
-    return '★'.repeat(full)+'☆'.repeat(empty);
+    // Find next uncompleted lecture
+    const nextLec = lecs.find(l => !done.includes(l.id)) || lecs[0];
+
+    // Compute duration
+    const totalMins = lecs.reduce((acc, l) => acc + (l.duration_mins || 15), 0);
+    const totalHrs = (totalMins / 60).toFixed(1);
+
+    // Derived learning items
+    const catItems = {
+      'Machine Learning': ['Understand core ML algorithms & mathematical principles', 'Build predictive regression and classification pipelines', 'Perform cross-validation and bias-variance tradeoff analysis', 'Deploy and serve trained models in production environments'],
+      'Deep Learning': ['Construct multi-layer perceptrons, CNNs, and recurrent networks', 'Train models with PyTorch & TensorFlow with GPU acceleration', 'Apply modern regularization, dropout, and normalization techniques', 'Master transfer learning and fine-tuning pretrained foundations'],
+      'Natural Language Processing': ['Implement text tokenization, embeddings, and attention mechanisms', 'Fine-tune modern transformer and BERT-family architectures', 'Build retrieval-augmented generation (RAG) knowledge pipelines', 'Evaluate language models using BLEU, ROUGE, and perplexity'],
+      'Computer Vision': ['Build robust convolutional feature extraction pipelines', 'Train modern object detection (YOLO) and segmentation models', 'Apply transfer learning with ResNet, EfficientNet, and ViTs', 'Implement real-time visual inference pipelines'],
+      'MLOps': ['Containerize machine learning services using Docker', 'Construct continuous training and CI/CD deployment pipelines', 'Track experiments and artifact versioning using MLflow', 'Implement model drift detection and automated monitoring']
+    };
+    const learnBullets = catItems[c.category] || [
+      'Master the foundational principles and hands-on implementation',
+      'Analyze real-world data and train robust machine learning models',
+      'Solve practical challenges with industry-standard tooling',
+      'Build end-to-end projects ready for your technical portfolio'
+    ];
+
+    const prereqMap = {
+      'beginner': ['Familiarity with basic Python syntax', 'Fundamental high school algebra & statistics', 'Curiosity and passion for machine learning'],
+      'intermediate': ['Solid Python programming skills (NumPy & Pandas)', 'Basic linear algebra and probability concepts', 'Introductory experience with ML modeling'],
+      'advanced': ['Strong Python engineering and scientific computing experience', 'Multivariate calculus and linear algebra foundations', 'Prior experience training neural network models']
+    };
+    const prereqs = prereqMap[c.difficulty] || prereqMap['beginner'];
+
+    // ── Build HTML ──
+    let html = '';
+
+    // 1. Hero Card
+    html += '<div class="cv-hero-card">';
+    html += '  <div class="cv-pills-row">';
+    html += '    <span class="cv-cat-pill">' + escH(c.category || 'Machine Learning') + '</span>';
+    html += '    <span class="cv-diff-pill ' + escH(c.difficulty || 'beginner') + '">' + escH(c.difficulty || 'Beginner') + '</span>';
+    html += '  </div>';
+    html += '  <h1 class="cv-title">' + escH(c.title) + '</h1>';
+    html += '  <p class="cv-desc">' + escH(c.description || 'Comprehensive curriculum designed by university educators and ML engineers.') + '</p>';
+
+    // Meta row
+    html += '  <div class="cv-meta-strip">';
+    html += '    <div class="cv-meta-item"><span>Instructor:</span> <strong>' + escH(c.educator_name || 'LearnSphere Faculty') + '</strong></div>';
+    html += '    <div class="cv-meta-item"><span>Lessons:</span> <strong>' + lecs.length + ' Lessons</strong></div>';
+    html += '    <div class="cv-meta-item"><span>Total Duration:</span> <strong>' + totalHrs + ' Hours</strong></div>';
+    if (avgRating > 0) {
+      html += '    <div class="cv-meta-item"><span>Rating:</span> <strong>' + avgRating.toFixed(1) + ' / 5.0</strong> (' + ratingCount + ')';
+      html += '      <button class="cv-rate-btn-inline" onclick="openRateModal()">Rate Course</button>';
+      html += '    </div>';
+    } else {
+      html += '    <div class="cv-meta-item"><span>Rating:</span> <span>No ratings yet</span>';
+      html += '      <button class="cv-rate-btn-inline" onclick="openRateModal()">Rate Course</button>';
+      html += '    </div>';
+    }
+    html += '  </div>';
+
+    // Progress Bar (when enrolled)
+    if (isEnrolled) {
+      html += '  <div class="cv-prog-container">';
+      html += '    <div class="cv-prog-header">';
+      html += '      <span class="cv-prog-label">' + (isFullyComplete ? 'Course Completed' : 'Your Learning Progress') + '</span>';
+      html += '      <span class="cv-prog-val">' + pct + '% (' + doneCount + '/' + lecs.length + ' Lessons)</span>';
+      html += '    </div>';
+      html += '    <div class="cv-prog-bar-track">';
+      html += '      <div class="cv-prog-bar-fill" style="width: ' + pct + '%;"></div>';
+      html += '    </div>';
+      html += '  </div>';
+    }
+
+    // Hero Action Buttons
+    html += '  <div class="cv-hero-actions">';
+    if (!isEnrolled) {
+      html += '    <button onclick="enrollNow()" class="btn btn-primary" id="enrollBtn" style="padding:0.7rem 1.6rem;font-size:0.92rem;font-weight:700">Enroll in Course</button>';
+    } else if (isFullyComplete) {
+      html += '    <a href="/certificate/' + courseId + '/download" target="_blank" class="btn btn-primary" style="padding:0.7rem 1.6rem;font-size:0.92rem;font-weight:700">Download Certificate &rarr;</a>';
+      if (lecs.length > 0) {
+        html += '    <a href="/student/lecture/' + lecs[0].id + '" class="btn btn-ghost" style="padding:0.7rem 1.25rem;font-size:0.92rem">Review Lessons</a>';
+      }
+    } else if (nextLec) {
+      html += '    <a href="/student/lecture/' + nextLec.id + '" class="btn btn-primary" style="padding:0.7rem 1.6rem;font-size:0.92rem;font-weight:700">Continue Learning &rarr;</a>';
+    }
+    html += '  </div>';
+    html += '</div>';
+
+    // 2. Main Two-Column Grid
+    html += '<div class="cv-main-grid">';
+
+    // Left Column: Course Curriculum
+    html += '  <div class="cv-curriculum-panel">';
+    html += '    <div class="cv-section-title-row">';
+    html += '      <h2 class="cv-section-h2">Course Curriculum</h2>';
+    html += '      <span class="cv-section-sub">' + lecs.length + ' Lessons &bull; ' + doneCount + ' Completed</span>';
+    html += '    </div>';
+
+    if (lecs.length === 0) {
+      html += '    <div style="padding:2.5rem;text-align:center;color:var(--text2)">No lessons have been published for this course yet.</div>';
+    } else {
+      html += '    <div class="cv-lessons-list">';
+      lecs.forEach((l, idx) => {
+        const isDone = done.includes(l.id);
+        const typeLabel = (l.lecture_type || 'reading').toUpperCase();
+        const durationText = (l.duration_mins || 15) + ' min';
+
+        html += '      <div class="cv-lesson-row ' + (isDone ? 'completed' : '') + '">';
+        html += '        <div class="cv-lesson-left">';
+        html += '          <div class="cv-lec-circle">' + (isDone ? '&check;' : (idx + 1)) + '</div>';
+        html += '          <div class="cv-lec-info">';
+        html += '            <span class="cv-lec-title-text">' + escH(l.title) + '</span>';
+        html += '            <span class="cv-lec-meta-text">';
+        html += '              <span>' + typeLabel + '</span> &bull; <span>' + durationText + '</span>';
+        if (l.code_example) {
+          html += '              &bull; <span>Interactive Code</span>';
+        }
+        html += '            </span>';
+        html += '          </div>';
+        html += '        </div>';
+
+        html += '        <div class="cv-lesson-right">';
+        if (isEnrolled) {
+          html += '          <button type="button" class="cv-toggle-done ' + (isDone ? 'done' : '') + '" onclick="toggleLessonDone(event, \'' + l.id + '\')" title="Click to toggle completed status">' + (isDone ? 'Completed &check;' : 'Mark Complete') + '</button>';
+        }
+        html += '          <a href="/student/lecture/' + l.id + '" class="cv-lec-btn-link">' + (isDone ? 'Review' : 'Start &rarr;') + '</a>';
+        html += '        </div>';
+        html += '      </div>';
+      });
+      html += '    </div>';
+    }
+    html += '  </div>';
+
+    // Right Column: Highlights, Certificate & Prerequisites
+    html += '  <div class="cv-sidebar-col">';
+
+    // Certificate Card
+    if (hasCert || isFullyComplete) {
+      html += '    <div class="cv-card cv-cert-card completed">';
+      html += '      <span class="cv-cert-pill-ready">Verified Certificate Available</span>';
+      html += '      <h4>Course Certificate</h4>';
+      html += '      <p class="cv-cert-desc">Congratulations! You have completed all lessons and fulfilled all requirements for this course.</p>';
+      html += '      <a href="/certificate/' + courseId + '/download" target="_blank" class="cv-cert-download-btn">Download Certificate (PDF)</a>';
+      html += '    </div>';
+    } else {
+      html += '    <div class="cv-card cv-cert-card">';
+      html += '      <h4>Official Certificate</h4>';
+      html += '      <p class="cv-cert-desc">Complete all ' + lecs.length + ' lessons to earn your verifiable LearnSphere Certificate of Completion.</p>';
+      html += '      <div style="font-size:0.78rem;font-weight:600;color:var(--text2)">' + doneCount + ' of ' + lecs.length + ' lessons completed (' + pct + '%)</div>';
+      html += '    </div>';
+    }
+
+    // What You'll Learn Card
+    html += '    <div class="cv-card">';
+    html += '      <h4>What You\'ll Learn</h4>';
+    html += '      <ul class="cv-bullets-list">';
+    learnBullets.forEach(b => {
+      html += '        <li>' + escH(b) + '</li>';
+    });
+    html += '      </ul>';
+    html += '    </div>';
+
+    // Prerequisites Card
+    html += '    <div class="cv-card">';
+    html += '      <h4>Prerequisites</h4>';
+    html += '      <ul class="cv-bullets-list">';
+    prereqs.forEach(p => {
+      html += '        <li>' + escH(p) + '</li>';
+    });
+    html += '      </ul>';
+    html += '    </div>';
+
+    // Instructor Card
+    html += '    <div class="cv-card">';
+    html += '      <h4>Course Instructor</h4>';
+    html += '      <div style="display:flex;align-items:center;gap:0.75rem;">';
+    html += '        <div style="width:40px;height:40px;border-radius:10px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.1rem">';
+    html +=            (c.educator_name ? c.educator_name.charAt(0).toUpperCase() : 'E');
+    html += '        </div>';
+    html += '        <div>';
+    html += '          <div style="font-size:0.9rem;font-weight:700;color:var(--text)">' + escH(c.educator_name || 'LearnSphere Faculty') + '</div>';
+    html += '          <div style="font-size:0.75rem;color:var(--text2)">Lead Instructor &bull; ML Dept.</div>';
+    html += '        </div>';
+    html += '      </div>';
+    html += '    </div>';
+
+    html += '  </div>'; // /cv-sidebar-col
+    html += '</div>';   // /cv-main-grid
+
+    // Discussion Forum (when enrolled)
+    if (isEnrolled) {
+      html += '<div class="cv-forum-panel">';
+      html += '  <h3 style="font-family:var(--ff-display,var(--ff-sans));margin-top:0;margin-bottom:0.75rem;color:var(--text);font-size:1.15rem">Course Discussion Forum</h3>';
+      html += '  <p style="font-size:0.85rem;color:var(--text2);margin-bottom:1rem">Collaborate with peers, ask questions about lecture content, or share helpful resources.</p>';
+      html += '  <div id="forumList" style="margin-bottom:1.25rem;max-height:300px;overflow-y:auto;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1rem;">Loading discussion posts...</div>';
+      html += '  <div class="cv-forum-input-row">';
+      html += '    <input type="text" id="forumInput" class="cv-forum-input" placeholder="Ask a question or share a thought on this course..." onkeydown="if(event.key===\'Enter\')postForum()">';
+      html += '    <button class="btn btn-primary" onclick="postForum()" style="padding:0.6rem 1.4rem">Post</button>';
+      html += '  </div>';
+      html += '</div>';
+    }
+
+    document.getElementById('courseContent').innerHTML = html;
+    if (isEnrolled) {
+      loadForums();
+    }
+  } catch (err) {
+    console.error(err);
+    document.getElementById('courseContent').innerHTML = '<div style="padding:3rem;text-align:center;color:var(--danger)">Error loading course details. Please refresh.</div>';
   }
-
-  function lecTypeIcon(lt) {
-    var icons={text:'📄',video:'🎥',live:'🔴',quiz:'📝',meet:'📅'};
-    return icons[lt]||'📄';
-  }
-
-  // Sidebar: assessment list
-  var assHtml = '';
-  if (assessments.length) {
-    assHtml = assessments.map(function(a){
-      return '<div class="ass-item">'
-        + '<div class="ass-item-info"><strong>' + escH(a.title) + '</strong><span>Pass: ' + a.pass_score + '%</span></div>'
-        + '<a href="/student/course/' + courseId + '/assessment/' + a.id + '" class="take-btn">Take Quiz →</a>'
-        + '</div>';
-    }).join('');
-  } else {
-    assHtml = '<div style="font-size:.8rem;color:var(--text2);font-style:italic">No quizzes yet.</div>';
-  }
-
-  // Certificate section
-  var certHtml = '';
-  if (hasCert) {
-    certHtml = '<div class="cert-card"><div style="font-size:2rem">🎓</div><h3>Certificate Earned!</h3><p style="font-size:.78rem;color:var(--text2)">You completed this course successfully.</p>'
-      + '<a href="/certificate/' + courseId + '/download" target="_blank" class="cert-dl-link">⬇ Download Certificate</a></div>';
-  } else if (pct === 100) {
-    certHtml = '<div class="cert-card" style="border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.06)"><div style="font-size:1.8rem">📝</div><h3 style="color:var(--warn)">Almost there!</h3><p style="font-size:.78rem;color:var(--text2)">Pass a quiz to unlock your certificate.</p></div>';
-  } else {
-    certHtml = '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:.85rem;font-size:.8rem;color:var(--text2);text-align:center">Complete all lessons and pass a quiz to earn your certificate.</div>';
-  }
-
-  // Compute meta data
-  var totalMins = lecs.reduce(function(s,l){ return s + (l.duration_mins||15); }, 0);
-  var totalHrs = (totalMins / 60).toFixed(1);
-  var sectionCount = Math.ceil(lecs.length / Math.max(2, Math.ceil(lecs.length / Math.ceil(lecs.length / 3))));
-
-  // Build the page
-  var fullHtml = '<div class="cv-wrap">';
-
-  // ── Page header (title + edited date) ──
-  fullHtml += '<div style="margin-bottom:.5rem">'
-    + '<div class="cv-title" style="margin-bottom:.15rem">' + escH(c.title) + '</div>'
-    + '<div style="display:flex;align-items:center;gap:.6rem;font-size:.75rem;color:var(--text2)">'
-    + '<span style="color:var(--accent)">📄 Page</span>'
-    + '<span>·</span><span>🌐 English</span>'
-    + '<span>·</span><span>Edited ' + new Date().toLocaleDateString('en-US', {day:'numeric',month:'short',year:'numeric'}) + '</span>'
-    + '</div></div>';
-
-  // ── Tabs ──
-  fullHtml += '<div class="cv2-tabs">'
-    + '<button class="cv2-tab active" onclick="switchCvTab(this,\'details\')">Details Content</button>'
-    + '<button class="cv2-tab" onclick="switchCvTab(this,\'report\')">Report Issue</button>'
-    + '<button class="cv2-tab" onclick="switchCvTab(this,\'discuss\')">Discussion</button>'
-    + '</div>';
-
-  // ── Meta bar ──
-  fullHtml += '<div class="cv2-meta-bar">'
-    + '<div class="cv2-meta-item"><span class="cv2-meta-icon">📋</span> <strong>' + sectionCount + ' sections & ' + lecs.length + ' Chapters</strong></div>'
-    + '<div class="cv2-meta-divider"></div>'
-    + '<div class="cv2-meta-item"><span class="cv2-meta-icon">🏆</span> <strong>100 Points</strong></div>'
-    + '<div class="cv2-meta-divider"></div>'
-    + '<div class="cv2-meta-item"><span class="cv2-meta-icon">⏱</span> <strong>' + totalHrs + ' Hours</strong> Estimation</div>'
-    + '<div class="cv2-meta-divider"></div>'
-    + '<div class="cv2-meta-item"><span class="cv2-meta-icon">🎓</span> Certificate of Completion</div>'
-    + '</div>';
-
-  // ── Trainer section ──
-  fullHtml += '<div class="cv2-trainers">'
-    + '<div class="cv2-trainers-head">'
-    + '<h3>Trainer</h3>'
-    + '<div class="cv2-add-trainer">+ Add trainer</div>'
-    + '</div>'
-    + '<div class="cv2-trainer-grid">'
-    + '<div class="cv2-trainer-card">'
-    + '<div class="cv2-trainer-avatar">' + ((c.educator_name||'E')[0].toUpperCase()) + '</div>'
-    + '<div class="cv2-trainer-info">'
-    + '<div class="cv2-trainer-name">' + escH(c.educator_name||'Educator') + '</div>'
-    + '<div class="cv2-trainer-role">Lead Instructor at LearnSphere</div>'
-    + '<span class="cv2-trainer-badge">Author + ' + escH(c.category||'ML') + ' Dept.</span>'
-    + '</div></div>'
-    + '</div></div>';
-
-  // ── Sections & Chapters view ──
-  fullHtml += buildSectionsView(c, lecs, done);
-
-  // ── Hero (condensed) with progress ──
-  fullHtml += '<div class="cv-hero" style="background:linear-gradient(135deg,' + courseColor + '10,transparent);border-color:' + courseColor + '33">'
-    + '<div class="cv-hero-grid">'
-    + '<div>'
-    + '<div class="cv-category">' + escH(c.category||'ML') + '<span class="cv-diff ' + (c.difficulty||'') + '">' + (c.difficulty||'') + '</span></div>'
-    + '<div class="cv-desc">' + escH(c.description||'') + '</div>'
-    + '<div class="cv-meta">'
-    + '<span>👩‍🏫 ' + escH(c.educator_name||'Educator') + '</span>'
-    + '<span>📖 ' + lecs.length + ' lessons</span>'
-    + '<span>✅ ' + done.length + ' done</span>'
-    + (c.duration_hours ? '<span>⏱ ' + c.duration_hours + 'h</span>' : '')
-    + '</div>'
-    + '<div class="cv-rating">'
-    + (avgRating > 0 ? '<span class="cv-stars">' + starsHtml(avgRating) + '</span><span class="cv-star-val">' + avgRating.toFixed(1) + '</span><span class="cv-star-count">(' + ratingCount + ' ratings)</span>' : '<span style="font-size:.78rem;color:var(--text2)">No ratings yet</span>')
-    + '<button class="cv-rate-btn" onclick="openRateModal()">⭐ Rate</button>'
-    + '</div>'
-    + '<div class="cv-prog-bar"><div class="cv-prog-fill" style="width:' + pct + '%"></div></div>'
-    + '<div style="font-size:.72rem;color:var(--text2);margin-top:.3rem">' + pct + '% complete</div>'
-    + '</div>'
-    + '<div class="progress-ring-box">'
-    + '<svg width="100" height="100" viewBox="0 0 100 100">'
-    + '<circle cx="50" cy="50" r="38" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="7"/>'
-    + '<circle cx="50" cy="50" r="38" fill="none" stroke="' + courseColor + '" stroke-width="7"'
-    + ' stroke-dasharray="' + (2*Math.PI*38).toFixed(1) + '" stroke-dashoffset="' + (2*Math.PI*38*(1-pct/100)).toFixed(1) + '"'
-    + ' stroke-linecap="round" transform="rotate(-90 50 50)"/>'
-    + '<text x="50" y="54" text-anchor="middle" fill="' + courseColor + '" font-size="18" font-family="var(--ff-serif)" font-weight="800">' + pct + '%</text>'
-    + '</svg>'
-    + '<p style="color:var(--text2);font-size:.72rem">Progress</p>'
-    + '</div>'
-    + '</div></div>';
-
-  // ── Course Overview Section ──
-  fullHtml += buildCourseOverview(c, lecs);
-
-  fullHtml += '<div class="cv-layout">';
-
-  // Left: lecture list
-  fullHtml += '<div class="lec-section">'
-    + '<h2>📚 Course Lessons <span style="font-size:.75rem;color:var(--text2);font-weight:400">' + done.length + '/' + lecs.length + ' completed</span></h2>'
-    + (lecs.length === 0
-      ? '<div style="padding:1.5rem;text-align:center;color:var(--text2)">No lessons yet.</div>'
-      : lecs.map(function(l,i){
-          var isDone = done.includes(l.id);
-          var icon = lecTypeIcon(l.lecture_type);
-          return '<a href="/student/lecture/' + l.id + '" class="lec-item' + (isDone?' done':'') + '">'
-            + '<div class="lec-num' + (isDone?' done':'') + '">' + (isDone?'✓':(i+1)) + '</div>'
-            + '<div class="lec-info"><strong>' + escH(l.title) + '</strong>'
-            + '<span>' + icon + ' ' + l.lecture_type + ' · ⏱ ' + (l.duration_mins||15) + ' min'
-            + (l.code_example ? ' · 💻 code' : '') + '</span></div>'
-            + (isDone ? '<span style="font-size:.72rem;color:var(--success);flex-shrink:0">✓ Done</span>' : '<span style="font-size:.72rem;color:var(--text2);flex-shrink:0">Start →</span>')
-            + '</a>';
-        }).join('')
-    )
-
-    + (pct < 100
-      ? (isEnrolled 
-          ? '<div style="margin-top:.85rem;text-align:center"><button class="btn btn-primary" disabled style="background:transparent;color:var(--success);border:1px solid var(--success);cursor:default;">Enrolled ✓</button></div>'
-          : '<div style="margin-top:.85rem;text-align:center"><button onclick="enrollNow()" class="btn btn-primary" id="enrollBtn">Enroll &amp; Start</button></div>')
-      : '')
-    + '</div>';
-
-  // Right sidebar
-  fullHtml += '<div class="cv-sidebar">';
-
-  // Assessments
-  fullHtml += '<div class="cv-side-card"><div class="cv-side-head">📝 Quizzes</div><div class="cv-side-body">' + assHtml + '</div></div>';
-
-  // Certificate
-  fullHtml += '<div class="cv-side-card"><div class="cv-side-head">🎓 Certificate</div><div class="cv-side-body">' + certHtml + '</div></div>';
-
-  fullHtml += '</div>';  // sidebar
-  fullHtml += '</div>';  // cv-layout
-
-  // Discussion Forum
-  if (isEnrolled) {
-      fullHtml += '<div class="cv-layout" style="margin-top:2rem;display:block;">';
-      fullHtml += '<h2>💬 Discussion Forum</h2>';
-      fullHtml += '<div style="background:var(--bg2);padding:1.5rem;border-radius:12px;border:1px solid var(--border)">';
-      fullHtml += '  <div id="forumList" style="margin-bottom:1rem; max-height:400px; overflow-y:auto;">Loading discussions...</div>';
-      fullHtml += '  <div style="display:flex;gap:0.75rem;">';
-      fullHtml += '    <input type="text" id="forumInput" onkeydown="if(event.key===\'Enter\')postForum()" style="flex:1;background:var(--bg1);border:1px solid var(--border);color:var(--text1);padding:0.75rem;border-radius:8px;outline:none;" placeholder="Ask a question or start a discussion...">';
-      fullHtml += '    <button class="btn btn-primary" onclick="postForum()">Post</button>';
-      fullHtml += '  </div>';
-      fullHtml += '</div>';
-      fullHtml += '</div>';
-  }
-  
-  fullHtml += '</div>'; // cv-wrap
-  
-  document.getElementById('courseContent').innerHTML = fullHtml;
-  if(isEnrolled) { loadForums(); }
 }
 
-function switchCvTab(btn, tab) {
-  document.querySelectorAll('.cv2-tab').forEach(function(t){ t.classList.remove('active'); });
-  btn.classList.add('active');
+async function toggleLessonDone(e, lecId) {
+  if (e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+  try {
+    await fetch('/api/toggle_lecture/' + lecId, { method: 'POST' });
+    load();
+  } catch (err) {
+    console.error(err);
+  }
 }
 
-function toggleSection(header) {
-  var toggle = header.querySelector('.cv2-section-toggle');
-  var list = header.nextElementSibling;
-  toggle.classList.toggle('open');
-  list.classList.toggle('open');
+async function enrollNow() {
+  const btn = document.getElementById('enrollBtn');
+  if (btn) {
+    btn.textContent = 'Enrolling...';
+    btn.disabled = true;
+  }
+  await fetch('/api/enroll/' + courseId, { method: 'POST' });
+  load();
 }
 
-function openRateModal() { document.getElementById('rateModal').style.display = 'flex'; }
-function closeRateModal() { document.getElementById('rateModal').style.display = 'none'; }
+function openRateModal() {
+  document.getElementById('rateModal').style.display = 'flex';
+}
+function closeRateModal() {
+  document.getElementById('rateModal').style.display = 'none';
+}
 function setStar(n) {
   selectedStar = n;
-  document.querySelectorAll('.star-btn').forEach(function(b,i){ b.classList.toggle('on', i<n); });
+  document.querySelectorAll('#starRow .star-btn').forEach((b, i) => {
+    b.classList.toggle('on', i < n);
+  });
 }
 async function submitRating() {
-  if (!selectedStar) { alert('Please select a star rating'); return; }
-  var btn = document.getElementById('rateSubmitBtn');
-  btn.textContent = 'Saving…'; btn.disabled = true;
+  if (!selectedStar) {
+    alert('Please select a star rating');
+    return;
+  }
+  const btn = document.getElementById('rateSubmitBtn');
+  btn.textContent = 'Saving...';
+  btn.disabled = true;
   await fetch('/api/courses/' + courseId + '/rate', {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({rating:selectedStar, review:document.getElementById('rateReview').value.trim()})
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ rating: selectedStar, review: document.getElementById('rateReview').value.trim() })
   });
   closeRateModal();
   load();
 }
-async function enrollNow() {
-  var btn = document.getElementById('enrollBtn');
-  if (btn) { btn.textContent='Enrolling…'; btn.disabled=true; }
-  await fetch('/api/enroll/' + courseId, {method:'POST'});
-  window.location.reload();
-}
-function escH(s){ if(s==null)return''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 async function loadForums() {
-  const res = await fetch('/api/community/forums/' + courseId);
-  const data = await res.json();
-  let html = '';
-  data.forEach(m => {
-    html += '<div style="padding:0.75rem 0;border-bottom:1px solid rgba(255,255,255,0.05);">'
-      + '<strong style="color:var(--accent)">' + escH(m.username) + '</strong> <span style="font-size:0.75rem;color:var(--text2);margin-left:0.5rem">' + m.created_at + '</span>'
-      + '<div style="margin-top:0.35rem;color:var(--text1);line-height:1.4;">' + escH(m.content) + '</div></div>';
-  });
-  if(!html) html = '<p style="color:var(--text2);font-size:0.9rem;">No discussions yet. Be the first to ask!</p>';
-  document.getElementById('forumList').innerHTML = html;
+  const container = document.getElementById('forumList');
+  if (!container) return;
+  try {
+    const res = await fetch('/api/community/forums/' + courseId);
+    const data = await res.json();
+    if (!data || !data.length) {
+      container.innerHTML = '<p style="color:var(--text2);font-size:0.85rem;margin:0">No discussion posts yet. Start the conversation!</p>';
+      return;
+    }
+    let html = '';
+    data.forEach(m => {
+      html += '<div style="padding:0.65rem 0;border-bottom:1px solid var(--border)">';
+      html += '  <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem">';
+      html += '    <strong style="color:var(--accent);font-size:0.85rem">' + escH(m.username) + '</strong>';
+      html += '    <span style="font-size:0.72rem;color:var(--text2)">' + escH(m.created_at || '') + '</span>';
+      html += '  </div>';
+      html += '  <div style="font-size:0.85rem;color:var(--text);line-height:1.4">' + escH(m.content) + '</div>';
+      html += '</div>';
+    });
+    container.innerHTML = html;
+  } catch (e) {
+    container.innerHTML = '<p style="color:var(--text2);font-size:0.85rem">Could not load discussions.</p>';
+  }
 }
 
 async function postForum() {
   const inp = document.getElementById('forumInput');
-  const c = inp.value.trim();
-  if(!c) return;
+  const text = (inp.value || '').trim();
+  if (!text) return;
   inp.disabled = true;
   await fetch('/api/community/forums/' + courseId, {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({content:c})
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ content: text })
   });
   inp.value = '';
   inp.disabled = false;
   inp.focus();
   loadForums();
+}
+
+function escH(s) {
+  if (s == null) return '';
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
 load();

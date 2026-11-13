@@ -6,9 +6,6 @@
 .foc-hero        { text-align:center; padding:1.5rem 1rem 1.4rem; margin-bottom:1.6rem; }
 .foc-hero h1     { font-family:var(--ff-serif); font-size:1.9rem; font-weight:700; color:var(--text); margin-bottom:.4rem; }
 .foc-hero p      { font-size:.88rem; color:var(--text2); max-width:540px; margin:0 auto; line-height:1.65; }
-.foc-badge       { display:inline-block; background:rgba(245,158,11,.1); border:1px solid rgba(245,158,11,.3);
-                   color:var(--warn); font-size:.7rem; font-weight:700; padding:.2rem .65rem;
-                   border-radius:20px; letter-spacing:.05em; text-transform:uppercase; margin-bottom:.65rem; }
 
 .foc-grid        { display:grid; grid-template-columns:1fr 340px; gap:1.4rem; align-items:start; }
 
@@ -105,8 +102,7 @@
 
 <div class="foc-wrap animate-in">
   <div class="foc-hero">
-    <span class="foc-badge">⏱ Focus Reward Engine</span>
-    <h1>🎯 Focus Mode</h1>
+    <h1>Focus Mode</h1>
     <p>Track your study sessions, earn coins and badges for consistency, and climb the leaderboard. Anti-distraction mode keeps you on track.</p>
   </div>
 
@@ -142,14 +138,14 @@
 
       <!-- Controls -->
       <div class="timer-btns" style="margin-top:1.25rem">
-        <button class="t-btn t-btn-start" id="startBtn" onclick="startTimer()">▶ Start Focus</button>
-        <button class="t-btn t-btn-pause" id="pauseBtn" onclick="pauseTimer()">⏸ Pause</button>
-        <button class="t-btn t-btn-stop"  id="stopBtn"  onclick="stopTimer()">⏹ End Session</button>
+        <button class="t-btn t-btn-start" id="startBtn" onclick="startTimer()">Start Focus</button>
+        <button class="t-btn t-btn-pause" id="pauseBtn" onclick="pauseTimer()">Pause</button>
+        <button class="t-btn t-btn-stop"  id="stopBtn"  onclick="stopTimer()">End Session</button>
       </div>
 
       <!-- Inactivity detection note -->
       <p style="font-size:.72rem;color:var(--text2);margin-top:1.1rem;line-height:1.5">
-        🖱 AI detects inactivity — leaving the tab or stopping mouse movement for 3+ min flags a distraction event. Stay focused to earn full coins!
+        Inactivity detection active — leaving the tab or stopping mouse movement for 3+ min flags a distraction event. Stay focused to earn full coins.
       </p>
     </div>
 
@@ -159,28 +155,23 @@
       <!-- Rewards overview -->
       <div class="side-card">
         <div class="side-head">
-          <span>🪙</span>
           <h3>Your Rewards</h3>
         </div>
         <div class="side-body">
           <div class="reward-grid">
             <div class="reward-box">
-              <div class="reward-icon">🪙</div>
               <div class="reward-val" id="totalCoins">—</div>
               <div class="reward-lbl">Total Coins</div>
             </div>
             <div class="reward-box">
-              <div class="reward-icon">⏱</div>
               <div class="reward-val" id="totalMins">—</div>
               <div class="reward-lbl">Focus Minutes</div>
             </div>
             <div class="reward-box">
-              <div class="reward-icon">🔥</div>
               <div class="reward-val" id="streakDays">—</div>
               <div class="reward-lbl">Day Streak</div>
             </div>
             <div class="reward-box">
-              <div class="reward-icon">🏅</div>
               <div class="reward-val" id="badgeCount">—</div>
               <div class="reward-lbl">Badges</div>
             </div>
@@ -195,21 +186,21 @@
       <!-- Anti-distraction mode -->
       <div class="side-card distract-card">
         <button class="distract-toggle" onclick="toggleDistract()">
-          <span class="distract-lbl">🛡 Anti-Distraction Mode</span>
+          <span class="distract-lbl">Anti-Distraction Mode</span>
           <span class="distract-badge off" id="distractBadge">OFF</span>
         </button>
         <div class="distract-tips" id="distractTips">
-          <div class="distract-tip">✅ Tab switch detection active — distraction events logged</div>
-          <div class="distract-tip">✅ Mouse inactivity tracked — 3 min idle = warning</div>
-          <div class="distract-tip">✅ Session coins reduced if 3+ distraction events occur</div>
-          <div class="distract-tip">💡 For full social media blocking, install a browser extension like Cold Turkey or Freedom</div>
+          <div class="distract-tip">Tab switch detection active — distraction events logged</div>
+          <div class="distract-tip">Mouse inactivity tracked — 3 min idle = warning</div>
+          <div class="distract-tip">Session coins reduced if 3+ distraction events occur</div>
+          <div class="distract-tip">For full social media blocking, install a browser extension like Cold Turkey or Freedom</div>
           <div style="margin-top:.5rem;font-size:.72rem;color:var(--text2)" id="distractCount">Distraction events this session: <strong>0</strong></div>
         </div>
       </div>
 
       <!-- Leaderboard -->
       <div class="side-card">
-        <div class="side-head"><span>🏆</span><h3>Coin Leaderboard</h3></div>
+        <div class="side-head"><h3>Coin Leaderboard</h3></div>
         <div class="side-body" id="leaderboardBody">
           <div style="font-size:.8rem;color:var(--text2)">Loading…</div>
         </div>
@@ -217,7 +208,7 @@
 
       <!-- Session history -->
       <div class="side-card">
-        <div class="side-head"><span>📋</span><h3>Recent Sessions</h3></div>
+        <div class="side-head"><h3>Recent Sessions</h3></div>
         <div class="side-body" id="historyBody">
           <div style="font-size:.8rem;color:var(--text2)">Loading…</div>
         </div>
@@ -229,7 +220,7 @@
 
 <!-- Session complete toast -->
 <div class="session-toast" id="sessionToast">
-  <h4 id="toastTitle">🎉 Session Complete!</h4>
+  <h4 id="toastTitle">Session Complete</h4>
   <p id="toastMsg">You earned 25 coins!</p>
 </div>
 
@@ -282,7 +273,7 @@ async function startTimer() {
   document.getElementById('startBtn').style.display = 'none';
   document.getElementById('pauseBtn').classList.add('shown');
   document.getElementById('stopBtn').style.display = 'block';
-  document.getElementById('timerStatus').textContent = '🎯 FOCUSING — ' + topic.toUpperCase();
+  document.getElementById('timerStatus').textContent = 'FOCUSING — ' + topic.toUpperCase();
   document.getElementById('timerStatus').style.color = 'var(--warn)';
 
   startInactivityDetection();
@@ -315,7 +306,7 @@ async function stopTimer() {
       body: JSON.stringify({session_id: sessionId, duration_mins: mins})
     });
     const data = await res.json();
-    showToast('Session Saved ✅', 'You earned ' + data.coins + ' coins for ' + mins + ' minutes! ' + (data.new_badges.length ? '🏅 New badges: ' + data.new_badges.join(', ') : ''));
+    showToast('Session Saved', 'You earned ' + data.coins + ' coins for ' + mins + ' minutes! ' + (data.new_badges.length ? 'New badges: ' + data.new_badges.join(', ') : ''));
   }
 
   resetTimer();
@@ -333,7 +324,7 @@ async function sessionComplete() {
       body: JSON.stringify({session_id: sessionId, duration_mins: mins})
     });
     const data = await res.json();
-    showToast('🎉 Session Complete!', 'Excellent work! +' + data.coins + ' coins earned!' + (data.new_badges.length ? ' 🏅 ' + data.new_badges.join(', ') : ''));
+    showToast('Session Complete', 'Excellent work! +' + data.coins + ' coins earned!' + (data.new_badges.length ? ' ' + data.new_badges.join(', ') : ''));
   }
 
   resetTimer();
@@ -345,12 +336,12 @@ function pauseTimer() {
   const btn = document.getElementById('pauseBtn');
   if (isPaused) {
     clearInterval(timerInterval);
-    btn.textContent = '▶ Resume';
-    document.getElementById('timerStatus').textContent = '⏸ PAUSED';
+    btn.textContent = 'Resume';
+    document.getElementById('timerStatus').textContent = 'PAUSED';
     document.getElementById('timerStatus').style.color = 'var(--text2)';
   } else {
-    btn.textContent = '⏸ Pause';
-    document.getElementById('timerStatus').textContent = '🎯 FOCUSING';
+    btn.textContent = 'Pause';
+    document.getElementById('timerStatus').textContent = 'FOCUSING';
     document.getElementById('timerStatus').style.color = 'var(--warn)';
     tick();
   }
@@ -362,7 +353,7 @@ function resetTimer() {
   updateDisplay();
   document.getElementById('startBtn').style.display = 'block';
   document.getElementById('pauseBtn').classList.remove('shown');
-  document.getElementById('pauseBtn').textContent = '⏸ Pause';
+  document.getElementById('pauseBtn').textContent = 'Pause';
   document.getElementById('stopBtn').style.display = 'none';
   document.getElementById('timerStatus').textContent = 'READY TO FOCUS';
   document.getElementById('timerStatus').style.color = 'var(--text2)';
@@ -443,14 +434,14 @@ async function loadStats() {
 
   const bw = document.getElementById('badgesWrap');
   bw.innerHTML = badges.length
-    ? badges.map(function(b){ return '<span class="badge-chip">🏅 ' + b + '</span>'; }).join('')
+    ? badges.map(function(b){ return '<span class="badge-chip">' + b + '</span>'; }).join('')
     : '<span class="no-badges">Complete sessions to earn badges</span>';
 
   // Leaderboard
   const lb = document.getElementById('leaderboardBody');
   lb.innerHTML = data.leaderboard.length
     ? data.leaderboard.map(function(r, i){
-        return '<div class="lb-row"><span class="lb-rank">' + (i+1) + '</span><span class="lb-name">' + r.username + '</span><span class="lb-coins">🪙 ' + r.coins + '</span></div>';
+        return '<div class="lb-row"><span class="lb-rank">' + (i+1) + '</span><span class="lb-name">' + r.username + '</span><span class="lb-coins">' + r.coins + ' coins</span></div>';
       }).join('')
     : '<div style="font-size:.8rem;color:var(--text2)">No data yet — be the first!</div>';
 
@@ -458,7 +449,7 @@ async function loadStats() {
   const hb = document.getElementById('historyBody');
   hb.innerHTML = data.sessions.length
     ? data.sessions.map(function(s){
-        return '<div class="hist-row"><span class="hist-topic">' + (s.topic||'Study') + '</span><div class="hist-meta"><span>' + (s.duration_mins||0) + ' min</span><span class="hist-coins">+' + (s.coins_earned||0) + ' 🪙</span></div></div>';
+        return '<div class="hist-row"><span class="hist-topic">' + (s.topic||'Study') + '</span><div class="hist-meta"><span>' + (s.duration_mins||0) + ' min</span><span class="hist-coins">+' + (s.coins_earned||0) + ' coins</span></div></div>';
       }).join('')
     : '<div style="font-size:.8rem;color:var(--text2);font-style:italic">No sessions yet</div>';
 }

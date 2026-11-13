@@ -3,9 +3,13 @@
 {% block content %}
 <div class="page-wrap">
     <div class="page-header">
-        <div><h1 class="page-title">Browse Courses</h1><p class="page-sub">All available ML courses from our educators</p></div>
+        <div>
+            <h1 class="page-title">Browse Courses</h1>
+            <p class="page-sub">All available ML courses from our educators</p>
+        </div>
         <div class="filter-row">
-            <input id="searchInput" class="filter-select" placeholder="🔍 Search courses…" oninput="filterCourses()" style="min-width:180px">
+            <input id="searchInput" class="filter-select" placeholder="Search courses…" oninput="filterCourses()"
+                style="min-width:180px">
             <select id="filterDiff" onchange="filterCourses()" class="filter-select">
                 <option value="">All Levels</option>
                 <option value="beginner">Beginner</option>
@@ -17,255 +21,390 @@
 
     <!-- Stats bar -->
     <div style="display:flex;gap:1rem;margin-bottom:1.4rem;flex-wrap:wrap">
-        <div id="statTotal" style="font-size:.82rem;color:var(--text2);padding:.45rem .85rem;background:var(--bg3);border:1px solid var(--border);border-radius:20px">— courses available</div>
-        <div id="statEnrolled" style="font-size:.82rem;color:var(--success);padding:.45rem .85rem;background:var(--bg3);border:1px solid rgba(16,185,129,.25);border-radius:20px">— enrolled</div>
+        <div id="statTotal" style="font-size:.82rem;color:var(--text2);padding:.45rem .85rem;background:var(--bg3);border:1px solid var(--border);border-radius:8px">— courses available</div>
+        <div id="statEnrolled" style="font-size:.82rem;color:var(--success);padding:.45rem .85rem;background:var(--bg3);border:1px solid rgba(16,185,129,.25);border-radius:8px">— enrolled</div>
     </div>
 
-    <div class="course-grid large" id="courseGrid"><div class="loading-card"><div class="spinner"></div><p>Loading courses...</p></div></div>
+    <div class="course-grid large" id="courseGrid">
+        <div class="loading-card">
+            <div class="spinner"></div>
+            <p>Loading courses...</p>
+        </div>
+    </div>
 </div>
 
 <style>
-/* ── Reference-style course cards ─────────────────────────────────── */
-.ccard {
-    display:flex; flex-direction:column;
-    background:var(--bg3); border:1px solid var(--border);
-    border-radius:14px; overflow:hidden; text-decoration:none;
-    transition:transform .22s ease, box-shadow .22s ease, border-color .22s ease;
-    position:relative;
-}
-.ccard:hover {
-    transform:translateY(-5px);
-    box-shadow:0 12px 40px rgba(0,0,0,.35);
-    border-color:var(--border2);
-}
+    /* ── Reference-style course cards ─────────────────────────────────── */
+    .ccard {
+        display: flex;
+        flex-direction: column;
+        background: var(--bg3);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        overflow: hidden;
+        text-decoration: none;
+        transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
+        position: relative;
+    }
 
-/* ── Banner: bold typography on colored gradient ─────────────────── */
-.ccard-banner {
-    height:170px; padding:1.4rem 1.3rem;
-    display:flex; flex-direction:column; justify-content:flex-end;
-    position:relative; overflow:hidden;
-}
-/* Decorative pattern */
-.ccard-banner::before {
-    content:''; position:absolute; inset:0;
-    background:
-        radial-gradient(circle at 85% 25%, rgba(255,255,255,0.12) 0%, transparent 45%),
-        radial-gradient(circle at 15% 75%, rgba(255,255,255,0.06) 0%, transparent 40%),
-        linear-gradient(135deg, rgba(0,0,0,0.1) 0%, transparent 60%);
-    pointer-events:none;
-}
-/* Decorative accent circle */
-.ccard-banner::after {
-    content:''; position:absolute; right:-20px; top:-20px;
-    width:110px; height:110px; border-radius:50%;
-    background:rgba(255,255,255,0.08);
-    pointer-events:none;
-}
-.ccard-banner-category {
-    font-size:.82rem; font-weight:800; text-transform:uppercase;
-    letter-spacing:.1em; color:rgba(255,255,255,0.85); margin-bottom:.25rem;
-    position:relative; z-index:1;
-}
-.ccard-banner-title {
-    font-family:var(--ff-serif); font-size:1.3rem; font-weight:800;
-    color:#fff; line-height:1.25; position:relative; z-index:1;
-    text-shadow:0 1px 4px rgba(0,0,0,.2);
-}
-.ccard-banner-sub {
-    font-size:.73rem; color:rgba(255,255,255,0.75); margin-top:.3rem;
-    position:relative; z-index:1;
-}
+    .ccard:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, .35);
+        border-color: var(--border2);
+    }
 
-/* ── Star badge (top-right) ──────────────────────────────────────── */
-.ccard-star {
-    position:absolute; top:.8rem; right:.8rem;
-    background:rgba(255,255,255,0.22); backdrop-filter:blur(6px);
-    -webkit-backdrop-filter:blur(6px);
-    color:#fff; font-size:.72rem; font-weight:700;
-    padding:.25rem .55rem; border-radius:8px;
-    display:flex; align-items:center; gap:.25rem;
-    z-index:3;
-}
-.ccard-star .star-icon { color:#FFD700; }
+    /* ── Banner: bold typography on colored gradient ─────────────────── */
+    .ccard-banner {
+        height: 170px;
+        padding: 1.4rem 1.3rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        position: relative;
+        overflow: hidden;
+    }
 
-/* ── Enrolled badge (top-left on banner) ─────────────────────────── */
-.ccard-enrolled-badge {
-    position:absolute; top:.8rem; left:.8rem;
-    background:var(--success); color:#fff;
-    font-size:.64rem; font-weight:700; padding:.2rem .55rem;
-    border-radius:8px; z-index:3;
-    letter-spacing:.02em;
-}
+    /* Decorative pattern */
+    .ccard-banner::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background:
+            radial-gradient(circle at 85% 25%, rgba(255, 255, 255, 0.12) 0%, transparent 45%),
+            radial-gradient(circle at 15% 75%, rgba(255, 255, 255, 0.06) 0%, transparent 40%),
+            linear-gradient(135deg, rgba(0, 0, 0, 0.1) 0%, transparent 60%);
+        pointer-events: none;
+    }
 
-/* ── Card body ───────────────────────────────────────────────────── */
-.ccard-body {
-    padding:1rem 1.3rem 1.1rem; flex:1;
-    display:flex; flex-direction:column; gap:.3rem;
-}
-.ccard-diff-row {
-    display:flex; align-items:center; gap:.5rem; margin-top:.15rem;
-}
-.ccard-diff {
-    font-size:.66rem; font-weight:700; padding:.15rem .55rem;
-    border-radius:20px; text-transform:capitalize;
-}
-.ccard-diff.beginner { background:rgba(16,185,129,.12); color:var(--success); }
-.ccard-diff.intermediate { background:rgba(245,158,11,.12); color:var(--warn); }
-.ccard-diff.advanced { background:rgba(239,68,68,.1); color:var(--danger); }
+    /* Decorative accent circle */
+    .ccard-banner::after {
+        content: '';
+        position: absolute;
+        right: -20px;
+        top: -20px;
+        width: 110px;
+        height: 110px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.08);
+        pointer-events: none;
+    }
 
-.ccard-desc {
-    font-size:.78rem; color:var(--text2); line-height:1.55;
-    display:-webkit-box; -webkit-line-clamp:2; line-clamp:2;
-    -webkit-box-orient:vertical; overflow:hidden;
-    flex:1; margin-top:.15rem;
-}
+    .ccard-banner-category {
+        font-size: .82rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: .1em;
+        color: rgba(255, 255, 255, 0.85);
+        margin-bottom: .25rem;
+        position: relative;
+        z-index: 1;
+    }
 
-/* ── Footer ──────────────────────────────────────────────────────── */
-.ccard-footer {
-    padding:.7rem 1.3rem; border-top:1px solid var(--border);
-    display:flex; align-items:center; justify-content:space-between;
-}
-.ccard-meta-left {
-    display:flex; align-items:center; gap:.6rem; font-size:.72rem; color:var(--text2);
-}
-.ccard-meta-left span { display:flex; align-items:center; gap:.2rem; }
-.ccard-explore {
-    font-size:.78rem; font-weight:700; color:var(--accent);
-    text-decoration:none; transition:all .15s;
-    display:flex; align-items:center; gap:.25rem;
-}
-.ccard:hover .ccard-explore { gap:.45rem; }
-.ccard-explore.enrolled { color:var(--success); }
+    .ccard-banner-title {
+        font-family: var(--ff-serif);
+        font-size: 1.3rem;
+        font-weight: 800;
+        color: #fff;
+        line-height: 1.25;
+        position: relative;
+        z-index: 1;
+        text-shadow: 0 1px 4px rgba(0, 0, 0, .2);
+    }
 
-/* ── Progress bar ────────────────────────────────────────────────── */
-.ccard-progress {
-    padding:0 1.3rem .7rem;
-}
-.ccard-progress-lbl { font-size:.65rem; color:var(--text2); margin-bottom:.25rem; }
-.ccard-progress-bar { height:4px; border-radius:2px; background:var(--bg2); overflow:hidden; }
-.ccard-progress-fill { height:100%; border-radius:2px; background:linear-gradient(90deg,var(--accent),var(--success)); transition:width .6s ease; }
+    .ccard-banner-sub {
+        font-size: .73rem;
+        color: rgba(255, 255, 255, 0.75);
+        margin-top: .3rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* ── Star badge (top-right) ──────────────────────────────────────── */
+    .ccard-star {
+        position: absolute;
+        top: .8rem;
+        right: .8rem;
+        background: rgba(255, 255, 255, 0.22);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        color: #fff;
+        font-size: .72rem;
+        font-weight: 700;
+        padding: .25rem .55rem;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        gap: .25rem;
+        z-index: 3;
+    }
+
+    .ccard-star .star-icon {
+        color: #FFD700;
+    }
+
+    /* ── Enrolled badge (top-left on banner) ─────────────────────────── */
+    .ccard-enrolled-badge {
+        position: absolute;
+        top: .8rem;
+        left: .8rem;
+        background: var(--success);
+        color: #fff;
+        font-size: .64rem;
+        font-weight: 700;
+        padding: .2rem .55rem;
+        border-radius: 8px;
+        z-index: 3;
+        letter-spacing: .02em;
+    }
+
+    /* ── Card body ───────────────────────────────────────────────────── */
+    .ccard-body {
+        padding: 1rem 1.3rem 1.1rem;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: .3rem;
+    }
+
+    .ccard-diff-row {
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+        margin-top: .15rem;
+    }
+
+    .ccard-diff {
+        font-size: .66rem;
+        font-weight: 700;
+        padding: .15rem .55rem;
+        border-radius: 20px;
+        text-transform: capitalize;
+    }
+
+    .ccard-diff.beginner {
+        background: rgba(16, 185, 129, .12);
+        color: var(--success);
+    }
+
+    .ccard-diff.intermediate {
+        background: rgba(245, 158, 11, .12);
+        color: var(--warn);
+    }
+
+    .ccard-diff.advanced {
+        background: rgba(239, 68, 68, .1);
+        color: var(--danger);
+    }
+
+    .ccard-desc {
+        font-size: .78rem;
+        color: var(--text2);
+        line-height: 1.55;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        flex: 1;
+        margin-top: .15rem;
+    }
+
+    /* ── Footer ──────────────────────────────────────────────────────── */
+    .ccard-footer {
+        padding: .7rem 1.3rem;
+        border-top: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .ccard-meta-left {
+        display: flex;
+        align-items: center;
+        gap: .6rem;
+        font-size: .72rem;
+        color: var(--text2);
+    }
+
+    .ccard-meta-left span {
+        display: flex;
+        align-items: center;
+        gap: .2rem;
+    }
+
+    .ccard-explore {
+        font-size: .78rem;
+        font-weight: 700;
+        color: var(--accent);
+        text-decoration: none;
+        transition: all .15s;
+        display: flex;
+        align-items: center;
+        gap: .25rem;
+    }
+
+    .ccard:hover .ccard-explore {
+        gap: .45rem;
+    }
+
+    .ccard-explore.enrolled {
+        color: var(--success);
+    }
+
+    /* ── Progress bar ────────────────────────────────────────────────── */
+    .ccard-progress {
+        padding: 0 1.3rem .7rem;
+    }
+
+    .ccard-progress-lbl {
+        font-size: .65rem;
+        color: var(--text2);
+        margin-bottom: .25rem;
+    }
+
+    .ccard-progress-bar {
+        height: 4px;
+        border-radius: 2px;
+        background: var(--bg2);
+        overflow: hidden;
+    }
+
+    .ccard-progress-fill {
+        height: 100%;
+        border-radius: 2px;
+        background: linear-gradient(90deg, var(--accent), var(--success));
+        transition: width .6s ease;
+    }
 </style>
 
 <script>
-var allCourses = [];
+    var allCourses = [];
 
-// Color palettes for different categories
-var categoryColors = {
-    'Machine Learning':  'linear-gradient(135deg, #1a6b3c, #0d3d22)',
-    'Deep Learning':     'linear-gradient(135deg, #5c1a52, #35102f)',
-    'NLP':               'linear-gradient(135deg, #1a3d6b, #0d2240)',
-    'Natural Language Processing': 'linear-gradient(135deg, #1a3d6b, #0d2240)',
-    'Computer Vision':   'linear-gradient(135deg, #6b4a1a, #402c10)',
-    'Data Science':      'linear-gradient(135deg, #4a1a6b, #2c1040)',
-    'Reinforcement Learning': 'linear-gradient(135deg, #1a5c6b, #0d3540)'
-};
+    // Color palettes for different categories
+    var categoryColors = {
+        'Machine Learning': 'linear-gradient(135deg, #1a6b3c, #0d3d22)',
+        'Deep Learning': 'linear-gradient(135deg, #5c1a52, #35102f)',
+        'NLP': 'linear-gradient(135deg, #1a3d6b, #0d2240)',
+        'Natural Language Processing': 'linear-gradient(135deg, #1a3d6b, #0d2240)',
+        'Computer Vision': 'linear-gradient(135deg, #6b4a1a, #402c10)',
+        'Data Science': 'linear-gradient(135deg, #4a1a6b, #2c1040)',
+        'Reinforcement Learning': 'linear-gradient(135deg, #1a5c6b, #0d3540)'
+    };
 
-async function load() {
-    allCourses = await fetch('/api/courses').then(function(r){ return r.json(); });
-    var enrolled = allCourses.filter(function(c){ return c.enrolled; }).length;
-    document.getElementById('statTotal').textContent   = allCourses.length + ' courses available';
-    document.getElementById('statEnrolled').textContent = enrolled + ' enrolled';
-    render(allCourses);
-}
-
-function filterCourses() {
-    var diff = document.getElementById('filterDiff').value;
-    var q    = document.getElementById('searchInput').value.toLowerCase();
-    var filtered = allCourses.filter(function(c){
-        var matchDiff = !diff || c.difficulty === diff;
-        var matchQ    = !q || (c.title||'').toLowerCase().includes(q) || (c.description||'').toLowerCase().includes(q) || (c.educator_name||'').toLowerCase().includes(q);
-        return matchDiff && matchQ;
-    });
-    render(filtered);
-}
-
-function render(courses) {
-    var grid = document.getElementById('courseGrid');
-    if (!courses.length) { grid.innerHTML = '<div class="empty-courses"><p>No courses match your search.</p></div>'; return; }
-    grid.innerHTML = courses.map(function(c) {
-        var enrolled = c.enrolled;
-        var rating = (c.avg_rating || 0);
-        var progress = c.progress || 0;
-        var enrollCount = c.enrollment_count || c.enrolled_count || 0;
-
-        // Use course thumbnail_color for the banner
-        var bannerBg = c.thumbnail_color
-            ? 'linear-gradient(135deg, ' + c.thumbnail_color + ', ' + adjustColor(c.thumbnail_color, -60) + ')'
-            : (categoryColors[c.category] || 'linear-gradient(135deg, #1a3a4a, #0d2030)');
-
-        var html = '<a href="/student/course/' + c.id + '" class="ccard">';
-
-        // Banner
-        html += '<div class="ccard-banner" style="background:' + bannerBg + '">';
-        if (rating > 0) {
-            html += '<div class="ccard-star"><span class="star-icon">★</span> ' + rating.toFixed(1) + '</div>';
-        }
-        if (enrolled) {
-            html += '<div class="ccard-enrolled-badge">✓ ENROLLED</div>';
-        }
-        html += '<div class="ccard-banner-category">' + escH(c.category || 'ML') + '</div>';
-        html += '<div class="ccard-banner-title">' + escH(c.title) + '</div>';
-        if (c.educator_name) {
-            html += '<div class="ccard-banner-sub">by ' + escH(c.educator_name) + '</div>';
-        }
-        html += '</div>';
-
-        // Body
-        html += '<div class="ccard-body">';
-        html += '<div class="ccard-diff-row">';
-        html += '<span class="ccard-diff ' + (c.difficulty||'beginner') + '">⚡ ' + (c.difficulty||'Beginner') + '</span>';
-        html += '</div>';
-        if (c.description) {
-            html += '<div class="ccard-desc">' + escH(c.description) + '</div>';
-        }
-        html += '</div>';
-
-        // Progress
-        if (enrolled && progress > 0) {
-            html += '<div class="ccard-progress"><div class="ccard-progress-lbl">Progress: ' + progress + '%</div><div class="ccard-progress-bar"><div class="ccard-progress-fill" style="width:' + progress + '%"></div></div></div>';
-        }
-
-        // Footer
-        html += '<div class="ccard-footer">';
-        html += '<div class="ccard-meta-left">';
-        html += '<span>📖 ' + (c.lecture_count||0) + ' lessons</span>';
-        html += '<span>👥 ' + enrollCount + ' learners</span>';
-        html += '</div>';
-        if (enrolled) {
-            html += '<span class="ccard-explore enrolled">Enrolled ✓</span>';
-        } else {
-            html += '<button class="enroll-start-btn" onclick="quickEnroll(event, \'' + c.id + '\', this)" style="background:var(--accent); color:#000; border:none; padding:.35rem .85rem; border-radius:6px; font-weight:700; font-size:.75rem; font-family:var(--ff-sans); cursor:pointer; transition:all 0.2s;">Enroll and Start</button>';
-        }
-        html += '</div>';
-
-        html += '</a>';
-        return html;
-    }).join('');
-}
-
-function adjustColor(hex, amount) {
-    hex = hex.replace('#','');
-    if (hex.length === 3) hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
-    var r = Math.max(0, Math.min(255, parseInt(hex.substring(0,2),16) + amount));
-    var g = Math.max(0, Math.min(255, parseInt(hex.substring(2,4),16) + amount));
-    var b = Math.max(0, Math.min(255, parseInt(hex.substring(4,6),16) + amount));
-    return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
-}
-
-async function quickEnroll(event, courseId, btn) {
-    event.preventDefault();
-    event.stopPropagation();
-    btn.textContent = 'Enrolling...';
-    btn.disabled = true;
-    try {
-        await fetch('/api/enroll/' + courseId, {method:'POST'});
-        btn.outerHTML = '<span class="ccard-explore enrolled">Enrolled ✓</span>';
-    } catch(e) {
-        btn.textContent = 'Error';
+    async function load() {
+        allCourses = await fetch('/api/courses').then(function (r) { return r.json(); });
+        var enrolled = allCourses.filter(function (c) { return c.enrolled; }).length;
+        document.getElementById('statTotal').textContent = allCourses.length + ' courses available';
+        document.getElementById('statEnrolled').textContent = enrolled + ' enrolled';
+        render(allCourses);
     }
-}
 
-function escH(s){ if(s==null)return''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-load();
+    function filterCourses() {
+        var diff = document.getElementById('filterDiff').value;
+        var q = document.getElementById('searchInput').value.toLowerCase();
+        var filtered = allCourses.filter(function (c) {
+            var matchDiff = !diff || c.difficulty === diff;
+            var matchQ = !q || (c.title || '').toLowerCase().includes(q) || (c.description || '').toLowerCase().includes(q) || (c.educator_name || '').toLowerCase().includes(q);
+            return matchDiff && matchQ;
+        });
+        render(filtered);
+    }
+
+    function render(courses) {
+        var grid = document.getElementById('courseGrid');
+        if (!courses.length) { grid.innerHTML = '<div class="empty-courses"><p>No courses match your search.</p></div>'; return; }
+        grid.innerHTML = courses.map(function (c) {
+            var enrolled = c.enrolled;
+            var rating = (c.avg_rating || 0);
+            var progress = c.progress || 0;
+            var enrollCount = c.enrollment_count || c.enrolled_count || 0;
+
+            // Use course thumbnail_color for the banner
+            var bannerBg = c.thumbnail_color
+                ? 'linear-gradient(135deg, ' + c.thumbnail_color + ', ' + adjustColor(c.thumbnail_color, -60) + ')'
+                : (categoryColors[c.category] || 'linear-gradient(135deg, #1a3a4a, #0d2030)');
+
+            var html = '<a href="/student/course/' + c.id + '" class="ccard">';
+
+            // Banner
+            html += '<div class="ccard-banner" style="background:' + bannerBg + '">';
+            if (rating > 0) {
+                html += '<div class="ccard-star">' + rating.toFixed(1) + ' / 5.0</div>';
+            }
+            if (enrolled) {
+                if (progress >= 100) {
+                    html += '<div class="ccard-enrolled-badge" style="background:var(--success)">COMPLETED</div>';
+                } else {
+                    html += '<div class="ccard-enrolled-badge">ENROLLED</div>';
+                }
+            }
+            html += '<div class="ccard-banner-category">' + escH(c.category || 'ML') + '</div>';
+            html += '<div class="ccard-banner-title">' + escH(c.title) + '</div>';
+            if (c.educator_name) {
+                html += '<div class="ccard-banner-sub">by ' + escH(c.educator_name) + '</div>';
+            }
+            html += '</div>';
+
+            // Body
+            html += '<div class="ccard-body">';
+            html += '<div class="ccard-diff-row">';
+            html += '<span class="ccard-diff ' + (c.difficulty || 'beginner') + '">' + (c.difficulty || 'Beginner') + '</span>';
+            html += '</div>';
+            if (c.description) {
+                html += '<div class="ccard-desc">' + escH(c.description) + '</div>';
+            }
+            html += '</div>';
+
+            // Progress
+            if (enrolled && progress > 0) {
+                html += '<div class="ccard-progress"><div class="ccard-progress-lbl">Progress: ' + progress + '%</div><div class="ccard-progress-bar"><div class="ccard-progress-fill" style="width:' + progress + '%"></div></div></div>';
+            }
+
+            // Footer
+            html += '<div class="ccard-footer">';
+            html += '<div class="ccard-meta-left">';
+            html += '<span>' + (c.lecture_count || 0) + ' lessons</span>';
+            html += '<span>' + enrollCount + ' learners</span>';
+            html += '</div>';
+            if (enrolled) {
+                if (progress >= 100) {
+                    html += '<span class="ccard-explore enrolled" style="color:var(--success);font-weight:700">Completed &check;</span>';
+                } else {
+                    html += '<span class="ccard-explore enrolled">Enrolled (' + progress + '%)</span>';
+                }
+            } else {
+                html += '<button class="enroll-start-btn" onclick="quickEnroll(event, \'' + c.id + '\', this)" style="background:var(--accent); color:#000; border:none; padding:.35rem .85rem; border-radius:6px; font-weight:700; font-size:.75rem; font-family:var(--ff-sans); cursor:pointer; transition:all 0.2s;">Enroll and Start</button>';
+            }
+            html += '</div>';
+
+            html += '</a>';
+            return html;
+        }).join('');
+    }
+
+    function adjustColor(hex, amount) {
+        hex = hex.replace('#', '');
+        if (hex.length === 3) hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+        var r = Math.max(0, Math.min(255, parseInt(hex.substring(0, 2), 16) + amount));
+        var g = Math.max(0, Math.min(255, parseInt(hex.substring(2, 4), 16) + amount));
+        var b = Math.max(0, Math.min(255, parseInt(hex.substring(4, 6), 16) + amount));
+        return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+    }
+
+    async function quickEnroll(event, courseId, btn) {
+        event.preventDefault();
+        event.stopPropagation();
+        btn.textContent = 'Enrolling...';
+        btn.disabled = true;
+        try {
+            await fetch('/api/enroll/' + courseId, { method: 'POST' });
+            btn.outerHTML = '<span class="ccard-explore enrolled">Enrolled</span>';
+        } catch (e) {
+            btn.textContent = 'Error';
+        }
+    }
+
+    function escH(s) { if (s == null) return ''; return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+    load();
 </script>
 {% endblock %}

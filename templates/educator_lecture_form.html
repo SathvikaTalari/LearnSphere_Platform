@@ -18,11 +18,11 @@
             <div class="form-group full">
                 <label>Content Type</label>
                 <div class="type-selector">
-                    <button class="type-btn active" onclick="setType('text',this)" data-type="text">📄 Text Lesson</button>
-                    <button class="type-btn" onclick="setType('video',this)" data-type="video">🎥 Video Lesson</button>
-                    <button class="type-btn" onclick="setType('live',this)" data-type="live">🔴 Live Stream</button>
-                    <button class="type-btn" onclick="setType('quiz',this)" data-type="quiz">📝 Quiz</button>
-                    <button class="type-btn" onclick="setType('meet',this)" data-type="meet">📅 Google Meet</button>
+                    <button class="type-btn active" onclick="setType('text',this)" data-type="text">Text Lesson</button>
+                    <button class="type-btn" onclick="setType('video',this)" data-type="video">Video Lesson</button>
+                    <button class="type-btn" onclick="setType('live',this)" data-type="live">Live Stream</button>
+                    <button class="type-btn" onclick="setType('quiz',this)" data-type="quiz">Quiz</button>
+                    <button class="type-btn" onclick="setType('meet',this)" data-type="meet">Google Meet</button>
                 </div>
                 <input type="hidden" id="lecType" value="text">
             </div>
@@ -42,7 +42,7 @@
                 <div class="content-help" style="margin-bottom:.4rem">Paste any YouTube link — auto-converted to embed. e.g. https://www.youtube.com/watch?v=ABC123</div>
                 <input type="text" id="videoUrl" placeholder="https://www.youtube.com/watch?v=VIDEO_ID" class="form-input" oninput="autoConvertYT(this)" onpaste="setTimeout(function(){autoConvertYT(document.getElementById('videoUrl'))},50)">
                 <div id="ytPreview" style="margin-top:.75rem;display:none">
-                    <div style="font-size:.72rem;color:var(--success);margin-bottom:.4rem;font-weight:700">✅ Preview:</div>
+                    <div style="font-size:.72rem;color:var(--success);margin-bottom:.4rem;font-weight:700">Preview:</div>
                     <div style="position:relative;padding-bottom:40%;height:0;border-radius:8px;overflow:hidden;border:1px solid var(--border)">
                         <iframe id="ytPreviewFrame" style="position:absolute;top:0;left:0;width:100%;height:100%" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
                     </div>
@@ -73,7 +73,7 @@
             <!-- QUIZ notice -->
             <div class="form-group full type-field" id="quizSection" style="display:none">
                 <div class="content-help" style="padding:.85rem 1rem;border-radius:10px;border:1px solid var(--border)">
-                    📝 <strong>Quiz Lecture</strong> — Save this, then click <strong>Assessments</strong> on the course page to add questions (True/False, MCQ, Fill-in-the-blank, Match, Audio, Video, and more).
+                    <strong>Quiz Lecture</strong> — Save this, then click <strong>Assessments</strong> on the course page to add questions (True/False, MCQ, Fill-in-the-blank, Match, Audio, Video, and more).
                 </div>
             </div>
 

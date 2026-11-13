@@ -1,0 +1,398 @@
+{% extends "base.html" %}
+{% block title %}Settings &bull; LearnSphere{% endblock %}
+{% block content %}
+<style>
+.st-wrap {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 2.2rem 1.5rem 5rem;
+}
+
+.st-header {
+  margin-bottom: 2rem;
+}
+
+.st-title {
+  font-family: var(--ff-display, var(--ff-sans));
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 0.35rem;
+}
+
+.st-sub {
+  font-size: 0.88rem;
+  color: var(--text2);
+}
+
+.st-alert-box {
+  padding: 0.85rem 1.1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  display: none;
+}
+.st-alert-box.success {
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid var(--success);
+  color: var(--success);
+}
+.st-alert-box.error {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid var(--danger);
+  color: var(--danger);
+}
+
+.st-card {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.75rem 2rem;
+  margin-bottom: 1.75rem;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.03);
+}
+
+.st-card-head {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.9rem;
+  margin-bottom: 1.35rem;
+}
+
+.st-card-head h2 {
+  font-family: var(--ff-display, var(--ff-sans));
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 0.25rem;
+}
+
+.st-card-head p {
+  font-size: 0.82rem;
+  color: var(--text2);
+}
+
+.st-form-group {
+  margin-bottom: 1.25rem;
+}
+
+.st-label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 0.45rem;
+}
+
+.st-input,
+.st-select {
+  width: 100%;
+  padding: 0.7rem 0.9rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: var(--ff-sans);
+  font-size: 0.9rem;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease;
+}
+.st-input:focus,
+.st-select:focus {
+  border-color: var(--accent);
+}
+.st-input:disabled {
+  background: var(--bg2);
+  color: var(--text3);
+  cursor: not-allowed;
+}
+
+.st-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.st-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.st-toggle-row:last-child {
+  border-bottom: none;
+}
+
+.st-toggle-info h3 {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 0.15rem;
+}
+.st-toggle-info p {
+  font-size: 0.78rem;
+  color: var(--text2);
+}
+
+.st-checkbox {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.st-btn {
+  padding: 0.65rem 1.5rem;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s ease;
+}
+.st-btn-primary {
+  background: var(--accent);
+  color: #FFFFFF;
+}
+.st-btn-primary:hover {
+  filter: brightness(1.1);
+}
+.st-btn-secondary {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  text-decoration: none;
+  display: inline-block;
+}
+.st-btn-secondary:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+@media (max-width: 640px) {
+  .st-row-2 {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+
+<div class="st-wrap animate-in">
+
+  <!-- Header -->
+  <div class="st-header">
+    <h1 class="st-title">Account Settings</h1>
+    <p class="st-sub">Configure your login credentials, study targets, and data preferences.</p>
+  </div>
+
+  <div id="settingsAlert" class="st-alert-box"></div>
+
+  <!-- 1. Password & Security -->
+  <div class="st-card">
+    <div class="st-card-head">
+      <h2>Security &amp; Password</h2>
+      <p>Ensure your account remains safe with a strong, private password.</p>
+    </div>
+
+    <form id="passwordForm" onsubmit="handlePasswordChange(event)">
+      <div class="st-form-group">
+        <label class="st-label" for="stEmail">Registered Account Email</label>
+        <input type="email" id="stEmail" class="st-input" disabled value="{{ session.get('email', '') }}">
+      </div>
+
+      <div class="st-form-group">
+        <label class="st-label" for="currentPassword">Current Password</label>
+        <input type="password" id="currentPassword" class="st-input" required placeholder="Enter current password">
+      </div>
+
+      <div class="st-row-2">
+        <div class="st-form-group">
+          <label class="st-label" for="newPassword">New Password</label>
+          <input type="password" id="newPassword" class="st-input" required minlength="6" placeholder="At least 6 characters">
+        </div>
+        <div class="st-form-group">
+          <label class="st-label" for="confirmPassword">Confirm New Password</label>
+          <input type="password" id="confirmPassword" class="st-input" required minlength="6" placeholder="Re-enter new password">
+        </div>
+      </div>
+
+      <button type="submit" class="st-btn st-btn-primary" id="pwdBtn">Update Password</button>
+    </form>
+  </div>
+
+  <!-- 2. Learning & AI Preferences -->
+  <div class="st-card">
+    <div class="st-card-head">
+      <h2>Learning &amp; AI Preferences</h2>
+      <p>Tailor your interactive study experience and daily goals.</p>
+    </div>
+
+    <form id="prefsForm" onsubmit="handlePreferencesSave(event)">
+      <div class="st-row-2">
+        <div class="st-form-group">
+          <label class="st-label" for="dailyGoal">Daily Target Study Time</label>
+          <select id="dailyGoal" class="st-select">
+            <option value="15">15 minutes / day</option>
+            <option value="30" selected>30 minutes / day (Recommended)</option>
+            <option value="45">45 minutes / day</option>
+            <option value="60">60 minutes / day</option>
+          </select>
+        </div>
+
+        <div class="st-form-group">
+          <label class="st-label" for="aiStyle">AI Tutor Response Style</label>
+          <select id="aiStyle" class="st-select">
+            <option value="balanced" selected>Balanced Guidance &bull; Clear &amp; Practical</option>
+            <option value="socratic">Socratic &bull; Guiding with Thought-Provoking Questions</option>
+            <option value="technical">Technical &bull; Detailed Math &amp; Code Implementations</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="st-toggle-row">
+        <div class="st-toggle-info">
+          <h3>Daily Study Notifications</h3>
+          <p>Receive scheduled reminders to keep your learning streak active.</p>
+        </div>
+        <input type="checkbox" id="studyReminders" class="st-checkbox" checked>
+      </div>
+
+      <div class="st-toggle-row" style="margin-bottom:1.5rem">
+        <div class="st-toggle-info">
+          <h3>Course &amp; Research Announcements</h3>
+          <p>Get notified when new ML modules or academic papers are published.</p>
+        </div>
+        <input type="checkbox" id="emailUpdates" class="st-checkbox" checked>
+      </div>
+
+      <button type="submit" class="st-btn st-btn-primary" id="prefBtn">Save Learning Preferences</button>
+    </form>
+  </div>
+
+  <!-- 3. Data Portability & Archive -->
+  <div class="st-card">
+    <div class="st-card-head">
+      <h2>Data &amp; Privacy Archive</h2>
+      <p>Download a copy of your academic records, certificates, and course progression.</p>
+    </div>
+
+    <p style="font-size:0.85rem;color:var(--text2);margin-bottom:1.25rem;line-height:1.5">
+      You have the right to access and backup your learning data at any time. The export contains your profile data, enrolled course records, verified certificate codes, and battle statistics in open JSON format.
+    </p>
+
+    <a href="/api/user/export_data" class="st-btn st-btn-secondary" download>
+      Export Learning Data (JSON)
+    </a>
+  </div>
+
+</div>
+
+<script>
+async function loadSettings() {
+  try {
+    const res = await fetch('/api/user/settings');
+    const data = await res.json();
+    if (!data.success) return;
+
+    if (data.email) document.getElementById('stEmail').value = data.email;
+    const p = data.preferences || {};
+    if (p.daily_goal_mins) document.getElementById('dailyGoal').value = p.daily_goal_mins;
+    if (p.ai_tutor_style) document.getElementById('aiStyle').value = p.ai_tutor_style;
+    document.getElementById('studyReminders').checked = (p.study_reminders !== false);
+    document.getElementById('emailUpdates').checked = (p.email_updates !== false);
+  } catch (err) {
+    console.error('Failed to load settings:', err);
+  }
+}
+
+function showAlert(msg, isSuccess) {
+  const box = document.getElementById('settingsAlert');
+  box.className = 'st-alert-box ' + (isSuccess ? 'success' : 'error');
+  box.textContent = msg;
+  box.style.display = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+async function handlePasswordChange(e) {
+  e.preventDefault();
+  const curr = document.getElementById('currentPassword').value;
+  const np = document.getElementById('newPassword').value;
+  const cp = document.getElementById('confirmPassword').value;
+
+  if (np !== cp) {
+    showAlert('New password and confirmation do not match.', false);
+    return;
+  }
+  if (np.length < 6) {
+    showAlert('New password must be at least 6 characters long.', false);
+    return;
+  }
+
+  const btn = document.getElementById('pwdBtn');
+  btn.disabled = true;
+  btn.textContent = 'Updating...';
+
+  try {
+    const res = await fetch('/api/user/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'change_password',
+        current_password: curr,
+        new_password: np
+      })
+    });
+    const result = await res.json();
+    if (result.success) {
+      showAlert('Password updated successfully!', true);
+      document.getElementById('passwordForm').reset();
+    } else {
+      showAlert(result.error || 'Failed to update password.', false);
+    }
+  } catch (err) {
+    showAlert('Network error updating password.', false);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Update Password';
+  }
+}
+
+async function handlePreferencesSave(e) {
+  e.preventDefault();
+  const btn = document.getElementById('prefBtn');
+  btn.disabled = true;
+  btn.textContent = 'Saving...';
+
+  const payload = {
+    action: 'update_preferences',
+    daily_goal_mins: parseInt(document.getElementById('dailyGoal').value, 10),
+    ai_tutor_style: document.getElementById('aiStyle').value,
+    study_reminders: document.getElementById('studyReminders').checked,
+    email_updates: document.getElementById('emailUpdates').checked
+  };
+
+  try {
+    const res = await fetch('/api/user/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const result = await res.json();
+    if (result.success) {
+      showAlert('Learning preferences saved successfully!', true);
+    } else {
+      showAlert(result.error || 'Failed to save preferences.', false);
+    }
+  } catch (err) {
+    showAlert('Network error saving preferences.', false);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Save Learning Preferences';
+  }
+}
+
+loadSettings();
+</script>
+{% endblock %}
+

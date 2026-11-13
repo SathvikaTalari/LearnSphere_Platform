@@ -1,478 +1,2841 @@
 {% extends "base.html" %}
-{% block title %}Learn — LearnSphere{% endblock %}
+{% block title %}AI Learn — LearnSphere{% endblock %}
 {% block content %}
 
-<div class="page-layout">
-    <!-- Sidebar -->
-    <aside class="sidebar">
-        <div class="sidebar-section">
-            <h3 class="sidebar-title">Topics</h3>
-            <div class="topic-list">
-                <button class="topic-btn" onclick="loadConcept('Linear Regression')">Linear Regression</button>
-                <button class="topic-btn" onclick="loadConcept('Logistic Regression')">Logistic Regression</button>
-                <button class="topic-btn" onclick="loadConcept('Decision Trees')">Decision Trees</button>
-                <button class="topic-btn" onclick="loadConcept('Random Forests')">Random Forests</button>
-                <button class="topic-btn" onclick="loadConcept('Neural Networks')">Neural Networks</button>
-                <button class="topic-btn" onclick="loadConcept('Convolutional Neural Networks')">CNN</button>
-                <button class="topic-btn" onclick="loadConcept('Recurrent Neural Networks')">RNN / LSTM</button>
-                <button class="topic-btn" onclick="loadConcept('K-Means Clustering')">K-Means Clustering</button>
-                <button class="topic-btn" onclick="loadConcept('Support Vector Machines')">SVM</button>
-                <button class="topic-btn" onclick="loadConcept('Gradient Descent')">Gradient Descent</button>
-                <button class="topic-btn" onclick="loadConcept('Backpropagation')">Backpropagation</button>
-                <button class="topic-btn" onclick="loadConcept('Overfitting and Underfitting')">Overfitting</button>
-                <button class="topic-btn" onclick="loadConcept('Cross Validation')">Cross Validation</button>
-                <button class="topic-btn" onclick="loadConcept('Feature Engineering')">Feature Engineering</button>
-                <button class="topic-btn" onclick="loadConcept('Transformers')">Transformers</button>
-                <button class="topic-btn" onclick="loadConcept('Reinforcement Learning')">Reinforcement
-                    Learning</button>
-                <button class="topic-btn" onclick="loadConcept('Principal Component Analysis')">PCA</button>
-                <button class="topic-btn" onclick="loadConcept('Naive Bayes')">Naive Bayes</button>
-            </div>
-        </div>
+<style>
+/* ==========================================================================
+   AI LEARN STUDIO — 3-Column Layout:
+   [Left: Curriculum Topics] [Center: Masterclass Workspace] [Right: AI Tutor]
+   ========================================================================== */
 
-        <div class="sidebar-section">
-            <h3 class="sidebar-title">AI Tutor Chat</h3>
-            <div class="chat-box" id="chatBox">
-                <div class="chat-msg ai">Hi! I'm your LearnSphere AI tutor. Ask me anything about machine learning!
-                </div>
-            </div>
-            <div class="chat-input-row">
-                <input type="text" id="chatInput" class="chat-input" placeholder="Ask anything..."
-                    onkeydown="if(event.key==='Enter') sendChat()">
-                <button class="chat-send" onclick="sendChat()">→</button>
-            </div>
-        </div>
-    </aside>
+.learn-container {
+  display: grid;
+  grid-template-columns: 260px 1fr 340px;
+  min-height: calc(100vh - 62px);
+  background: var(--bg);
+  transition: grid-template-columns 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
 
-    <!-- Main Content -->
-    <div class="learn-main">
-        <!-- Search Bar -->
-        <div class="search-section">
-            <div class="search-bar">
-                <svg class="search-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
-                    <circle cx="9" cy="9" r="7" stroke="#00D4FF" stroke-width="1.5" />
-                    <path d="m14 14 3 3" stroke="#00D4FF" stroke-width="1.5" stroke-linecap="round" />
-                </svg>
-                <input type="text" id="conceptInput"
-                    placeholder="Enter any ML concept... e.g. 'Explain Attention Mechanism'" class="search-input"
-                    onkeydown="if(event.key==='Enter') explainConcept()">
-                <button class="search-btn" onclick="explainConcept()">Explain</button>
-            </div>
-            <div class="mode-tabs">
-                <button class="mode-tab active" data-mode="full" onclick="setMode(this, 'full')">Full
-                    Explanation</button>
-                <button class="mode-tab" data-mode="simple" onclick="setMode(this, 'simple')">ELI5</button>
-                <button class="mode-tab" data-mode="technical" onclick="setMode(this, 'technical')">Technical</button>
-            </div>
-        </div>
+.learn-container.tutor-collapsed {
+  grid-template-columns: 260px 1fr 0px;
+}
 
-        <!-- Result Area -->
-        <div id="resultArea" class="result-area">
-            <div class="empty-state">
-                <div class="empty-icon">🧠</div>
-                <h2>What do you want to learn today?</h2>
-                <p>Type any ML concept above or pick a topic from the sidebar</p>
-            </div>
-        </div>
+/* ══════════════════════════════════════════════════════════════════════════
+   COLUMN 1: LEFT CURRICULUM SIDEBAR (Topics Only)
+   ══════════════════════════════════════════════════════════════════════════ */
+.learn-sidebar {
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 62px);
+  position: sticky;
+  top: 62px;
+  overflow: hidden;
+  z-index: 10;
+}
 
-        <!-- Suggestions -->
-        <div class="suggestions-section" id="suggestionsSection" style="display:none">
-            <h3>Recommended Next Topics</h3>
-            <div class="suggestion-grid" id="suggestionGrid"></div>
-        </div>
+.sidebar-top {
+  padding: 1.1rem 1rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg2);
+}
+
+.sidebar-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.sidebar-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text);
+}
+
+.topic-count-pill {
+  padding: 0.15rem 0.5rem;
+  border-radius: 12px;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.sidebar-filter-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.sidebar-filter-icon {
+  position: absolute;
+  left: 0.65rem;
+  color: var(--text3);
+  pointer-events: none;
+}
+
+.sidebar-filter-input {
+  width: 100%;
+  padding: 0.45rem 1.8rem 0.45rem 2rem;
+  border-radius: 8px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: var(--ff-sans);
+  font-size: 0.78rem;
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.sidebar-filter-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-glow);
+}
+
+.filter-clear-btn {
+  position: absolute;
+  right: 0.5rem;
+  background: none;
+  border: none;
+  color: var(--text3);
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: none;
+  padding: 0.2rem;
+}
+
+/* Sidebar Scrollable Topics */
+.sidebar-topics-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.topic-category-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.category-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text3);
+}
+
+.topic-item-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  text-align: left;
+  padding: 0.45rem 0.65rem;
+  border-radius: 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text2);
+  font-family: var(--ff-sans);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.topic-item-btn:hover {
+  background: var(--bg3);
+  border-color: var(--border);
+  color: var(--text);
+  transform: translateX(2px);
+}
+
+.topic-item-btn.active {
+  background: var(--accent-glow);
+  border-color: var(--border2);
+  color: var(--accent);
+  font-weight: 600;
+  box-shadow: 0 0 12px var(--accent-glow);
+}
+
+.topic-tag {
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+}
+
+.topic-tag.beg { background: rgba(16, 185, 129, 0.12); color: var(--success); }
+.topic-tag.int { background: rgba(245, 158, 11, 0.12); color: var(--warn); }
+.topic-tag.adv { background: rgba(239, 68, 68, 0.12); color: var(--danger); }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   COLUMN 2: CENTER MAIN WORKSPACE
+   ══════════════════════════════════════════════════════════════════════════ */
+.learn-main-stage {
+  padding: 1.6rem 2rem 4rem;
+  overflow-y: auto;
+  max-width: 1080px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Top Control Card */
+.learn-header-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--r2);
+  padding: 1.35rem 1.6rem;
+  margin-bottom: 1.6rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.learn-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+}
+
+.learn-hero-title {
+  font-family: var(--ff-display);
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.learn-hero-sub {
+  font-size: 0.84rem;
+  color: var(--text2);
+  margin-top: 0.2rem;
+}
+
+.top-actions-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tutor-toggle-pill-top {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.38rem 0.8rem;
+  border-radius: 20px;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tutor-toggle-pill-top:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-glow);
+}
+
+/* Search input container */
+.search-input-group {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: var(--bg3);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 0.5rem 0.85rem;
+  transition: all 0.2s ease;
+}
+
+.search-input-group:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.search-icon-svg {
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.concept-search-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-family: var(--ff-sans);
+  font-size: 0.92rem;
+  outline: none;
+}
+
+.concept-search-input::placeholder {
+  color: var(--text3);
+}
+
+.search-action-btn {
+  padding: 0.45rem 1.15rem;
+  border-radius: 8px;
+  background: var(--accent);
+  border: none;
+  color: #fff;
+  font-family: var(--ff-sans);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.search-action-btn:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+/* Quick Trending Chips */
+.trending-chips-row {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 0.85rem;
+  flex-wrap: wrap;
+}
+
+.trending-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-right: 0.2rem;
+}
+
+.trend-chip {
+  padding: 0.22rem 0.65rem;
+  border-radius: 20px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.trend-chip:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-glow);
+  transform: translateY(-1px);
+}
+
+/* Modes Bar */
+.modes-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 1.1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.mode-pills {
+  display: flex;
+  gap: 0.4rem;
+  background: var(--bg3);
+  padding: 0.25rem;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
+.mode-pill {
+  padding: 0.35rem 0.85rem;
+  border-radius: 7px;
+  border: none;
+  background: transparent;
+  color: var(--text2);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--ff-sans);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: all 0.15s ease;
+}
+
+.mode-pill.active {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 2px 8px var(--accent-glow);
+}
+
+.learn-level-badge {
+  font-size: 0.76rem;
+  color: var(--text2);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.level-indicator-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+/* ── RESULT AREA & ACTIVE CONCEPT CARD ──────────────────────────────────── */
+.result-card-wrap {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--r2);
+  overflow: hidden;
+  box-shadow: 0 6px 28px rgba(0, 0, 0, 0.2);
+  animation: fadeIn 0.25s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Card Header */
+.concept-hero-header {
+  padding: 1.35rem 1.6rem;
+  background: var(--bg3);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.concept-title-group h2 {
+  font-family: var(--ff-display);
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 0.3rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.concept-meta-tags {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.meta-badge {
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.meta-badge.beginner { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+.meta-badge.intermediate { background: rgba(245, 158, 11, 0.15); color: var(--warn); }
+.meta-badge.advanced { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+.meta-badge.category { background: var(--bg); border: 1px solid var(--border2); color: var(--text2); }
+
+.reading-time-pill {
+  font-size: 0.74rem;
+  color: var(--text3);
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* Action Toolbar */
+.concept-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.toolbar-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.85rem;
+  border-radius: 8px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: var(--ff-sans);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.toolbar-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-glow);
+}
+
+.toolbar-btn.voice-btn.active {
+  background: var(--accent-glow);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.wave-bars {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 12px;
+}
+
+.wave-bar {
+  width: 2.5px;
+  height: 6px;
+  background: currentColor;
+  border-radius: 1px;
+}
+
+.voice-btn.active .wave-bar:nth-child(1) { animation: soundWave 0.6s infinite ease-in-out; }
+.voice-btn.active .wave-bar:nth-child(2) { animation: soundWave 0.8s infinite ease-in-out 0.2s; }
+.voice-btn.active .wave-bar:nth-child(3) { animation: soundWave 0.5s infinite ease-in-out 0.4s; }
+
+@keyframes soundWave {
+  0%, 100% { height: 4px; }
+  50% { height: 13px; }
+}
+
+/* ── TABS NAVIGATION ────────────────────────────────────────────────────── */
+.content-nav-tabs {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.6rem 1.6rem 0;
+  background: var(--bg3);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+}
+
+.content-nav-tab {
+  padding: 0.55rem 0.95rem;
+  border-radius: 8px 8px 0 0;
+  border: 1px solid transparent;
+  border-bottom: none;
+  background: transparent;
+  color: var(--text2);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--ff-sans);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  position: relative;
+}
+
+.content-nav-tab:hover {
+  color: var(--text);
+  background: var(--bg2);
+}
+
+.content-nav-tab.active {
+  background: var(--bg2);
+  border-color: var(--border);
+  color: var(--accent);
+}
+
+.content-nav-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--accent);
+}
+
+/* ── TAB PANELS BODY ────────────────────────────────────────────────────── */
+.tab-content-panel {
+  display: none;
+  padding: 1.6rem;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.tab-content-panel.active {
+  display: block;
+}
+
+/* Simple Intuition Banner */
+.callout-intuition {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(5, 150, 105, 0.05) 100%);
+  border: 1px solid var(--border2);
+  border-left: 4px solid var(--accent);
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.4rem;
+}
+
+.callout-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+  margin-bottom: 0.35rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.callout-body {
+  font-size: 0.92rem;
+  color: var(--text);
+  line-height: 1.65;
+}
+
+.deep-dive-text {
+  font-size: 0.9rem;
+  color: var(--text2);
+  line-height: 1.8;
+  margin-bottom: 1.6rem;
+}
+
+.deep-dive-text p {
+  margin-bottom: 0.9rem;
+}
+
+/* Key Points Grid */
+.section-subtitle {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text3);
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.key-points-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1.6rem;
+}
+
+.key-point-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 0.84rem;
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.key-point-badge {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--accent-glow);
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Related topics tags */
+.related-tags-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  align-items: center;
+}
+
+.related-chip {
+  padding: 0.3rem 0.75rem;
+  border-radius: 20px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  font-size: 0.76rem;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+
+.related-chip:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-glow);
+}
+
+/* Real-World Case Study */
+.real-world-box {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.35rem 1.6rem;
+}
+
+.rw-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.85rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.rw-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.rw-text {
+  font-size: 0.9rem;
+  color: var(--text2);
+  line-height: 1.75;
+}
+
+/* Mathematics */
+.formula-display-box {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.4rem;
+  text-align: center;
+  margin-bottom: 1.4rem;
+}
+
+.formula-main {
+  font-family: var(--ff-mono);
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--accent);
+  padding: 0.75rem;
+  background: var(--bg);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  display: inline-block;
+  margin-bottom: 0.85rem;
+  word-break: break-word;
+}
+
+.formula-breakdown-text {
+  font-size: 0.84rem;
+  color: var(--text2);
+  line-height: 1.6;
+}
+
+.math-deep-card {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  font-size: 0.88rem;
+  color: var(--text2);
+  line-height: 1.7;
+}
+
+/* Python Code */
+.code-block-card {
+  background: #0d1117;
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 1.25rem;
+}
+
+.code-card-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.55rem 1rem;
+  background: rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.code-lang-tag {
+  font-family: var(--ff-mono);
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #58a6ff;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.code-actions-group {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.code-tool-btn {
+  padding: 0.28rem 0.65rem;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #c9d1d9;
+  font-family: var(--ff-sans);
+  font-size: 0.72rem;
+  cursor: pointer;
+  transition: all 0.12s;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.code-tool-btn:hover {
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+}
+
+.code-pre-box {
+  margin: 0;
+  padding: 1.1rem 1.25rem;
+  overflow-x: auto;
+  font-family: var(--ff-mono);
+  font-size: 0.84rem;
+  line-height: 1.6;
+}
+
+.code-explanation-box {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.95rem 1.25rem;
+  font-size: 0.84rem;
+  color: var(--text2);
+  line-height: 1.6;
+}
+
+/* Visual Diagram */
+.diagram-stage-box {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.diagram-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.diagram-svg-wrap {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.diagram-caption {
+  font-size: 0.82rem;
+  color: var(--text3);
+  line-height: 1.5;
+  text-align: center;
+}
+
+/* Interactive Quiz */
+.quiz-container-card {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.quiz-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.quiz-xp-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--success);
+}
+
+.quiz-question-text {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.6;
+  margin-bottom: 1.25rem;
+}
+
+.quiz-choices-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin-bottom: 1.25rem;
+}
+
+.quiz-choice-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  color: var(--text);
+  font-family: var(--ff-sans);
+  font-size: 0.86rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: left;
+}
+
+.quiz-choice-btn:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: var(--accent-glow);
+  transform: translateX(3px);
+}
+
+.quiz-choice-btn.selected-correct {
+  border-color: var(--success);
+  background: rgba(16, 185, 129, 0.12);
+  color: var(--success);
+  font-weight: 600;
+}
+
+.quiz-choice-btn.selected-wrong {
+  border-color: var(--danger);
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--danger);
+}
+
+.quiz-letter-badge {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.78rem;
+  flex-shrink: 0;
+}
+
+.quiz-feedback-box {
+  display: none;
+  padding: 0.95rem 1.25rem;
+  border-radius: 10px;
+  font-size: 0.86rem;
+  line-height: 1.5;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.quiz-feedback-box.correct {
+  display: block;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  color: var(--success);
+}
+
+.quiz-feedback-box.wrong {
+  display: block;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: var(--danger);
+}
+
+/* Voice Lesson */
+.voice-lesson-card {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.4rem;
+}
+
+.voice-controls-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.voice-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.voice-play-action {
+  padding: 0.5rem 1.2rem;
+  border-radius: 8px;
+  background: var(--accent);
+  border: none;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.84rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: all 0.15s;
+}
+
+.voice-play-action:hover { filter: brightness(1.1); }
+
+.speed-select-btn {
+  padding: 0.35rem 0.65rem;
+  border-radius: 6px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  font-size: 0.76rem;
+  cursor: pointer;
+}
+
+.speed-select-btn.active {
+  background: var(--accent-glow);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.transcript-text-box {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.1rem;
+  font-size: 0.9rem;
+  color: var(--text2);
+  line-height: 1.8;
+}
+
+/* Special ELI5 / Technical */
+.eli5-hero-card {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.05) 100%);
+  border: 1.5px solid rgba(16, 185, 129, 0.2);
+  border-radius: 12px;
+  padding: 1.6rem;
+  margin-bottom: 1.25rem;
+}
+
+.analogy-spotlight-box {
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-left: 4px solid var(--warn);
+  border-radius: 10px;
+  padding: 1.2rem 1.4rem;
+  margin-top: 1.2rem;
+}
+
+.analogy-tag {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--warn);
+  margin-bottom: 0.4rem;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.emoji-hero-bar {
+  font-size: 2.2rem;
+  margin: 1rem 0;
+  letter-spacing: 0.4rem;
+}
+
+.technical-hero-card {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.pitfall-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.65rem 0.85rem;
+  background: rgba(239, 68, 68, 0.06);
+  border: 1px solid rgba(239, 68, 68, 0.15);
+  border-radius: 8px;
+  font-size: 0.84rem;
+  color: var(--text);
+  margin-bottom: 0.45rem;
+}
+
+/* Empty / Welcome State */
+.learn-welcome-hub {
+  display: flex;
+  flex-direction: column;
+  gap: 1.8rem;
+  animation: fadeIn 0.3s ease;
+}
+
+.welcome-hero-banner {
+  background: linear-gradient(135deg, var(--bg2) 0%, var(--bg3) 100%);
+  border: 1px solid var(--border2);
+  border-radius: var(--r2);
+  padding: 2.2rem 2.4rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.welcome-hero-banner h1 {
+  font-family: var(--ff-display);
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 0.5rem;
+}
+
+.welcome-hero-banner p {
+  font-size: 0.92rem;
+  color: var(--text2);
+  max-width: 650px;
+  line-height: 1.6;
+}
+
+.path-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.path-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 1.35rem;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.path-card:hover {
+  border-color: var(--accent);
+  background: var(--bg3);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.path-icon-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.path-icon { font-size: 1.6rem; }
+.path-title { font-size: 1.05rem; font-weight: 700; color: var(--text); }
+.path-desc { font-size: 0.8rem; color: var(--text2); line-height: 1.5; }
+
+.path-topics-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.35rem;
+}
+
+.path-chip {
+  padding: 0.15rem 0.5rem;
+  border-radius: 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  font-size: 0.68rem;
+  color: var(--text2);
+}
+
+/* Next topics */
+.next-topics-section {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.suggestions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 0.85rem;
+  margin-top: 0.85rem;
+}
+
+.suggestion-card-v5 {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.suggestion-card-v5:hover {
+  border-color: var(--accent);
+  background: var(--bg3);
+  transform: translateY(-2px);
+}
+
+.sug-topic-name {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0.35rem 0 0.25rem;
+}
+
+.sug-reason {
+  font-size: 0.74rem;
+  color: var(--text2);
+  line-height: 1.45;
+}
+
+/* Loading Box */
+.loading-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 320px;
+  text-align: center;
+  gap: 1rem;
+  color: var(--text2);
+}
+
+.loading-spinner {
+  width: 44px;
+  height: 44px;
+  border: 3px solid var(--border2);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   COLUMN 3: RIGHT DEDICATED AI TUTOR CHAT PANEL
+   ══════════════════════════════════════════════════════════════════════════ */
+.learn-tutor-sidebar {
+  background: var(--bg2);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 62px);
+  position: sticky;
+  top: 62px;
+  overflow: hidden;
+  z-index: 10;
+  transition: width 0.25s ease, opacity 0.2s ease;
+}
+
+.tutor-panel-header {
+  padding: 1rem 1.1rem;
+  background: var(--bg3);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tutor-brand-title {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 0.86rem;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 8px var(--success);
+}
+
+.tutor-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.tutor-head-btn {
+  padding: 0.25rem 0.55rem;
+  border-radius: 6px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+
+.tutor-head-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.tutor-context-strip {
+  padding: 0.45rem 1rem;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  font-size: 0.72rem;
+  color: var(--text3);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tutor-context-strip strong {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+/* Chat Messages Scroll */
+.tutor-chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.chat-bubble-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.chat-bubble-row.user {
+  align-items: flex-end;
+}
+
+.chat-bubble-row.ai {
+  align-items: flex-start;
+}
+
+.chat-bubble-sender {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text3);
+  padding: 0 0.3rem;
+}
+
+.chat-bubble-content {
+  max-width: 90%;
+  padding: 0.65rem 0.85rem;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  line-height: 1.55;
+  word-break: break-word;
+}
+
+.chat-bubble-row.ai .chat-bubble-content {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-top-left-radius: 2px;
+}
+
+.chat-bubble-row.user .chat-bubble-content {
+  background: var(--accent);
+  color: #fff;
+  border-top-right-radius: 2px;
+}
+
+/* Quick Prompts Container */
+.tutor-quick-prompts-bar {
+  padding: 0.5rem 0.85rem;
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 0.35rem;
+  overflow-x: auto;
+}
+
+.tutor-quick-pill {
+  padding: 0.22rem 0.55rem;
+  border-radius: 12px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  font-size: 0.7rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.12s;
+  flex-shrink: 0;
+}
+
+.tutor-quick-pill:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-glow);
+}
+
+/* Chat Input Row */
+.tutor-chat-footer {
+  padding: 0.75rem 0.9rem;
+  background: var(--bg3);
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.tutor-input-flex {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.tutor-text-input {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: var(--ff-sans);
+  font-size: 0.82rem;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.tutor-text-input:focus {
+  border-color: var(--accent);
+}
+
+.tutor-submit-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: var(--accent);
+  border: none;
+  color: #fff;
+  font-size: 0.95rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: filter 0.15s;
+}
+
+.tutor-submit-btn:hover { filter: brightness(1.1); }
+
+.tutor-sub-hint {
+  font-size: 0.66rem;
+  color: var(--text3);
+  text-align: center;
+}
+
+/* Floating Tutor Reopen Button */
+.floating-tutor-btn {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  padding: 0.6rem 1.1rem;
+  border-radius: 25px;
+  background: var(--bg3);
+  border: 1.5px solid var(--accent);
+  color: var(--accent);
+  font-family: var(--ff-sans);
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
+  display: none;
+  align-items: center;
+  gap: 0.5rem;
+  z-index: 99;
+  transition: all 0.2s ease;
+}
+
+.floating-tutor-btn:hover {
+  background: var(--accent);
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px var(--accent-glow);
+}
+
+/* Mobile Sidebar Toggle */
+.mobile-sidebar-toggle {
+  display: none;
+  padding: 0.45rem 0.85rem;
+  border-radius: 8px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 1rem;
+}
+
+/* ── RESPONSIVE ADAPTATIONS ─────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .learn-container {
+    grid-template-columns: 240px 1fr;
+  }
+  .learn-tutor-sidebar {
+    position: fixed;
+    top: 62px;
+    right: -360px;
+    width: 340px;
+    height: calc(100vh - 62px);
+    z-index: 100;
+    box-shadow: -6px 0 30px rgba(0, 0, 0, 0.5);
+  }
+  .learn-tutor-sidebar.open {
+    right: 0;
+  }
+  .floating-tutor-btn {
+    display: inline-flex;
+  }
+}
+
+@media (max-width: 768px) {
+  .learn-container {
+    grid-template-columns: 1fr;
+  }
+  .learn-sidebar {
+    position: fixed;
+    top: 62px;
+    left: -320px;
+    width: 280px;
+    height: calc(100vh - 62px);
+    z-index: 100;
+  }
+  .learn-sidebar.open {
+    left: 0;
+  }
+  .mobile-sidebar-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .learn-main-stage {
+    padding: 1.1rem;
+  }
+}
+</style>
+
+<div class="learn-container" id="learnContainer">
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       COLUMN 1 (LEFT): CURRICULUM TOPICS (Full Height)
+       ══════════════════════════════════════════════════════════════════════ -->
+  <aside class="learn-sidebar" id="learnSidebar">
+    <div class="sidebar-top">
+      <div class="sidebar-head">
+        <span class="sidebar-title">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+          </svg>
+          Curriculum
+        </span>
+        <span class="topic-count-pill" id="topicsCountPill">20 Topics</span>
+      </div>
+      <div class="sidebar-filter-wrap">
+        <svg class="sidebar-filter-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" id="topicFilterInput" class="sidebar-filter-input" placeholder="Filter topics..." oninput="filterSidebarTopics(this.value)">
+        <button class="filter-clear-btn" id="filterClearBtn" onclick="clearTopicFilter()">✕</button>
+      </div>
     </div>
+
+    <!-- Scrollable Topics List (Full Sidebar Height) -->
+    <div class="sidebar-topics-scroll" id="topicsListScroll">
+      
+      <!-- Category 1: Supervised & Classical -->
+      <div class="topic-category-group" data-cat="supervised">
+        <div class="category-header">
+          <span>Supervised & Classical</span>
+          <span>6</span>
+        </div>
+        <button class="topic-item-btn" onclick="loadConcept('Linear Regression')">
+          <span>Linear Regression</span>
+          <span class="topic-tag beg">Beg</span>
+        </button>
+        <button class="topic-item-btn" onclick="loadConcept('Logistic Regression')">
+          <span>Logistic Regression</span>
+          <span class="topic-tag beg">Beg</span>
+        </button>
+        <button class="topic-item-btn" onclick="loadConcept('Decision Trees')">
+          <span>Decision Trees</span>
+          <span class="topic-tag beg">Beg</span>
+        </button>
+        <button class="topic-item-btn" onclick="loadConcept('Random Forests')">
+          <span>Random Forests</span>
+          <span class="topic-tag int">Int</span>
+        </button>
+        <button class="topic-item-btn" onclick="loadConcept('Support Vector Machines')">
+          <span>Support Vector Machines</span>
+          <span class="topic-tag int">Int</span>
+        </button>
+        <button class="topic-item-btn" onclick="loadConcept('Naive Bayes')">
+          <span>Naive Bayes</span>
+          <span class="topic-tag beg">Beg</span>
+        </button>
+      </div>
+
+      <!-- Category 2: Deep Learning -->
+      <div class="topic-category-group" data-cat="deep-learning">
+        <div class="category-header">
+          <span>Deep Learning</span>
+          <span>4</span>
+        </div>
+        <button class="topic-item-btn" onclick="loadConcept('Neural Networks')">
+          <span>Neural Networks</span>
+          <span class="topic-tag int">Int</span>
+        </button>
+        <button class="topic-item-btn" onclick="loadConcept('Convolutional Neural Networks')">
+          <span>CNN (Vision)</span>
+          <span class="topic-tag int">Int</span>
+        </button>
+        <button class="topic-item-btn" onclick="loadConcept('Gradient Descent')">
+          <span>Gradient Descent</span>
+          <span class="topic-tag beg">Beg</span>
+        </button>
+        <button class="topic-item-btn" onclick="loadConcept('Backpropagation')">
+          <span>Backpropagation</span>
+          <span class="topic-tag adv">Adv</span>
+        </button>
+      </div>
+
+      <!-- Category 3: Generative AI & Agents -->
+      <div class="topic-category-group" data-cat="genai">
+        <div class="category-header">
+          <span>Generative AI & Agents</span>
+          <span>3</span>
+        </div>
+        <button class="topic-item-btn" onclick="loadConcept('Transformers')">
+          <span>Transformers & Attention</span>
+          <span class="topic-tag adv">Adv</span>
+        </button>
+        <button class="topic-item-btn" onclick="loadConcept('Large Language Models')">
+          <span>Large Language Models</span>
+          <span class="topic-tag adv">Adv</span>
+        </button>
+        <button class="topic-item-btn" onclick="loadConcept('Reinforcement Learning')">
+          <span>Reinforcement Learning</span>
+          <span class="topic-tag adv">Adv</span>
+        </button>
+      </div>
+
+      <!-- Category 4: Unsupervised & MLOps -->
+      <div class="topic-category-group" data-cat="mlops">
+        <div class="category-header">
+          <span>Unsupervised & MLOps</span>
+          <span>5</span>
+        </div>
+        <button class="topic-item-btn" onclick="loadConcept('K-Means Clustering')">
+          <span>K-Means Clustering</span>
+          <span class="topic-tag beg">Beg</span>
+        </button>
+        <button class="topic-item-btn" onclick="loadConcept('Principal Component Analysis')">
+          <span>Principal Component Analysis</span>
+          <span class="topic-tag int">Int</span>
+        </button>
+        <button class="topic-item-btn" onclick="loadConcept('Overfitting and Underfitting')">
+          <span>Overfitting & Regularization</span>
+          <span class="topic-tag beg">Beg</span>
+        </button>
+        <button class="topic-item-btn" onclick="loadConcept('Cross Validation')">
+          <span>Cross Validation</span>
+          <span class="topic-tag beg">Beg</span>
+        </button>
+        <button class="topic-item-btn" onclick="loadConcept('Feature Engineering')">
+          <span>Feature Engineering</span>
+          <span class="topic-tag int">Int</span>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       COLUMN 2 (CENTER): MAIN LEARNING WORKSPACE
+       ══════════════════════════════════════════════════════════════════════ -->
+  <main class="learn-main-stage">
+    
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem">
+      <button class="mobile-sidebar-toggle" onclick="toggleMobileSidebar()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        Topics
+      </button>
+    </div>
+
+    <!-- Top Search & Mode Bar Card -->
+    <div class="learn-header-card">
+      <div class="learn-title-row">
+        <div>
+          <h1 class="learn-hero-title">
+            <span>AI Learn Studio</span>
+          </h1>
+          <p class="learn-hero-sub">Deep-dive into machine learning & AI concepts with formulas, code, diagrams, quizzes & audio lessons.</p>
+        </div>
+        <div class="top-actions-right">
+          <button class="tutor-toggle-pill-top" onclick="toggleRightTutor()" title="Toggle Right AI Tutor Panel">
+            <span class="pulse-dot"></span>
+            <span>AI Tutor Chat</span>
+            <span id="tutorToggleChevron">▸</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Search Input -->
+      <div class="search-input-group">
+        <svg class="search-icon-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" id="conceptInput" class="concept-search-input" placeholder="Search any ML concept... e.g. 'Transformers', 'Gradient Descent', 'CNN'" onkeydown="if(event.key==='Enter') explainConcept()">
+        <button class="search-action-btn" onclick="explainConcept()">
+          <span>Explain</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
+      </div>
+
+      <!-- Trending Chips -->
+      <div class="trending-chips-row">
+        <span class="trending-label">Trending:</span>
+        <button class="trend-chip" onclick="loadConcept('Linear Regression')">Linear Regression</button>
+        <button class="trend-chip" onclick="loadConcept('Decision Trees')">Decision Trees</button>
+        <button class="trend-chip" onclick="loadConcept('Neural Networks')">Neural Networks</button>
+        <button class="trend-chip" onclick="loadConcept('Convolutional Neural Networks')">CNN</button>
+        <button class="trend-chip" onclick="loadConcept('Transformers')">Transformers</button>
+        <button class="trend-chip" onclick="loadConcept('Gradient Descent')">Gradient Descent</button>
+        <button class="trend-chip" onclick="loadConcept('K-Means Clustering')">K-Means</button>
+      </div>
+
+      <!-- Modes Bar -->
+      <div class="modes-bar">
+        <div class="mode-pills">
+          <button class="mode-pill active" data-mode="full" onclick="setMode(this, 'full')">
+            Masterclass
+          </button>
+          <button class="mode-pill" data-mode="simple" onclick="setMode(this, 'simple')">
+            Simplified (ELI5)
+          </button>
+          <button class="mode-pill" data-mode="technical" onclick="setMode(this, 'technical')">
+            Technical Reference
+          </button>
+        </div>
+        <div class="learn-level-badge">
+          <span class="level-indicator-dot"></span>
+          <span>Adaptive Level: <strong id="userLevelTag">Beginner</strong></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results Area -->
+    <div id="resultArea">
+      <!-- Default Welcome State -->
+      <div class="learn-welcome-hub" id="defaultWelcomeHub">
+        <div class="welcome-hero-banner">
+          <h1>What would you like to master today?</h1>
+          <p>Pick a structured learning path below, search any algorithm above, or choose from 20 curated concepts in the curriculum sidebar.</p>
+        </div>
+
+        <div class="section-subtitle">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+          Curated Learning Tracks
+        </div>
+
+        <div class="path-cards-grid">
+          <!-- Path 1 -->
+          <div class="path-card" onclick="loadConcept('Linear Regression')">
+            <div class="path-icon-head">
+              <span class="meta-badge beginner">Track 1</span>
+            </div>
+            <div class="path-title">Machine Learning Foundations</div>
+            <div class="path-desc">Master the core building blocks: regression lines, probability thresholds, and decision trees.</div>
+            <div class="path-topics-list">
+              <span class="path-chip">Linear Regression</span>
+              <span class="path-chip">Logistic Regression</span>
+              <span class="path-chip">Decision Trees</span>
+            </div>
+          </div>
+
+          <!-- Path 2 -->
+          <div class="path-card" onclick="loadConcept('Neural Networks')">
+            <div class="path-icon-head">
+              <span class="meta-badge intermediate">Track 2</span>
+            </div>
+            <div class="path-title">Deep Learning Architecture</div>
+            <div class="path-desc">Understand artificial neurons, convolution kernels, backpropagation, and gradient descent.</div>
+            <div class="path-topics-list">
+              <span class="path-chip">Neural Networks</span>
+              <span class="path-chip">CNNs</span>
+              <span class="path-chip">Backpropagation</span>
+            </div>
+          </div>
+
+          <!-- Path 3 -->
+          <div class="path-card" onclick="loadConcept('Transformers')">
+            <div class="path-icon-head">
+              <span class="meta-badge advanced">Track 3</span>
+            </div>
+            <div class="path-title">Modern AI &amp; LLMs</div>
+            <div class="path-desc">Dive into Self-Attention, large language models, reinforcement learning, and generative AI.</div>
+            <div class="path-topics-list">
+              <span class="path-chip">Transformers</span>
+              <span class="path-chip">LLMs</span>
+              <span class="path-chip">RLHF</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recommendations Footer -->
+    <div class="next-topics-section" id="suggestionsSection" style="display:none">
+      <div class="section-subtitle">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        Recommended Next Concepts
+      </div>
+      <div class="suggestions-grid" id="suggestionGrid"></div>
+    </div>
+
+  </main>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       COLUMN 3 (RIGHT): DEDICATED AI TUTOR CHAT PANEL
+       ══════════════════════════════════════════════════════════════════════ -->
+  <aside class="learn-tutor-sidebar" id="learnTutorSidebar">
+    
+    <!-- Tutor Top Header -->
+    <div class="tutor-panel-header">
+      <div class="tutor-brand-title">
+        <span class="pulse-dot"></span>
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.2">
+          <rect x="3" y="11" width="18" height="10" rx="2"></rect>
+          <circle cx="12" cy="5" r="2"></circle>
+          <path d="M12 7v4"></path>
+          <line x1="8" y1="16" x2="8" y2="16"></line>
+          <line x1="16" y1="16" x2="16" y2="16"></line>
+        </svg>
+        <span>AI Tutor Chat</span>
+      </div>
+      
+      <div class="tutor-head-actions">
+        <button class="tutor-head-btn" onclick="clearTutorChat()" title="Clear chat history">↻ Clear</button>
+        <button class="tutor-head-btn" onclick="toggleRightTutor()" title="Collapse AI Tutor Panel">✕</button>
+      </div>
+    </div>
+
+    <!-- Current Context Indicator -->
+    <div class="tutor-context-strip">
+      <span>Context:</span>
+      <strong id="tutorContextTopic">General Machine Learning</strong>
+    </div>
+
+    <!-- Scrollable Chat Messages Box -->
+    <div class="tutor-chat-messages" id="tutorChatBox">
+      <div class="chat-bubble-row ai">
+        <span class="chat-bubble-sender">AI Tutor</span>
+        <div class="chat-bubble-content">
+          Hi! I'm your LearnSphere ML tutor. Ask me any question, request an intuitive analogy, or ask for code help!
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Prompt Pills -->
+    <div class="tutor-quick-prompts-bar">
+      <button class="tutor-quick-pill" onclick="quickPrompt('Give me a simple everyday analogy')">Analogy</button>
+      <button class="tutor-quick-pill" onclick="quickPrompt('Show Python code snippet')">Code</button>
+      <button class="tutor-quick-pill" onclick="quickPrompt('Quiz me on this concept')">Practice Quiz</button>
+      <button class="tutor-quick-pill" onclick="quickPrompt('Summarize in 3 bullet points')">Key Takeaways</button>
+      <button class="tutor-quick-pill" onclick="quickPrompt('Explain simply for beginners')">Simplified</button>
+    </div>
+
+    <!-- Sticky Bottom Chat Input -->
+    <div class="tutor-chat-footer">
+      <div class="tutor-input-flex">
+        <input type="text" id="tutorChatInput" class="tutor-text-input" placeholder="Ask AI tutor anything..." onkeydown="if(event.key==='Enter') sendTutorMessage()">
+        <button class="tutor-submit-btn" id="tutorSendBtn" onclick="sendTutorMessage()" title="Send message">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+        </button>
+      </div>
+      <div class="tutor-sub-hint">Context-aware AI tutor · Press Enter ↵</div>
+    </div>
+
+  </aside>
+
 </div>
 
+<!-- Floating Reopen Button (shown when collapsed or on smaller screens) -->
+<button class="floating-tutor-btn" id="floatingTutorBtn" onclick="toggleRightTutor()" title="Open AI Tutor">
+  <span class="pulse-dot"></span>
+  <span>AI Tutor</span>
+</button>
+
 <script>
-    let currentMode = 'full';
-    let chatHistory = [];
-    let currentConcept = '';
+/* ==========================================================================
+   AI LEARN STUDIO — Client-Side Controller
+   ========================================================================== */
 
-    // Check URL param
-    const urlParams = new URLSearchParams(window.location.search);
-    const qParam = urlParams.get('q');
-    if (qParam) {
-        document.getElementById('conceptInput').value = qParam;
-        setTimeout(() => explainConcept(), 500);
+let currentMode = 'full';
+let currentConcept = '';
+let currentExplanationData = null;
+let chatHistory = [];
+let speechUtterance = null;
+let isAudioPlaying = false;
+let currentSpeechRate = 1.0;
+let isTutorCollapsed = false;
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const qParam = urlParams.get('q');
+  if (qParam) {
+    document.getElementById('conceptInput').value = qParam;
+    loadConcept(qParam);
+  }
+
+  // Load user profile adaptive level
+  fetch('/api/profile')
+    .then(r => r.json())
+    .then(p => {
+      if (p && p.level) {
+        const lvlTag = document.getElementById('userLevelTag');
+        if (lvlTag) lvlTag.textContent = p.level.charAt(0).toUpperCase() + p.level.slice(1);
+      }
+    })
+    .catch(() => {});
+});
+
+// Toggle Right Tutor Panel
+function toggleRightTutor() {
+  const container = document.getElementById('learnContainer');
+  const sidebar = document.getElementById('learnTutorSidebar');
+  const floatBtn = document.getElementById('floatingTutorBtn');
+  const chevron = document.getElementById('tutorToggleChevron');
+
+  if (window.innerWidth <= 1024) {
+    sidebar.classList.toggle('open');
+    return;
+  }
+
+  isTutorCollapsed = !isTutorCollapsed;
+  if (isTutorCollapsed) {
+    container.classList.add('tutor-collapsed');
+    if (floatBtn) floatBtn.style.display = 'inline-flex';
+    if (chevron) chevron.textContent = '◂';
+  } else {
+    container.classList.remove('tutor-collapsed');
+    if (floatBtn) floatBtn.style.display = 'none';
+    if (chevron) chevron.textContent = '▸';
+  }
+}
+
+// Mode Switcher
+function setMode(btn, mode) {
+  document.querySelectorAll('.mode-pill').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentMode = mode;
+  if (currentConcept) {
+    explainConcept();
+  }
+}
+
+// Sidebar Filter
+function filterSidebarTopics(query) {
+  const q = query.toLowerCase().trim();
+  const clearBtn = document.getElementById('filterClearBtn');
+  if (clearBtn) clearBtn.style.display = q ? 'block' : 'none';
+
+  let visibleCount = 0;
+  document.querySelectorAll('.topic-item-btn').forEach(btn => {
+    const text = btn.textContent.toLowerCase();
+    const match = text.includes(q);
+    btn.style.display = match ? 'flex' : 'none';
+    if (match) visibleCount++;
+  });
+
+  document.querySelectorAll('.topic-category-group').forEach(group => {
+    const hasVisible = Array.from(group.querySelectorAll('.topic-item-btn')).some(b => b.style.display !== 'none');
+    group.style.display = hasVisible ? 'flex' : 'none';
+  });
+
+  const countPill = document.getElementById('topicsCountPill');
+  if (countPill) countPill.textContent = q ? `${visibleCount} Found` : '20 Topics';
+}
+
+function clearTopicFilter() {
+  const inp = document.getElementById('topicFilterInput');
+  if (inp) {
+    inp.value = '';
+    filterSidebarTopics('');
+    inp.focus();
+  }
+}
+
+function toggleMobileSidebar() {
+  const sb = document.getElementById('learnSidebar');
+  if (sb) sb.classList.toggle('open');
+}
+
+// Load Concept Helper
+async function loadConcept(concept) {
+  document.getElementById('conceptInput').value = concept;
+  
+  // Highlight active sidebar item
+  document.querySelectorAll('.topic-item-btn').forEach(b => {
+    const text = b.querySelector('span')?.textContent || b.textContent;
+    if (text.toLowerCase().includes(concept.toLowerCase()) || concept.toLowerCase().includes(text.toLowerCase())) {
+      b.classList.add('active');
+    } else {
+      b.classList.remove('active');
     }
+  });
 
-    function setMode(btn, mode) {
-        document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
-        btn.classList.add('active');
-        currentMode = mode;
+  // Update tutor context strip
+  const tutorContext = document.getElementById('tutorContextTopic');
+  if (tutorContext) tutorContext.textContent = concept;
+
+  // Close mobile sidebar if open
+  const sb = document.getElementById('learnSidebar');
+  if (sb && sb.classList.contains('open')) sb.classList.remove('open');
+
+  await explainConcept();
+}
+
+// Core Explanation Requester
+async function explainConcept() {
+  const concept = document.getElementById('conceptInput').value.trim();
+  if (!concept) return;
+  currentConcept = concept;
+
+  const tutorContext = document.getElementById('tutorContextTopic');
+  if (tutorContext) tutorContext.textContent = concept;
+
+  stopAudioNarration();
+
+  const resultArea = document.getElementById('resultArea');
+  resultArea.innerHTML = `
+    <div class="result-card-wrap">
+      <div class="loading-box">
+        <div class="loading-spinner"></div>
+        <div>
+          <h3 style="color:var(--text);font-size:1.1rem;margin-bottom:0.35rem">Analyzing ${escapeHtml(concept)}</h3>
+          <p style="font-size:0.84rem;color:var(--text3)">Generating interactive lessons, formulas, code, diagrams and quiz...</p>
+        </div>
+      </div>
+    </div>`;
+
+  document.getElementById('suggestionsSection').style.display = 'none';
+
+  try {
+    const res = await fetch('/api/explain', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ concept, mode: currentMode })
+    });
+    const data = await res.json();
+
+    if (data.success && data.data) {
+      currentExplanationData = data.data;
+      renderExplanationView(data.data, concept);
+      loadNextSuggestions();
+    } else {
+      showErrorCard(data.error || 'Failed to retrieve concept explanation.');
     }
+  } catch (err) {
+    showErrorCard(err.message || 'Network error occurred while fetching explanation.');
+  }
+}
 
-    async function explainConcept() {
-        const concept = document.getElementById('conceptInput').value.trim();
-        if (!concept) return;
-        currentConcept = concept;
+// Render Masterclass or Special Views
+function renderExplanationView(d, concept) {
+  const resultArea = document.getElementById('resultArea');
+  const title = d.title || concept;
+  const difficulty = (d.difficulty || 'Beginner').toLowerCase();
 
-        document.getElementById('resultArea').innerHTML = `
-        <div class="loading-state">
-            <div class="spinner"></div>
-            <p>Analyzing <strong>${concept}</strong> and crafting your personalized explanation...</p>
-        </div>`;
-        document.getElementById('suggestionsSection').style.display = 'none';
-
-        try {
-            const res = await fetch('/api/explain', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ concept, mode: currentMode })
-            });
-            const data = await res.json();
-
-            if (data.success) {
-                renderExplanation(data.data, concept);
-                loadSuggestions();
-            } else {
-                showError(data.error);
-            }
-        } catch (e) {
-            showError(e.message);
-        }
-    }
-
-    async function loadConcept(concept) {
-        document.getElementById('conceptInput').value = concept;
-        await explainConcept();
-    }
-
-    function renderExplanation(d, concept) {
-        if (currentMode === 'simple') {
-            document.getElementById('resultArea').innerHTML = `
-            <div class="explanation-card animate-in">
-                <div class="card-header">
-                    <h2>${concept}</h2>
-                    <span class="badge badge-simple">ELI5 Mode</span>
-                </div>
-                <div class="explanation-text">${d.explanation}</div>
-                <div class="analogy-box">
-                    <span class="analogy-label">Think of it like...</span>
-                    <p>${d.analogy}</p>
-                </div>
-                <div class="emoji-row">${d.emoji_summary || ''}</div>
-                <div class="card-actions">
-                    <button onclick="setMode(document.querySelector('[data-mode=full]'), 'full'); explainConcept()" class="btn btn-ghost">Full Explanation →</button>
-                </div>
-            </div>`;
-            return;
-        }
-
-        if (currentMode === 'technical') {
-            document.getElementById('resultArea').innerHTML = `
-            <div class="explanation-card animate-in">
-                <div class="card-header">
-                    <h2>${concept}</h2>
-                    <span class="badge badge-tech">Technical Mode</span>
-                </div>
-                <div class="explanation-text">${d.explanation || ''}</div>
-                ${d.mathematics ? `<div class="formula-box"><span class="formula-label">∑ Mathematics</span><div class="formula">${d.mathematics}</div></div>` : ''}
-                ${d.implementation_notes ? `<div class="info-box"><strong>Implementation Notes:</strong><p>${d.implementation_notes}</p></div>` : ''}
-                ${d.pitfalls ? `<div class="pitfalls-box"><strong>⚠ Common Pitfalls:</strong><ul>${d.pitfalls.map(p => `<li>${p}</li>`).join('')}</ul></div>` : ''}
-            </div>`;
-            return;
-        }
-
-        // Full mode
-        const hasQuiz = d.quiz_question;
-        document.getElementById('resultArea').innerHTML = `
-        <div class="explanation-card animate-in">
-            <div class="card-header">
-                <div>
-                    <h2>${d.title || concept}</h2>
-                    <span class="badge badge-${d.difficulty || 'beginner'}">${d.difficulty || 'Beginner'}</span>
-                </div>
+  // ── ELI5 MODE ──────────────────────────────────────────────────────────
+  if (currentMode === 'simple') {
+    resultArea.innerHTML = `
+      <div class="result-card-wrap">
+        <div class="concept-hero-header">
+          <div class="concept-title-group">
+            <h2>${escapeHtml(title)}</h2>
+            <div class="concept-meta-tags">
+              <span class="meta-badge beginner">Simplified (ELI5)</span>
+              <span class="reading-time-pill">2 min quick read</span>
             </div>
+          </div>
+          <div class="concept-toolbar">
+            <button class="toolbar-btn" onclick="setMode(document.querySelector('[data-mode=full]'), 'full')">
+              Full Masterclass →
+            </button>
+          </div>
+        </div>
+        <div class="tab-content-panel active">
+          <div class="eli5-hero-card">
+            <div class="callout-title">Plain English Explanation</div>
+            <p style="font-size:1.05rem;line-height:1.7;color:var(--text)">${escapeHtml(d.explanation || '')}</p>
+          </div>
 
-            <!-- Tabs -->
-            <div class="result-tabs">
-                <button class="result-tab active" onclick="switchResultTab(this, 'explanation-tab')">Explanation</button>
-                <button class="result-tab" onclick="switchResultTab(this, 'example-tab')">Example</button>
-                ${d.formula ? '<button class="result-tab" onclick="switchResultTab(this, \'formula-tab\')">Formula</button>' : ''}
-                <button class="result-tab" onclick="switchResultTab(this, 'code-tab')">Code</button>
-                ${hasQuiz ? '<button class="result-tab" onclick="switchResultTab(this, \'quiz-tab\')">Quiz</button>' : ''}
-                <button class="result-tab" onclick="switchResultTab(this, 'diagram-tab'); generateDiagram('${concept}', '${(d.visual_description || '').replace(/'/g, "")}')">🎨 Diagram</button>
-                <button class="result-tab" onclick="switchResultTab(this, 'audio-tab'); generateAudio('${concept}', '${(d.simple_explanation || '').replace(/'/g, "\\'")}')">🔊 Audio</button>
+          ${d.analogy ? `
+          <div class="analogy-spotlight-box">
+            <div class="analogy-tag">Real-Life Analogy</div>
+            <p style="font-size:0.95rem;line-height:1.7;color:var(--text)">${escapeHtml(d.analogy)}</p>
+          </div>` : ''}
+
+          <div style="margin-top:1.5rem;display:flex;justify-content:flex-end">
+            <button class="toolbar-btn" onclick="setMode(document.querySelector('[data-mode=full]'), 'full')" style="background:var(--accent);color:#fff;border:none">
+              Explore Full Code & Formulas →
+            </button>
+          </div>
+        </div>
+      </div>`;
+    return;
+  }
+
+  // ── TECHNICAL MODE ──────────────────────────────────────────────────────
+  if (currentMode === 'technical') {
+    resultArea.innerHTML = `
+      <div class="result-card-wrap">
+        <div class="concept-hero-header">
+          <div class="concept-title-group">
+            <h2>${escapeHtml(title)}</h2>
+            <div class="concept-meta-tags">
+              <span class="meta-badge advanced">Technical Deep Dive</span>
+              <span class="reading-time-pill">5 min read</span>
             </div>
+          </div>
+          <div class="concept-toolbar">
+            <button class="toolbar-btn" onclick="setMode(document.querySelector('[data-mode=full]'), 'full')">
+              Full Masterclass →
+            </button>
+          </div>
+        </div>
+        <div class="tab-content-panel active">
+          <div class="technical-hero-card">
+            <div class="section-subtitle">Mathematical & Algorithmic Formulation</div>
+            <p class="deep-dive-text">${escapeHtml(d.explanation || '')}</p>
 
-            <!-- Tab Content -->
-            <div id="explanation-tab" class="result-panel active">
-                <div class="simple-box">
-                    <div class="simple-label">In Simple Terms</div>
-                    <p>${d.simple_explanation || ''}</p>
-                </div>
-                <div class="detailed-text">${d.detailed_explanation || ''}</div>
-                ${d.key_points ? `
-                <div class="key-points">
-                    <h4>Key Points</h4>
-                    <div class="points-grid">
-                        ${d.key_points.map((p, i) => `<div class="point-card"><span class="point-num">${i + 1}</span><span>${p}</span></div>`).join('')}
-                    </div>
-                </div>` : ''}
-                ${d.related_topics ? `
-                <div class="related-topics">
-                    <h4>Related Topics</h4>
-                    ${d.related_topics.map(t => `<button class="topic-chip" onclick="loadConcept('${t}')">${t}</button>`).join('')}
-                </div>` : ''}
-            </div>
-
-            <div id="example-tab" class="result-panel">
-                <div class="example-content">
-                    <h4>Real-World Example</h4>
-                    <p>${d.real_world_example || 'No example available.'}</p>
-                </div>
-            </div>
-
-            ${d.formula ? `
-            <div id="formula-tab" class="result-panel">
-                <div class="formula-box">
-                    <div class="formula-label">Mathematical Formula</div>
-                    <div class="formula-display">${d.formula}</div>
-                </div>
+            ${d.mathematics ? `
+            <div class="formula-display-box">
+              <div class="formula-main">${escapeHtml(d.mathematics)}</div>
             </div>` : ''}
 
-            <div id="code-tab" class="result-panel">
-                <div class="code-header">
-                    <span>Python Implementation</span>
-                    <button onclick="copyCode(this)" class="copy-btn">Copy</button>
-                </div>
-                <pre><code class="language-python">${escapeHtml(d.code_example || '# No code available')}</code></pre>
-            </div>
-
-            ${hasQuiz ? `
-            <div id="quiz-tab" class="result-panel">
-                <div class="quiz-box">
-                    <h4>Quick Quiz</h4>
-                    <p class="quiz-q">${d.quiz_question}</p>
-                    <div class="quiz-options">
-                        ${(d.quiz_options || []).map((opt, i) => `
-                            <button class="quiz-opt" onclick="checkQuiz(this, '${String.fromCharCode(65 + i)}', '${d.quiz_answer}', '${concept}')">${opt}</button>
-                        `).join('')}
-                    </div>
-                    <div id="quizResult" class="quiz-result"></div>
-                </div>
+            ${d.implementation_notes ? `
+            <div style="margin-bottom:1.5rem">
+              <div class="section-subtitle">Production Architecture & Hyperparameters</div>
+              <div class="math-deep-card">${escapeHtml(d.implementation_notes)}</div>
             </div>` : ''}
 
-            <div id="diagram-tab" class="result-panel">
-                <div id="diagramContainer" class="diagram-container">
-                    <div class="diagram-placeholder">
-                        <p>Loading diagram...</p>
-                    </div>
+            ${d.pitfalls && d.pitfalls.length ? `
+            <div>
+              <div class="section-subtitle" style="color:var(--danger)">Common Engineering Pitfalls</div>
+              ${d.pitfalls.map(p => `
+                <div class="pitfall-item">
+                  <span style="color:var(--danger);font-weight:bold">•</span>
+                  <span>${escapeHtml(p)}</span>
                 </div>
+              `).join('')}
+            </div>` : ''}
+          </div>
+        </div>
+      </div>`;
+    return;
+  }
+
+  // ── FULL MASTERCLASS MODE ───────────────────────────────────────────────
+  const hasQuiz = Boolean(d.quiz_question);
+  const audioScript = d.audio_script || d.simple_explanation || '';
+
+  resultArea.innerHTML = `
+    <div class="result-card-wrap">
+      
+      <!-- Concept Top Hero Header -->
+      <div class="concept-hero-header">
+        <div class="concept-title-group">
+          <h2>
+            <span>${escapeHtml(title)}</span>
+          </h2>
+          <div class="concept-meta-tags">
+            <span class="meta-badge ${difficulty}">${escapeHtml(d.difficulty || 'Beginner')}</span>
+            <span class="meta-badge category">${escapeHtml(d.category || 'Machine Learning')}</span>
+            <span class="reading-time-pill">${escapeHtml(d.reading_time || '4 min read')}</span>
+          </div>
+        </div>
+        
+        <!-- Action Toolbar -->
+        <div class="concept-toolbar">
+          <button class="toolbar-btn voice-btn" id="headerVoiceBtn" onclick="toggleAudioLesson()" title="Listen to Voice Lesson">
+            <span class="wave-bars">
+              <span class="wave-bar"></span>
+              <span class="wave-bar"></span>
+              <span class="wave-bar"></span>
+            </span>
+            <span id="headerVoiceBtnText">Voice Lesson</span>
+          </button>
+          
+          <button class="toolbar-btn" onclick="copySummaryText(this)" title="Copy summary">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            <span>Copy</span>
+          </button>
+
+          <button class="toolbar-btn" onclick="markMastered(this, '${escapeHtml(title)}')" title="Mark concept as mastered">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+            <span>Mastered</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <div class="content-nav-tabs">
+        <button class="content-nav-tab active" onclick="switchTab(this, 'tab-overview')">
+          Concept Overview
+        </button>
+        <button class="content-nav-tab" onclick="switchTab(this, 'tab-realworld')">
+          Real-World Application
+        </button>
+        ${d.formula ? `
+        <button class="content-nav-tab" onclick="switchTab(this, 'tab-math')">
+          Mathematics
+        </button>` : ''}
+        <button class="content-nav-tab" onclick="switchTab(this, 'tab-code')">
+          Python Implementation
+        </button>
+        <button class="content-nav-tab" onclick="switchTab(this, 'tab-diagram'); loadDiagramTab('${escapeHtml(title)}')">
+          Architecture Diagram
+        </button>
+        ${hasQuiz ? `
+        <button class="content-nav-tab" onclick="switchTab(this, 'tab-quiz')">
+          Knowledge Quiz
+        </button>` : ''}
+        <button class="content-nav-tab" onclick="switchTab(this, 'tab-voice')">
+          Voice Audio
+        </button>
+      </div>
+
+      <!-- ── TAB 1: OVERVIEW ── -->
+      <div id="tab-overview" class="tab-content-panel active">
+        ${d.simple_explanation ? `
+        <div class="callout-intuition">
+          <div class="callout-title">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+            In Simple Terms
+          </div>
+          <div class="callout-body">${escapeHtml(d.simple_explanation)}</div>
+        </div>` : ''}
+
+        <div class="deep-dive-text">
+          ${(d.detailed_explanation || '').split('\n\n').map(p => `<p>${escapeHtml(p)}</p>`).join('')}
+        </div>
+
+        ${d.key_points && d.key_points.length ? `
+        <div class="section-subtitle">Key Takeaways & Core Principles</div>
+        <div class="key-points-grid">
+          ${d.key_points.map((pt, i) => `
+            <div class="key-point-card">
+              <span class="key-point-badge">${i + 1}</span>
+              <span>${escapeHtml(pt)}</span>
             </div>
+          `).join('')}
+        </div>` : ''}
 
-            <div id="audio-tab" class="result-panel">
-                <div id="audioContainer">
-                    <div class="diagram-placeholder">
-                        <p>Loading audio script...</p>
-                    </div>
-                </div>
+        ${d.related_topics && d.related_topics.length ? `
+        <div class="section-subtitle">Related Machine Learning Concepts</div>
+        <div class="related-tags-row">
+          ${d.related_topics.map(t => `
+            <button class="related-chip" onclick="loadConcept('${escapeHtml(t)}')">${escapeHtml(t)}</button>
+          `).join('')}
+        </div>` : ''}
+      </div>
+
+      <!-- ── TAB 2: REAL-WORLD ── -->
+      <div id="tab-realworld" class="tab-content-panel">
+        <div class="real-world-box">
+          <div class="rw-header">
+            <div class="rw-title">
+              Production Case Study & Industry Use
             </div>
-        </div>`;
+            <span class="meta-badge category">Applied AI</span>
+          </div>
+          <p class="rw-text">${escapeHtml(d.real_world_example || 'This concept is widely utilized across autonomous systems, quantitative finance, medical diagnosis, and generative models.')}</p>
+        </div>
+      </div>
 
-        // Highlight code
-        document.querySelectorAll('pre code').forEach(el => hljs.highlightElement(el));
+      <!-- ── TAB 3: MATHEMATICS ── -->
+      ${d.formula ? `
+      <div id="tab-math" class="tab-content-panel">
+        <div class="formula-display-box">
+          <div class="section-subtitle" style="justify-content:center;margin-bottom:0.75rem">Governing Formula</div>
+          <div class="formula-main">${escapeHtml(d.formula)}</div>
+          ${d.formula_breakdown ? `<p class="formula-breakdown-text">${escapeHtml(d.formula_breakdown)}</p>` : ''}
+        </div>
+        ${d.mathematics ? `
+        <div class="section-subtitle">Theoretical Foundations</div>
+        <div class="math-deep-card">${escapeHtml(d.mathematics)}</div>` : ''}
+      </div>` : ''}
+
+      <!-- ── TAB 4: CODE ── -->
+      <div id="tab-code" class="tab-content-panel">
+        <div class="code-block-card">
+          <div class="code-card-topbar">
+            <span class="code-lang-tag">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+              Python 3 (NumPy / Scikit-Learn / PyTorch)
+            </span>
+            <div class="code-actions-group">
+              <button class="code-tool-btn" onclick="copyCodeSnippet(this)">
+                <span>Copy Code</span>
+              </button>
+              <a href="/code" class="code-tool-btn" title="Open Code Lab">
+                <span>Run in Code Lab →</span>
+              </a>
+            </div>
+          </div>
+          <pre class="code-pre-box"><code class="language-python">${escapeHtml(d.code_example || '# No code implementation provided.')}</code></pre>
+        </div>
+        ${d.code_explanation ? `
+        <div class="code-explanation-box">
+          <strong style="color:var(--text)">Code Walkthrough:</strong> ${escapeHtml(d.code_explanation)}
+        </div>` : ''}
+      </div>
+
+      <!-- ── TAB 5: DIAGRAM ── -->
+      <div id="tab-diagram" class="tab-content-panel">
+        <div class="diagram-stage-box">
+          <div class="diagram-header-row">
+            <span class="section-subtitle">Visual Dataflow Architecture</span>
+            <button class="toolbar-btn" onclick="generateVisualDiagram('${escapeHtml(title)}', true)">
+              ↻ Regenerate
+            </button>
+          </div>
+          <div class="diagram-svg-wrap" id="diagramContainer">
+            <div class="loading-box" style="min-height:220px">
+              <div class="loading-spinner"></div>
+              <p>Rendering architecture diagram...</p>
+            </div>
+          </div>
+          <p class="diagram-caption" id="diagramCaption"></p>
+        </div>
+      </div>
+
+      <!-- ── TAB 6: QUIZ ── -->
+      ${hasQuiz ? `
+      <div id="tab-quiz" class="tab-content-panel">
+        <div class="quiz-container-card">
+          <div class="quiz-card-head">
+            <span class="section-subtitle" style="margin:0">Knowledge Check</span>
+            <span class="quiz-xp-badge">+15 XP</span>
+          </div>
+          <div class="quiz-question-text">${escapeHtml(d.quiz_question)}</div>
+          
+          <div class="quiz-choices-stack" id="quizChoicesStack">
+            ${(d.quiz_options || []).map((opt, i) => {
+              const letter = String.fromCharCode(65 + i);
+              return `
+              <button class="quiz-choice-btn" onclick="submitQuizAnswer(this, '${letter}', '${d.quiz_answer}', '${escapeHtml(title)}')">
+                <span class="quiz-letter-badge">${letter}</span>
+                <span>${escapeHtml(opt)}</span>
+              </button>`;
+            }).join('')}
+          </div>
+
+          <div class="quiz-feedback-box" id="quizFeedbackBox"></div>
+        </div>
+      </div>` : ''}
+
+      <!-- ── TAB 7: VOICE LESSON ── -->
+      <div id="tab-voice" class="tab-content-panel">
+        <div class="voice-lesson-card">
+          <div class="voice-controls-bar">
+            <div class="voice-actions">
+              <button class="voice-play-action" id="tabVoicePlayBtn" onclick="toggleAudioLesson()">
+                <span id="tabVoiceIcon">▶</span>
+                <span id="tabVoiceBtnLabel">Play Voice Lesson</span>
+              </button>
+              <button class="toolbar-btn" onclick="stopAudioNarration()">Stop</button>
+            </div>
+            
+            <div style="display:flex;align-items:center;gap:0.35rem">
+              <span style="font-size:0.75rem;color:var(--text3)">Speed:</span>
+              <button class="speed-select-btn" onclick="setSpeechSpeed(this, 0.8)">0.8x</button>
+              <button class="speed-select-btn active" onclick="setSpeechSpeed(this, 1.0)">1.0x</button>
+              <button class="speed-select-btn" onclick="setSpeechSpeed(this, 1.25)">1.25x</button>
+              <button class="speed-select-btn" onclick="setSpeechSpeed(this, 1.5)">1.5x</button>
+            </div>
+          </div>
+
+          <div class="section-subtitle">Audio Narration Transcript</div>
+          <div class="transcript-text-box" id="voiceTranscriptBox">
+            ${escapeHtml(audioScript)}
+          </div>
+        </div>
+      </div>
+
+    </div>`;
+
+  // Highlight code
+  document.querySelectorAll('pre code').forEach(el => hljs.highlightElement(el));
+}
+
+// Tab Switching
+function switchTab(btn, panelId) {
+  document.querySelectorAll('.content-nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  const panel = document.getElementById(panelId);
+  if (panel) panel.classList.add('active');
+}
+
+// Diagram Tab Trigger
+function loadDiagramTab(title) {
+  const container = document.getElementById('diagramContainer');
+  if (container && container.dataset.loadedConcept !== title) {
+    generateVisualDiagram(title);
+  }
+}
+
+// Visual Diagram SVG Generator
+async function generateVisualDiagram(concept, forceRefresh = false) {
+  const container = document.getElementById('diagramContainer');
+  if (!container) return;
+  if (!forceRefresh && container.dataset.loadedConcept === concept) return;
+
+  container.innerHTML = `
+    <div class="loading-box" style="min-height:220px">
+      <div class="loading-spinner"></div>
+      <p>Building visual architecture for ${escapeHtml(concept)}...</p>
+    </div>`;
+
+  try {
+    const res = await fetch('/api/generate_diagram', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        concept,
+        visual_description: currentExplanationData?.visual_description || ''
+      })
+    });
+    const data = await res.json();
+    if (data.success && data.data) {
+      renderSvgDiagram(data.data);
+      container.dataset.loadedConcept = concept;
+      const caption = document.getElementById('diagramCaption');
+      if (caption) caption.textContent = data.data.description || '';
+    } else {
+      container.innerHTML = '<p style="padding:2rem;color:var(--text3)">Unable to generate diagram for this concept.</p>';
     }
+  } catch (err) {
+    container.innerHTML = '<p style="padding:2rem;color:var(--text3)">Diagram rendering timed out.</p>';
+  }
+}
 
-    function switchResultTab(btn, tabId) {
-        document.querySelectorAll('.result-tab').forEach(t => t.classList.remove('active'));
-        document.querySelectorAll('.result-panel').forEach(t => t.classList.remove('active'));
-        btn.classList.add('active');
-        const tab = document.getElementById(tabId);
-        if (tab) tab.classList.add('active');
+function renderSvgDiagram(d) {
+  const container = document.getElementById('diagramContainer');
+  if (!container) return;
+
+  const nodes = d.nodes || [];
+  const edges = d.edges || [];
+  const isNight = document.documentElement.getAttribute('data-theme') === 'night';
+
+  const bgColor = isNight ? '#050D1A' : '#F0F4F8';
+  const nodeStroke = isNight ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)';
+  const edgeColor = isNight ? '#10B981' : '#059669';
+  const textColor = isNight ? '#E2E8F0' : '#1A2332';
+
+  let svg = `
+    <svg width="100%" height="380" viewBox="0 0 800 380" style="background:${bgColor}; border-radius:10px; display:block;">
+      <defs>
+        <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="3.5" orient="auto">
+          <polygon points="0 0, 8 3.5, 0 7" fill="${edgeColor}" opacity="0.8"/>
+        </marker>
+        <filter id="nodeGlow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000" flood-opacity="0.25"/>
+        </filter>
+      </defs>`;
+
+  // Draw Edges
+  edges.forEach(e => {
+    const from = nodes.find(n => String(n.id) === String(e.from));
+    const to = nodes.find(n => String(n.id) === String(e.to));
+    if (from && to) {
+      svg += `
+        <line x1="${from.x}" y1="${from.y}" x2="${to.x}" y2="${to.y}" 
+              stroke="${edgeColor}" stroke-width="2" stroke-opacity="0.6" 
+              stroke-dasharray="6,4" marker-end="url(#arrow)"/>`;
+      if (e.label) {
+        const mx = (from.x + to.x) / 2;
+        const my = (from.y + to.y) / 2 - 8;
+        svg += `
+          <rect x="${mx - 40}" y="${my - 10}" width="80" height="18" rx="4" fill="${bgColor}" stroke="${nodeStroke}" stroke-width="1" opacity="0.9"/>
+          <text x="${mx}" y="${my + 3}" text-anchor="middle" fill="${isNight ? '#94A3B8' : '#475569'}" font-size="10" font-family="Plus Jakarta Sans, sans-serif" font-weight="600">${escapeHtml(e.label)}</text>`;
+      }
     }
+  });
 
-    async function generateDiagram(concept, visualDesc) {
-        const container = document.getElementById('diagramContainer');
-        if (container.dataset.loadedConcept === concept) return;
-        container.innerHTML = `<div class="loading-state"><div class="spinner"></div><p>Generating diagram...</p></div>`;
+  // Draw Nodes
+  nodes.forEach(n => {
+    const nodeColor = n.color || (isNight ? '#10B981' : '#059669');
+    const label = n.label || `Node ${n.id}`;
+    const cardWidth = 140;
+    const cardHeight = 44;
+    const rx = n.x - cardWidth / 2;
+    const ry = n.y - cardHeight / 2;
 
-        try {
-            const res = await fetch('/api/generate_diagram', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ concept, visual_description: visualDesc })
-            });
-            const data = await res.json();
-            if (data.success) {
-                renderDiagram(data.data);
-                container.dataset.loadedConcept = concept;
-            }
-        } catch (e) {
-            container.innerHTML = '<p class="error-text">Failed to generate diagram</p>';
+    svg += `
+      <g filter="url(#nodeGlow)">
+        <rect x="${rx}" y="${ry}" width="${cardWidth}" height="${cardHeight}" rx="10" 
+              fill="${isNight ? '#0F1F35' : '#FFFFFF'}" stroke="${nodeColor}" stroke-width="2"/>
+        <circle cx="${rx + 16}" cy="${n.y}" r="5" fill="${nodeColor}"/>
+        <text x="${rx + 28}" y="${n.y + 4}" fill="${textColor}" font-size="11" font-family="Plus Jakarta Sans, sans-serif" font-weight="700">
+          ${escapeHtml(label.length > 17 ? label.slice(0, 16) + '…' : label)}
+        </text>
+      </g>`;
+  });
+
+  svg += `</svg>`;
+  container.innerHTML = svg;
+}
+
+// ── AUDIO / TEXT-TO-SPEECH CONTROLLER ────────────────────────────────────
+function toggleAudioLesson() {
+  if (isAudioPlaying) {
+    stopAudioNarration();
+  } else {
+    playAudioNarration();
+  }
+}
+
+function playAudioNarration() {
+  const text = currentExplanationData?.audio_script || currentExplanationData?.simple_explanation;
+  if (!text) return;
+
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+    speechUtterance = new SpeechSynthesisUtterance(text);
+    speechUtterance.rate = currentSpeechRate;
+    speechUtterance.pitch = 1.0;
+
+    speechUtterance.onstart = () => {
+      isAudioPlaying = true;
+      updateVoiceUi(true);
+    };
+
+    speechUtterance.onend = () => {
+      isAudioPlaying = false;
+      updateVoiceUi(false);
+    };
+
+    speechUtterance.onerror = () => {
+      isAudioPlaying = false;
+      updateVoiceUi(false);
+    };
+
+    window.speechSynthesis.speak(speechUtterance);
+  } else {
+    alert("Text-to-speech is not supported in this browser.");
+  }
+}
+
+function stopAudioNarration() {
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+  }
+  isAudioPlaying = false;
+  updateVoiceUi(false);
+}
+
+function setSpeechSpeed(btn, speed) {
+  document.querySelectorAll('.speed-select-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentSpeechRate = speed;
+  if (isAudioPlaying) {
+    playAudioNarration();
+  }
+}
+
+function updateVoiceUi(playing) {
+  const headerBtn = document.getElementById('headerVoiceBtn');
+  const headerText = document.getElementById('headerVoiceBtnText');
+  const tabPlayBtn = document.getElementById('tabVoicePlayBtn');
+  const tabIcon = document.getElementById('tabVoiceIcon');
+  const tabLabel = document.getElementById('tabVoiceBtnLabel');
+
+  if (headerBtn) {
+    if (playing) {
+      headerBtn.classList.add('active');
+      if (headerText) headerText.textContent = 'Playing...';
+    } else {
+      headerBtn.classList.remove('active');
+      if (headerText) headerText.textContent = 'Voice Lesson';
+    }
+  }
+
+  if (tabPlayBtn) {
+    if (tabIcon) tabIcon.textContent = playing ? '❚❚' : '▶';
+    if (tabLabel) tabLabel.textContent = playing ? 'Pause Lesson' : 'Play Voice Lesson';
+  }
+}
+
+// ── INTERACTIVE QUIZ SUBMISSION ──────────────────────────────────────────
+async function submitQuizAnswer(btn, selectedLetter, correctAnswer, topic) {
+  document.querySelectorAll('.quiz-choice-btn').forEach(b => b.disabled = true);
+
+  try {
+    const res = await fetch('/api/quiz_check', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        answer: selectedLetter,
+        correct: correctAnswer,
+        topic: topic
+      })
+    });
+    const data = await res.json();
+
+    const normSelected = selectedLetter.trim().toUpperCase()[0];
+    const normCorrect = (data.correct_answer || correctAnswer).trim().toUpperCase()[0];
+    const isCorrect = (normSelected === normCorrect);
+
+    if (isCorrect) {
+      btn.classList.add('selected-correct');
+    } else {
+      btn.classList.add('selected-wrong');
+      document.querySelectorAll('.quiz-choice-btn').forEach(b => {
+        const badge = b.querySelector('.quiz-letter-badge');
+        if (badge && badge.textContent.trim().toUpperCase() === normCorrect) {
+          b.classList.add('selected-correct');
         }
+      });
     }
 
-    function renderDiagram(d) {
-        const colors = ['#00D4FF', '#7C3AED', '#10B981', '#F59E0B', '#EF4444', '#EC4899'];
-        const nodes = d.nodes || [];
-        const edges = d.edges || [];
-
-        let svg = `<svg width="100%" height="420" viewBox="0 0 800 420" style="background: rgba(0,0,0,0.3); border-radius: 12px;">`;
-        svg += `<text x="400" y="30" text-anchor="middle" fill="#00D4FF" font-size="16" font-family="Syne" font-weight="600">${d.title || ''}</text>`;
-
-        // Draw edges first
-        edges.forEach(e => {
-            const from = nodes.find(n => n.id == e.from);
-            const to = nodes.find(n => n.id == e.to);
-            if (from && to) {
-                svg += `<line x1="${from.x}" y1="${from.y}" x2="${to.x}" y2="${to.y}" stroke="#00D4FF" stroke-width="1.5" stroke-opacity="0.5" marker-end="url(#arrow)"/>`;
-                if (e.label) {
-                    const mx = (from.x + to.x) / 2;
-                    const my = (from.y + to.y) / 2;
-                    svg += `<text x="${mx}" y="${my - 5}" text-anchor="middle" fill="#94A3B8" font-size="10" font-family="Space Grotesk">${e.label}</text>`;
-                }
-            }
-        });
-
-        // Draw nodes
-        nodes.forEach((n, i) => {
-            const color = n.color || colors[i % colors.length];
-            const label = n.label || n.id;
-            const words = label.split(' ');
-            svg += `<circle cx="${n.x}" cy="${n.y}" r="30" fill="${color}22" stroke="${color}" stroke-width="1.5"/>`;
-            words.forEach((w, wi) => {
-                svg += `<text x="${n.x}" y="${n.y + wi * 12 - (words.length - 1) * 6}" text-anchor="middle" fill="${color}" font-size="10" font-family="Space Grotesk" font-weight="500">${w}</text>`;
-            });
-        });
-
-        svg += `<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" fill="#00D4FF" opacity="0.5"/></marker></defs>`;
-        svg += `</svg>`;
-        svg += `<p style="color:#64748b;font-size:0.85rem;margin-top:0.75rem">${d.description || ''}</p>`;
-
-        document.getElementById('diagramContainer').innerHTML = svg;
+    const feedbackBox = document.getElementById('quizFeedbackBox');
+    if (feedbackBox) {
+      feedbackBox.className = `quiz-feedback-box ${isCorrect ? 'correct' : 'wrong'}`;
+      feedbackBox.innerHTML = `<strong>${isCorrect ? 'Correct.' : 'Incorrect.'}</strong> ${escapeHtml(data.message || '')}`;
     }
+  } catch (err) {
+    alert("Quiz submission failed: " + err.message);
+  }
+}
 
-    async function generateAudio(concept, explanation) {
-        const audioContainer = document.getElementById('audioContainer');
-        if (audioContainer.dataset.loadedConcept === concept) return;
-        audioContainer.innerHTML = `<div class="loading-state"><div class="spinner"></div><p>Generating audio script...</p></div>`;
-
-        try {
-            const res = await fetch('/api/audio_script', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ concept, explanation })
-            });
-            const data = await res.json();
-            if (data.success) {
-                const script = data.data.script;
-                audioContainer.innerHTML = `
-                <div class="audio-box">
-                    <div class="audio-header">
-                        <span>Audio Script — ${concept}</span>
-                        <button class="play-btn" onclick="speakText(this, '${script.replace(/'/g, "\\'")}')">▶ Play</button>
-                    </div>
-                    <p class="audio-script">${script}</p>
-                </div>`;
-            }
-        } catch (e) { }
+// ── NEXT TOPICS RECOMMENDATIONS ──────────────────────────────────────────
+async function loadNextSuggestions() {
+  try {
+    const res = await fetch('/api/suggest_topics');
+    const data = await res.json();
+    if (data.success && data.data && data.data.suggestions) {
+      const grid = document.getElementById('suggestionGrid');
+      grid.innerHTML = data.data.suggestions.map(s => `
+        <div class="suggestion-card-v5" onclick="loadConcept('${escapeHtml(s.topic)}')">
+          <span class="topic-tag ${s.difficulty === 'beginner' ? 'beg' : s.difficulty === 'intermediate' ? 'int' : 'adv'}">${escapeHtml(s.difficulty)}</span>
+          <div class="sug-topic-name">${escapeHtml(s.topic)}</div>
+          <div class="sug-reason">${escapeHtml(s.reason)}</div>
+        </div>
+      `).join('');
+      document.getElementById('suggestionsSection').style.display = 'block';
     }
+  } catch (e) {}
+}
 
-    function speakText(btn, text) {
-        if (window.speechSynthesis.speaking) {
-            window.speechSynthesis.cancel();
-            btn.textContent = '▶ Play';
-            return;
-        }
-        const utter = new SpeechSynthesisUtterance(text);
-        utter.rate = 0.9;
-        utter.pitch = 1;
-        utter.onend = () => { btn.textContent = '▶ Play'; };
-        btn.textContent = '⏹ Stop';
-        window.speechSynthesis.speak(utter);
-    }
+// ══════════════════════════════════════════════════════════════════════════
+// RIGHT AI TUTOR CHAT CONTROLLER
+// ══════════════════════════════════════════════════════════════════════════
 
-    async function checkQuiz(btn, selected, correct, topic) {
-        document.querySelectorAll('.quiz-opt').forEach(b => b.disabled = true);
-        const res = await fetch('/api/quiz_check', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ answer: selected, correct, topic })
-        });
-        const data = await res.json();
-        btn.classList.add(data.correct ? 'correct' : 'wrong');
-        if (!data.correct) {
-            document.querySelectorAll('.quiz-opt').forEach(b => {
-                if (b.textContent.startsWith(correct)) b.classList.add('correct');
-            });
-        }
-        document.getElementById('quizResult').textContent = data.message;
-        document.getElementById('quizResult').className = `quiz-result ${data.correct ? 'correct' : 'wrong'}`;
-    }
+function clearTutorChat() {
+  const box = document.getElementById('tutorChatBox');
+  chatHistory = [];
+  box.innerHTML = `
+    <div class="chat-bubble-row ai">
+      <span class="chat-bubble-sender">AI Tutor</span>
+      <div class="chat-bubble-content">
+        Chat history cleared. What topic or question would you like to explore next?
+      </div>
+    </div>`;
+}
 
-    async function loadSuggestions() {
-        const res = await fetch('/api/suggest_topics');
-        const data = await res.json();
-        if (data.success) {
-            const grid = document.getElementById('suggestionGrid');
-            grid.innerHTML = data.data.suggestions.map(s => `
-            <div class="suggestion-card" onclick="loadConcept('${s.topic}')">
-                <div class="sug-difficulty ${s.difficulty}">${s.difficulty}</div>
-                <strong>${s.topic}</strong>
-                <p>${s.reason}</p>
-            </div>`).join('');
-            document.getElementById('suggestionsSection').style.display = 'block';
-        }
-    }
+function quickPrompt(promptText) {
+  const input = document.getElementById('tutorChatInput');
+  if (input) {
+    input.value = currentConcept ? `${promptText} regarding ${currentConcept}` : promptText;
+    sendTutorMessage();
+  }
+}
 
-    // Chat
-    async function sendChat() {
-        const input = document.getElementById('chatInput');
-        const msg = input.value.trim();
-        if (!msg) return;
-        input.value = '';
+async function sendTutorMessage() {
+  const input = document.getElementById('tutorChatInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
 
-        addChatMsg('user', msg);
-        chatHistory.push({ role: 'user', content: msg });
+  appendChatMsg('user', msg);
+  chatHistory.push({ role: 'user', content: msg });
 
-        addChatMsg('ai', '...');
+  const loadingBubble = appendChatMsg('ai', 'Thinking...');
 
-        const res = await fetch('/api/chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message: msg, history: chatHistory })
-        });
-        const data = await res.json();
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: msg, history: chatHistory })
+    });
+    const data = await res.json();
+    loadingBubble.remove();
 
-        const chatBox = document.getElementById('chatBox');
-        chatBox.lastChild.remove();
+    const reply = data.success ? data.response : 'Sorry, I encountered an issue processing that.';
+    appendChatMsg('ai', reply);
+    chatHistory.push({ role: 'assistant', content: reply });
+  } catch (err) {
+    loadingBubble.remove();
+    appendChatMsg('ai', 'Connection error. Please try again.');
+  }
+}
 
-        const response = data.success ? data.response : 'Sorry, I encountered an error.';
-        addChatMsg('ai', response);
-        chatHistory.push({ role: 'assistant', content: response });
-    }
+function appendChatMsg(role, text) {
+  const box = document.getElementById('tutorChatBox');
+  const row = document.createElement('div');
+  row.className = `chat-bubble-row ${role}`;
 
-    function addChatMsg(role, text) {
-        const chatBox = document.getElementById('chatBox');
-        const div = document.createElement('div');
-        div.className = `chat-msg ${role}`;
-        div.textContent = text;
-        chatBox.appendChild(div);
-        chatBox.scrollTop = chatBox.scrollHeight;
-    }
+  const sender = document.createElement('span');
+  sender.className = 'chat-bubble-sender';
+  sender.textContent = role === 'ai' ? 'AI Tutor' : 'You';
 
-    function copyCode(btn) {
-        const code = btn.closest('.explanation-card').querySelector('code');
-        navigator.clipboard.writeText(code.textContent);
-        btn.textContent = 'Copied!';
-        setTimeout(() => btn.textContent = 'Copy', 2000);
-    }
+  const content = document.createElement('div');
+  content.className = 'chat-bubble-content';
+  content.innerHTML = formatMarkdownText(text);
 
-    function escapeHtml(text) {
-        return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    }
+  row.appendChild(sender);
+  row.appendChild(content);
+  box.appendChild(row);
+  box.scrollTop = box.scrollHeight;
+  return row;
+}
 
-    function showError(msg) {
-        document.getElementById('resultArea').innerHTML = `
-        <div class="error-card">
-            <div class="error-icon">⚠️</div>
-            <h3>Something went wrong</h3>
-            <p>${msg}</p>
-            <p class="error-hint">Check that your GROQ_API_KEY is set. Get a free key at <a href="https://console.groq.com" target="_blank" style="color:#00D4FF">console.groq.com</a></p>
-            <button onclick="explainConcept()" class="btn btn-ghost" style="margin-top:1rem">↺ Try Again</button>
-        </div>`;
-    }
+function formatMarkdownText(text) {
+  return escapeHtml(text)
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/`([^`]+)`/g, '<code style="background:rgba(0,0,0,0.25);padding:1px 5px;border-radius:4px;font-family:monospace">$1</code>')
+    .replace(/\n/g, '<br>');
+}
+
+// ── UTILITY FUNCTIONS ────────────────────────────────────────────────────
+function copySummaryText(btn) {
+  const summary = currentExplanationData?.simple_explanation || currentExplanationData?.detailed_explanation || '';
+  navigator.clipboard.writeText(summary);
+  const oldText = btn.innerHTML;
+  btn.innerHTML = '<span>Copied</span>';
+  setTimeout(() => { btn.innerHTML = oldText; }, 2000);
+}
+
+function copyCodeSnippet(btn) {
+  const codeEl = document.querySelector('.code-pre-box code');
+  if (codeEl) {
+    navigator.clipboard.writeText(codeEl.textContent);
+    btn.innerHTML = '<span>Copied</span>';
+    setTimeout(() => { btn.innerHTML = '<span>Copy Code</span>'; }, 2000);
+  }
+}
+
+function markMastered(btn, concept) {
+  btn.innerHTML = '<span>Mastered</span>';
+  btn.style.color = 'var(--success)';
+  btn.style.borderColor = 'var(--success)';
+  fetch('/api/quiz_check', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ answer: 'A', correct: 'A', topic: concept })
+  }).catch(() => {});
+}
+
+function showErrorCard(errorMsg) {
+  const resultArea = document.getElementById('resultArea');
+  resultArea.innerHTML = `
+    <div class="result-card-wrap">
+      <div style="padding:2.5rem;text-align:center">
+        <h3 style="color:var(--text);font-size:1.2rem;margin-bottom:0.4rem">Unable to Complete Request</h3>
+        <p style="color:var(--text2);font-size:0.88rem;max-width:500px;margin:0 auto 1.25rem">${escapeHtml(errorMsg)}</p>
+        <button class="toolbar-btn" style="margin:0 auto" onclick="explainConcept()">↺ Try Again</button>
+      </div>
+    </div>`;
+}
+
+function escapeHtml(text) {
+  if (!text) return '';
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
 </script>
+
 {% endblock %}

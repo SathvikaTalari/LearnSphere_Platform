@@ -1,9 +1,16 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="night">
+<html lang="en" data-theme="day">
 <head>
+<script>
+  (function() {
+    var t = localStorage.getItem('ls_theme') || 'day';
+    document.documentElement.setAttribute('data-theme', t);
+  })();
+</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{{ profile.username }}'s Portfolio — LearnSphere</title>
+<link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='images/favicon.svg') }}">
 <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 <style>
@@ -12,7 +19,7 @@ body { background: var(--bg0); color: var(--text1); font-family: 'Inter', sans-s
 .header-card { display: flex; align-items: center; gap: 2rem; border-bottom: 1px solid var(--border); padding-bottom: 2rem; margin-bottom: 2rem; }
 .avatar-huge { width: 120px; height: 120px; border-radius: 60px; background: linear-gradient(135deg, var(--accent), #7C3AED); display: flex; align-items: center; justify-content: center; font-size: 3rem; font-weight: bold; color: #fff; text-transform: uppercase; }
 .user-info h1 { font-family: var(--font-serif); font-size: 2.5rem; margin-bottom: 0.5rem; }
-.badge { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 4px; background: rgba(0,212,255,0.1); color: var(--accent); font-size: 0.8rem; margin-right: 0.5rem; margin-bottom:0.5rem; border: 1px solid rgba(0,212,255,0.2); }
+.badge { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 4px; background: rgba(16,185,129,0.12); color: var(--accent); font-size: 0.8rem; margin-right: 0.5rem; margin-bottom:0.5rem; border: 1px solid rgba(16,185,129,0.25); }
 
 .section-title { font-size: 1.2rem; margin-bottom: 1rem; color: var(--text1); display:flex; align-items:center; gap:0.5rem; }
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2.5rem; }
@@ -41,20 +48,23 @@ body { background: var(--bg0); color: var(--text1); font-family: 'Inter', sans-s
         <div class="avatar-huge">{{ profile.username[0] }}</div>
         <div class="user-info">
             <h1>{{ profile.username }}</h1>
+            {% if profile.headline %}<p style="font-weight:600; color:var(--text1); font-size:1.05rem; margin:0.2rem 0 0.6rem;">{{ profile.headline }}</p>{% endif %}
             <div>
                 <span class="badge">Level: {{ profile.level | title }}</span>
                 <span class="badge">Role: {{ profile.role | title }}</span>
-                {% if profile.college %}<span class="badge">🏫 {{ profile.college }}</span>{% endif %}
-                {% if profile.region %}<span class="badge">🌍 {{ profile.region }}</span>{% endif %}
+                {% if profile.college %}<span class="badge">{{ profile.college }}</span>{% endif %}
+                {% if profile.region %}<span class="badge">{{ profile.region }}</span>{% endif %}
+                {% if profile.interests %}<span class="badge">Focus: {{ profile.interests }}</span>{% endif %}
             </div>
-            <p style="color:var(--text2); font-size:0.9rem; margin-top:0.5rem;">Joined {{ profile.created_at.split(' ')[0] }}</p>
+            {% if profile.bio %}<p style="color:var(--text2); font-size:0.95rem; margin-top:0.75rem; line-height:1.55;">{{ profile.bio }}</p>{% endif %}
+            <p style="color:var(--text2); font-size:0.85rem; margin-top:0.5rem;">Joined {{ profile.created_at.split(' ')[0] }}</p>
         </div>
     </div>
 
     <div class="grid-2">
         <!-- Certifications -->
         <div>
-            <h3 class="section-title">🎓 Verified Certifications</h3>
+            <h3 class="section-title">Verified Certifications</h3>
             {% if certs|length > 0 %}
                 {% for cert in certs %}
                 <div class="cert-card">
@@ -69,7 +79,7 @@ body { background: var(--bg0); color: var(--text1); font-family: 'Inter', sans-s
 
         <!-- Recent Battle Stats -->
         <div>
-            <h3 class="section-title">⚔️ ML Battle Outcomes</h3>
+            <h3 class="section-title">ML Battle Outcomes</h3>
             <div class="data-card">
                 {% if battles|length > 0 %}
                     {% for b in battles %}
@@ -89,7 +99,7 @@ body { background: var(--bg0); color: var(--text1); font-family: 'Inter', sans-s
 
     <!-- Career Tracker Info -->
     <div>
-        <h3 class="section-title">🚀 Professional Highlights</h3>
+        <h3 class="section-title">Professional Highlights</h3>
         {% if careers|length > 0 %}
             {% for c in careers %}
             <div class="career-card">

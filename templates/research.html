@@ -1,872 +1,1306 @@
 {% extends "base.html" %}
-{% block title %}Research Lab — LearnSphere{% endblock %}
+{% block title %}Research Laboratory &bull; LearnSphere{% endblock %}
 {% block content %}
 
 <style>
-  /* ── Research page styles ───────────────────────────────────── */
-  .rp-wrap {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 1.75rem 2rem 4rem;
+/* ── Research Laboratory Layout ──────────────────────────────────── */
+.rs-wrap {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 5rem;
+}
+
+.rs-hero {
+  margin-bottom: 1.75rem;
+}
+
+.rs-hero h1 {
+  font-family: var(--ff-display, var(--ff-sans));
+  font-size: 1.7rem;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 0.35rem;
+}
+
+.rs-hero p {
+  font-size: 0.9rem;
+  color: var(--text2);
+  line-height: 1.5;
+}
+
+/* ── Mode Navigation Bar (Clean Pill Tabs) ────────────────────────── */
+.rs-nav-bar {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.75rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.85rem;
+  overflow-x: auto;
+}
+
+.rs-nav-pill {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+.rs-nav-pill:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.rs-nav-pill.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #FFFFFF;
+}
+
+/* ── Card Containers ─────────────────────────────────────────────── */
+.rs-card {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.rs-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+
+.rs-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.rs-input {
+  width: 100%;
+  padding: 0.65rem 0.9rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 0.88rem;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.rs-input:focus {
+  border-color: var(--accent);
+}
+
+.rs-select {
+  padding: 0.65rem 0.85rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 0.85rem;
+  outline: none;
+}
+.rs-select:focus {
+  border-color: var(--accent);
+}
+
+.rs-btn {
+  padding: 0.65rem 1.4rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.rs-btn-primary {
+  background: var(--accent);
+  color: #FFFFFF;
+}
+.rs-btn-primary:hover {
+  filter: brightness(1.1);
+}
+.rs-btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.rs-btn-secondary {
+  background: var(--bg);
+  border-color: var(--border);
+  color: var(--text);
+}
+.rs-btn-secondary:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.rs-chips-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+.rs-chip {
+  padding: 0.25rem 0.65rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-size: 0.76rem;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.14s ease;
+}
+.rs-chip:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ── Paper Card & Document Preview ───────────────────────────────── */
+.paper-doc {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-top: 1.5rem;
+}
+
+.paper-head {
+  padding: 1.75rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg2);
+}
+
+.paper-journal-tag {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+  margin-bottom: 0.4rem;
+}
+
+.paper-title-text {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.35;
+  margin-bottom: 0.6rem;
+}
+
+.paper-meta-line {
+  font-size: 0.8rem;
+  color: var(--text2);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+}
+
+.paper-takeaways {
+  background: rgba(16, 185, 129, 0.06);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin-top: 1rem;
+}
+.paper-takeaways h4 {
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 0.4rem;
+}
+.paper-takeaways ul {
+  margin: 0;
+  padding-left: 1.2rem;
+  font-size: 0.84rem;
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.paper-actions-bar {
+  display: flex;
+  gap: 0.6rem;
+  padding: 0.85rem 1.75rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg3);
+  flex-wrap: wrap;
+}
+
+.paper-sections-nav {
+  display: flex;
+  gap: 0.4rem;
+  padding: 0.75rem 1.75rem 0;
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+}
+.sec-tab-btn {
+  background: none;
+  border: none;
+  padding: 0.4rem 0.85rem;
+  border-radius: 6px 6px 0 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.sec-tab-btn.active {
+  background: var(--bg);
+  color: var(--accent);
+  border: 1px solid var(--border);
+  border-bottom-color: var(--bg);
+  margin-bottom: -1px;
+}
+
+.paper-content-pane {
+  padding: 1.75rem;
+  display: none;
+  font-size: 0.9rem;
+  line-height: 1.8;
+  color: var(--text);
+}
+.paper-content-pane.active {
+  display: block;
+}
+
+.math-formula-box {
+  background: var(--bg3);
+  border-left: 3px solid var(--accent);
+  padding: 1rem 1.25rem;
+  border-radius: 0 8px 8px 0;
+  font-family: monospace;
+  font-size: 0.88rem;
+  margin: 1rem 0;
+  color: var(--text);
+  overflow-x: auto;
+}
+
+/* ── arXiv Explorer Cards ────────────────────────────────────────── */
+.arxiv-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 1.25rem;
+  margin-top: 1.5rem;
+}
+
+.arxiv-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: border-color 0.15s;
+}
+.arxiv-card:hover {
+  border-color: var(--accent);
+}
+
+.arxiv-card h3 {
+  font-size: 0.98rem;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.4;
+  margin-bottom: 0.4rem;
+}
+.arxiv-card h3 a {
+  color: var(--text);
+  text-decoration: none;
+}
+.arxiv-card h3 a:hover {
+  color: var(--accent);
+}
+
+.arxiv-meta {
+  font-size: 0.75rem;
+  color: var(--text2);
+  margin-bottom: 0.65rem;
+}
+
+.arxiv-summary {
+  font-size: 0.82rem;
+  color: var(--text2);
+  line-height: 1.55;
+  margin-bottom: 1rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.arxiv-btn-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: auto;
+  border-top: 1px solid var(--border);
+  padding-top: 0.85rem;
+}
+
+/* ── Comparison Matrix Table ─────────────────────────────────────── */
+.comp-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.25rem 0;
+  font-size: 0.86rem;
+}
+.comp-table th {
+  background: var(--bg2);
+  padding: 0.85rem 1rem;
+  text-align: left;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
+  text-transform: uppercase;
+}
+.comp-table td {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+  color: var(--text);
+  line-height: 1.5;
+}
+.comp-factor-name {
+  font-weight: 700;
+  color: var(--text);
+}
+.comp-adv-badge {
+  display: inline-block;
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 0.74rem;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+/* ── Proposal Cards ──────────────────────────────────────────────── */
+.prop-section-box {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+}
+.prop-section-box h3 {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.code-preview-box {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem;
+  font-family: monospace;
+  font-size: 0.82rem;
+  color: var(--text);
+  overflow-x: auto;
+  line-height: 1.5;
+  position: relative;
+}
+
+.loading-indicator {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--text2);
+}
+.loading-indicator h3 {
+  color: var(--text);
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 0.3rem;
+}
+
+@media (max-width: 800px) {
+  .rs-grid-2 {
+    grid-template-columns: 1fr;
   }
-
-  .rp-hero {
-    text-align: center;
-    padding: 2rem 1rem 1.6rem;
-    margin-bottom: 1.75rem;
-  }
-
-  .rp-hero h1 {
-    font-family: var(--ff-serif);
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--text);
-    margin-bottom: .5rem;
-  }
-
-  .rp-hero p {
-    font-size: .9rem;
-    color: var(--text2);
-    max-width: 580px;
-    margin: 0 auto;
-    line-height: 1.65;
-  }
-
-  .rp-badge {
-    display: inline-block;
-    background: var(--accent-glow);
-    border: 1px solid var(--border2);
-    color: var(--accent);
-    font-size: .7rem;
-    font-weight: 700;
-    padding: .2rem .65rem;
-    border-radius: 20px;
-    letter-spacing: .05em;
-    text-transform: uppercase;
-    margin-bottom: .75rem;
-  }
-
-  /* Search bar */
-  .rp-search-card {
-    background: var(--bg3);
-    border: 1px solid var(--border);
-    border-radius: var(--r2);
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
-  }
-
-  .rp-search-row {
-    display: flex;
-    gap: .75rem;
-    align-items: flex-start;
-    flex-wrap: wrap;
-    margin-bottom: 1rem;
-  }
-
-  .rp-input {
-    flex: 1;
-    min-width: 240px;
-    padding: .7rem 1rem;
-    border-radius: 10px;
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    color: var(--text);
-    font-family: var(--ff-sans);
-    font-size: .9rem;
-    outline: none;
-    transition: border-color .15s;
-  }
-
-  .rp-input:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px var(--accent-glow);
-  }
-
-  .rp-submit {
-    padding: .7rem 1.5rem;
-    border-radius: 10px;
-    background: var(--accent);
-    border: none;
-    color: #fff;
-    font-family: var(--ff-serif);
-    font-size: .92rem;
-    font-weight: 700;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: filter .15s;
-  }
-
-  .rp-submit:hover {
-    filter: brightness(1.1);
-  }
-
-  .rp-submit:disabled {
-    opacity: .5;
-    cursor: not-allowed;
-  }
-
-  .rp-quick-label {
-    font-size: .7rem;
-    color: var(--text2);
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: .05em;
-    margin-bottom: .45rem;
-  }
-
-  .rp-quick-chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: .35rem;
-  }
-
-  .rp-chip {
-    padding: .22rem .65rem;
-    border-radius: 20px;
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    color: var(--text2);
-    font-size: .74rem;
-    cursor: pointer;
-    font-family: var(--ff-sans);
-    transition: all .14s;
-  }
-
-  .rp-chip:hover {
-    border-color: var(--accent);
-    color: var(--accent);
-    background: var(--accent-glow);
-  }
-
-  /* Empty / loading */
-  .rp-empty {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 300px;
-    text-align: center;
-    color: var(--text2);
-    gap: .75rem;
-  }
-
-  .rp-empty h3 {
-    font-family: var(--ff-serif);
-    font-size: 1.1rem;
-    color: var(--text);
-  }
-
-  .rp-loading {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 300px;
-    gap: 1rem;
-    color: var(--text2);
-    text-align: center;
-  }
-
-  /* Paper card */
-  .paper-card {
-    background: var(--bg3);
-    border: 1px solid var(--border);
-    border-radius: var(--r2);
-    overflow: hidden;
-    animation: fadeUp .35s ease both;
-  }
-
-  /* Paper header */
-  .paper-head {
-    background: var(--bg2);
-    border-bottom: 1px solid var(--border);
-    padding: 1.5rem 1.75rem;
-  }
-
-  .paper-journal {
-    font-size: .68rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: .07em;
-    color: var(--accent);
-    margin-bottom: .45rem;
-  }
-
-  .paper-title {
-    font-family: var(--ff-serif);
-    font-size: 1.45rem;
-    font-weight: 700;
-    color: var(--text);
-    line-height: 1.3;
-    margin-bottom: .65rem;
-  }
-
-  .paper-meta-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: .55rem;
-    align-items: center;
-  }
-
-  .paper-author {
-    font-size: .78rem;
-    color: var(--text2);
-  }
-
-  .paper-year {
-    font-size: .72rem;
-    background: var(--bg3);
-    border: 1px solid var(--border);
-    color: var(--text2);
-    padding: .1rem .45rem;
-    border-radius: 5px;
-  }
-
-  .paper-keywords {
-    display: flex;
-    flex-wrap: wrap;
-    gap: .3rem;
-    margin-top: .65rem;
-  }
-
-  .paper-kw {
-    padding: .15rem .5rem;
-    border-radius: 20px;
-    background: var(--accent-glow);
-    border: 1px solid var(--border2);
-    color: var(--accent);
-    font-size: .68rem;
-    font-weight: 600;
-  }
-
-  /* Paper actions */
-  .paper-actions {
-    display: flex;
-    gap: .55rem;
-    padding: .9rem 1.75rem;
-    border-bottom: 1px solid var(--border);
-    flex-wrap: wrap;
-    align-items: center;
-  }
-
-  .pa-btn {
-    padding: .32rem .88rem;
-    border-radius: 7px;
-    border: 1px solid var(--border);
-    background: var(--bg2);
-    color: var(--text2);
-    font-size: .78rem;
-    font-weight: 600;
-    cursor: pointer;
-    font-family: var(--ff-sans);
-    transition: all .14s;
-  }
-
-  .pa-btn:hover {
-    border-color: var(--accent);
-    color: var(--accent);
-    background: var(--accent-glow);
-  }
-
-  .pa-btn.primary {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: #fff;
-  }
-
-  .pa-btn.primary:hover {
-    filter: brightness(1.1);
-  }
-
-  /* Paper body */
-  .paper-body {
-    padding: 1.75rem;
-  }
-
-  /* Section nav */
-  .section-nav {
-    display: flex;
-    flex-wrap: wrap;
-    gap: .3rem;
-    margin-bottom: 1.5rem;
-    padding-bottom: .75rem;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .sec-nav-btn {
-    padding: .28rem .78rem;
-    border-radius: 6px;
-    border: 1px solid transparent;
-    background: none;
-    color: var(--text2);
-    font-size: .78rem;
-    font-weight: 600;
-    cursor: pointer;
-    font-family: var(--ff-sans);
-    transition: all .14s;
-  }
-
-  .sec-nav-btn.active {
-    background: var(--accent-glow);
-    border-color: var(--border2);
-    color: var(--accent);
-  }
-
-  .paper-section {
-    display: none;
-    animation: fadeUp .22s ease both;
-  }
-
-  .paper-section.active {
-    display: block;
-  }
-
-  /* Section labels */
-  .sec-label {
-    font-size: .67rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: .07em;
-    color: var(--accent);
-    margin-bottom: .5rem;
-    display: block;
-  }
-
-  .sec-heading {
-    font-family: var(--ff-serif);
-    font-size: 1.15rem;
-    font-weight: 700;
-    color: var(--text);
-    margin-bottom: .85rem;
-    border-bottom: 2px solid var(--accent-glow);
-    padding-bottom: .45rem;
-  }
-
-  .sec-body {
-    font-size: .88rem;
-    color: var(--text2);
-    line-height: 1.85;
-  }
-
-  .sec-body p {
-    margin-bottom: .85rem;
-  }
-
-  .sec-body p:last-child {
-    margin-bottom: 0;
-  }
-
-  /* References */
-  .ref-list {
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: .55rem;
-  }
-
-  .ref-item {
-    display: flex;
-    gap: .65rem;
-    padding: .62rem .75rem;
-    background: var(--bg2);
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    font-size: .8rem;
-    color: var(--text2);
-    line-height: 1.55;
-  }
-
-  .ref-num {
-    color: var(--accent);
-    font-weight: 700;
-    font-family: var(--ff-mono);
-    font-size: .78rem;
-    flex-shrink: 0;
-  }
-
-  /* Downloads sidebar */
-  .rp-grid {
-    display: grid;
-    grid-template-columns: 1fr 300px;
-    gap: 1.4rem;
-    align-items: start;
-  }
-
-  .sources-card {
-    background: var(--bg3);
-    border: 1px solid var(--border);
-    border-radius: var(--r2);
-    padding: 1.25rem;
-    position: sticky;
-    top: 80px;
-  }
-
-  .sources-card h3 {
-    font-family: var(--ff-serif);
-    font-size: .95rem;
-    font-weight: 700;
-    color: var(--text);
-    margin-bottom: .3rem;
-  }
-
-  .sources-sub {
-    font-size: .73rem;
-    color: var(--text2);
-    margin-bottom: .95rem;
-    line-height: 1.4;
-  }
-
-  .source-item {
-    display: flex;
-    flex-direction: column;
-    gap: .18rem;
-    padding: .65rem .75rem;
-    border-radius: 9px;
-    border: 1px solid var(--border);
-    background: var(--bg2);
-    margin-bottom: .45rem;
-    transition: all .14s;
-    text-decoration: none;
-  }
-
-  .source-item:hover {
-    border-color: var(--border2);
-    background: var(--bg4);
-  }
-
-  .source-name {
-    font-size: .82rem;
-    font-weight: 700;
-    color: var(--text);
-  }
-
-  .source-desc {
-    font-size: .72rem;
-    color: var(--text2);
-  }
-
-  .source-tag {
-    display: inline-block;
-    padding: .1rem .42rem;
-    border-radius: 5px;
-    background: var(--accent-glow);
-    border: 1px solid var(--border2);
-    color: var(--accent);
-    font-size: .63rem;
-    font-weight: 700;
-    margin-top: .15rem;
-  }
-
-  @media(max-width:900px) {
-    .rp-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .sources-card {
-      position: static;
-    }
-  }
-
-  @media(max-width:700px) {
-    .rp-wrap {
-      padding: 1rem 1rem 3rem;
-    }
-
-    .paper-head {
-      padding: 1.1rem;
-    }
-
-    .paper-body {
-      padding: 1.1rem;
-    }
-  }
+}
 </style>
 
-<div class="rp-wrap animate-in">
-  <div class="rp-hero">
-    <span class="rp-badge">Research Lab</span>
-    <h1>📄 Research Paper Generator</h1>
-    <p>Enter any ML concept and get an IEEE-style academic research paper with abstract, methodology, results, and real
-      references — downloadable as PDF.</p>
+<div class="rs-wrap animate-in">
+
+  <!-- Header -->
+  <div class="rs-hero">
+    <h1>Research Laboratory</h1>
+    <p>Synthesize publication-ready IEEE research papers, explore live peer-reviewed arXiv preprints, generate comparative architecture matrices, and formulate academic thesis proposals.</p>
   </div>
 
-  <!-- Search -->
-  <div class="rp-search-card">
-    <div class="rp-search-row">
-      <input id="researchInput" class="rp-input"
-        placeholder="e.g. Convolutional Neural Networks, Gradient Descent, Transformers..."
-        onkeydown="if(event.key==='Enter') doResearch()">
-      <button class="rp-submit" id="researchBtn" onclick="doResearch()">
-        <span id="rBtnTxt">Generate Paper</span>
-      </button>
-    </div>
-    <div class="rp-quick-label">Popular Topics</div>
-    <div class="rp-quick-chips">
-      <button class="rp-chip" onclick="setTopic('Deep Learning')">Deep Learning</button>
-      <button class="rp-chip" onclick="setTopic('Transformer Architecture')">Transformers</button>
-      <button class="rp-chip" onclick="setTopic('Generative Adversarial Networks')">GANs</button>
-      <button class="rp-chip" onclick="setTopic('Reinforcement Learning')">Reinforcement Learning</button>
-      <button class="rp-chip" onclick="setTopic('Support Vector Machines')">SVM</button>
-      <button class="rp-chip" onclick="setTopic('Convolutional Neural Networks')">CNNs</button>
-      <button class="rp-chip" onclick="setTopic('Natural Language Processing')">NLP</button>
-      <button class="rp-chip" onclick="setTopic('Federated Learning')">Federated Learning</button>
-    </div>
+  <!-- Mode Selector Pills -->
+  <div class="rs-nav-bar">
+    <button class="rs-nav-pill active" onclick="switchResearchTab('paper_gen', this)">Paper Generator</button>
+    <button class="rs-nav-pill" onclick="switchResearchTab('arxiv_feed', this)">arXiv Explorer</button>
+    <button class="rs-nav-pill" onclick="switchResearchTab('matrix', this)">Comparative Matrix</button>
+    <button class="rs-nav-pill" onclick="switchResearchTab('proposal', this)">Research Proposal</button>
   </div>
 
-  <div class="rp-grid">
-    <!-- Left: Paper -->
-    <div id="paperArea">
-      <div class="rp-empty">
-        <div style="font-size:3.2rem">📄</div>
-        <h3>Your research paper will appear here</h3>
-        <p style="font-size:.83rem">Enter any ML concept above to generate an IEEE-style paper with abstract,
-          introduction, methodology, results, conclusion, and references.</p>
+  <!-- ══════════════════════════════════════════════════════════════
+       TAB 1: Academic Paper Generator
+       ══════════════════════════════════════════════════════════════ -->
+  <div id="tab-paper_gen" class="rs-view">
+    <div class="rs-card">
+      <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:0.85rem;margin-bottom:0.85rem;">
+        <div class="rs-input-group" style="margin-bottom:0">
+          <label class="rs-label">Research Topic or Concept</label>
+          <input type="text" id="paperTopicInput" class="rs-input" placeholder="e.g. Latent Diffusion Models, Mamba State Space, Graph Neural Networks..." onkeydown="if(event.key==='Enter') generateAcademicPaper()">
+        </div>
+        <div class="rs-input-group" style="margin-bottom:0">
+          <label class="rs-label">Paper Type</label>
+          <select id="paperTypeSelect" class="rs-select">
+            <option value="survey">Comprehensive Survey</option>
+            <option value="benchmark">Benchmark Study</option>
+            <option value="proposal">Architecture Proposal</option>
+            <option value="system">System Scalability Review</option>
+          </select>
+        </div>
+        <div class="rs-input-group" style="margin-bottom:0">
+          <label class="rs-label">Academic Depth</label>
+          <select id="paperLevelSelect" class="rs-select">
+            <option value="undergraduate">Undergraduate Level</option>
+            <option value="graduate" selected>Graduate & Researcher</option>
+            <option value="applied">Applied Industry ML</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.75rem;margin-top:1rem;">
+        <div class="rs-chips-row" style="margin-top:0">
+          <span style="font-size:0.75rem;font-weight:700;color:var(--text2);margin-right:0.3rem">Quick Topics:</span>
+          <button class="rs-chip" onclick="setPaperTopic('Latent Diffusion Models')">Diffusion Models</button>
+          <button class="rs-chip" onclick="setPaperTopic('Selective State Space Models (Mamba)')">Mamba SSM</button>
+          <button class="rs-chip" onclick="setPaperTopic('LoRA & Parameter-Efficient Fine-Tuning')">LoRA PEFT</button>
+          <button class="rs-chip" onclick="setPaperTopic('Direct Preference Optimization (DPO)')">DPO Alignment</button>
+          <button class="rs-chip" onclick="setPaperTopic('Vision Transformers (ViT)')">Vision Transformers</button>
+          <button class="rs-chip" onclick="setPaperTopic('Graph Neural Networks')">GNNs</button>
+        </div>
+        <button class="rs-btn rs-btn-primary" id="genPaperBtn" onclick="generateAcademicPaper()">Generate IEEE Paper</button>
       </div>
     </div>
 
-    <!-- Right: Download Sources -->
-    <div class="sources-card">
-      <h3>📚 Download Real Papers</h3>
-      <p class="sources-sub">Search these publishers for real peer-reviewed research papers on your topic:</p>
-
-      <a href="https://www.researchgate.net/search?q=machine+learning" target="_blank" class="source-item">
-        <span class="source-name">ResearchGate</span>
-        <span class="source-desc">50M+ publications, free access to many full-text PDFs</span>
-        <span class="source-tag">Free Access</span>
-      </a>
-      <a href="https://ijsr.net/" target="_blank" class="source-item">
-        <span class="source-name">IJSR</span>
-        <span class="source-desc">International Journal of Science and Research — open access</span>
-        <span class="source-tag">Open Access</span>
-      </a>
-      <a href="https://arxiv.org/list/cs.LG/recent" target="_blank" class="source-item">
-        <span class="source-name">arXiv (cs.LG)</span>
-        <span class="source-desc">Cornell's preprint server — free ML/AI papers including latest research</span>
-        <span class="source-tag">Free</span>
-      </a>
-      <a href="https://ieeexplore.ieee.org/search/searchresult.jsp?queryText=machine+learning" target="_blank"
-        class="source-item">
-        <span class="source-name">IEEE Xplore</span>
-        <span class="source-desc">IEEE & IET publications — authoritative engineering research</span>
-        <span class="source-tag">Partial Free</span>
-      </a>
-      <a href="https://dl.acm.org/search/proceedings?query=machine+learning" target="_blank" class="source-item">
-        <span class="source-name">ACM Digital Library</span>
-        <span class="source-desc">Association for Computing Machinery — CS conferences & journals</span>
-        <span class="source-tag">Partial Free</span>
-      </a>
-      <a href="https://scholar.google.com/scholar?q=machine+learning" target="_blank" class="source-item">
-        <span class="source-name">Google Scholar</span>
-        <span class="source-desc">Aggregates papers across all publishers — often finds free PDF links</span>
-        <span class="source-tag">Free</span>
-      </a>
-      <a href="https://www.semanticscholar.org/search?q=machine+learning&sort=Relevance" target="_blank"
-        class="source-item">
-        <span class="source-name">Semantic Scholar</span>
-        <span class="source-desc">AI-powered research tool by Allen Institute — 200M+ papers</span>
-        <span class="source-tag">Free</span>
-      </a>
-
-      <div id="dynamicSourceLink" style="margin-top:.75rem;display:none">
-        <div
-          style="font-size:.7rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.4rem">
-          Search for your topic:</div>
-        <div id="topicLinks"></div>
+    <!-- Paper Output Container -->
+    <div id="paperOutputArea">
+      <div style="text-align:center;padding:3.5rem 1.5rem;background:var(--bg3);border:1px solid var(--border);border-radius:12px;color:var(--text2)">
+        <p style="font-size:1.05rem;font-weight:700;color:var(--text);margin-bottom:0.35rem">Your IEEE Research Paper will appear here</p>
+        <p style="font-size:0.85rem">Enter any machine learning or AI topic above to synthesize an IEEE-formatted academic paper with formal mathematics, methodology, results, and BibTeX citations.</p>
       </div>
     </div>
   </div>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       TAB 2: arXiv Explorer & AI Paper Explainer
+       ══════════════════════════════════════════════════════════════ -->
+  <div id="tab-arxiv_feed" class="rs-view" style="display:none">
+    <div class="rs-card">
+      <div style="display:flex;gap:0.75rem;flex-wrap:wrap;align-items:center;">
+        <input type="text" id="arxivSearchInput" class="rs-input" style="flex:1;min-width:240px" placeholder="Search 2M+ arXiv peer-reviewed preprints (e.g. transformers, diffusion, mamba, RLHF, vision)..." onkeydown="if(event.key==='Enter') searchArxivFeed()">
+        <button class="rs-btn rs-btn-primary" id="arxivSearchBtn" onclick="searchArxivFeed()">Search arXiv</button>
+      </div>
+      <div class="rs-chips-row" style="margin-top:0.75rem">
+        <span style="font-size:0.75rem;font-weight:700;color:var(--text2);margin-right:0.3rem">Curated Collections:</span>
+        <button class="rs-chip" onclick="filterArxiv('all')">Landmark AI Papers</button>
+        <button class="rs-chip" onclick="filterArxiv('transformer')">Transformers &amp; LLMs</button>
+        <button class="rs-chip" onclick="filterArxiv('diffusion')">Generative Diffusion</button>
+        <button class="rs-chip" onclick="filterArxiv('mamba state space')">State Space Models</button>
+        <button class="rs-chip" onclick="filterArxiv('reinforcement learning')">RL &amp; Alignment</button>
+        <button class="rs-chip" onclick="filterArxiv('quantization')">Efficient Inference</button>
+      </div>
+    </div>
+
+    <!-- Paper Explainer Container (Shown when a student clicks 'Explain for Students') -->
+    <div id="arxivExplainerArea" style="display:none;margin-bottom:1.5rem"></div>
+
+    <!-- Results Grid -->
+    <div id="arxivResultsArea" class="arxiv-grid">
+      <!-- Populated via JavaScript -->
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       TAB 3: Comparative Matrix & Literature Synthesis
+       ══════════════════════════════════════════════════════════════ -->
+  <div id="tab-matrix" class="rs-view" style="display:none">
+    <div class="rs-card">
+      <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:0.85rem;align-items:end;">
+        <div class="rs-input-group" style="margin-bottom:0">
+          <label class="rs-label">Paradigm / Architecture A</label>
+          <input type="text" id="compConceptA" class="rs-input" placeholder="e.g. Transformer (Multi-Head Attention)">
+        </div>
+        <div class="rs-input-group" style="margin-bottom:0">
+          <label class="rs-label">Paradigm / Architecture B</label>
+          <input type="text" id="compConceptB" class="rs-input" placeholder="e.g. Mamba (Selective State Space)">
+        </div>
+        <button class="rs-btn rs-btn-primary" id="genCompBtn" onclick="generateComparativeMatrix()" style="height:42px">Synthesize Matrix</button>
+      </div>
+
+      <div class="rs-chips-row" style="margin-top:0.85rem">
+        <span style="font-size:0.75rem;font-weight:700;color:var(--text2);margin-right:0.3rem">Quick Comparisons:</span>
+        <button class="rs-chip" onclick="setComparison('Transformer', 'Mamba (State Space Model)')">Transformer vs Mamba</button>
+        <button class="rs-chip" onclick="setComparison('LoRA Fine-Tuning', 'Full Parameter Fine-Tuning')">LoRA vs Full Tuning</button>
+        <button class="rs-chip" onclick="setComparison('Convolutional Networks (CNN)', 'Vision Transformer (ViT)')">CNN vs ViT</button>
+        <button class="rs-chip" onclick="setComparison('PPO (Proximal Policy Optimization)', 'DPO (Direct Preference Optimization)')">PPO vs DPO</button>
+        <button class="rs-chip" onclick="setComparison('Batch Normalization', 'Layer Normalization')">BatchNorm vs LayerNorm</button>
+      </div>
+    </div>
+
+    <div id="matrixOutputArea">
+      <div style="text-align:center;padding:3.5rem 1.5rem;background:var(--bg3);border:1px solid var(--border);border-radius:12px;color:var(--text2)">
+        <p style="font-size:1.05rem;font-weight:700;color:var(--text);margin-bottom:0.35rem">Select two concepts to build a comparison matrix</p>
+        <p style="font-size:0.85rem">Evaluates theoretical complexity, memory footprint, training convergence, and engineering recommendations.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       TAB 4: Research Proposal & Experiment Design
+       ══════════════════════════════════════════════════════════════ -->
+  <div id="tab-proposal" class="rs-view" style="display:none">
+    <div class="rs-card">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.85rem;margin-bottom:0.85rem;">
+        <div class="rs-input-group" style="margin-bottom:0">
+          <label class="rs-label">Research Question or Topic</label>
+          <input type="text" id="propTopicInput" class="rs-input" placeholder="e.g. Reducing KV Cache footprint in long-context Transformers">
+        </div>
+        <div class="rs-input-group" style="margin-bottom:0">
+          <label class="rs-label">Primary Objective / Problem Statement</label>
+          <input type="text" id="propGoalInput" class="rs-input" placeholder="e.g. Preserve associative retrieval accuracy while cutting VRAM by 40%">
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.75rem;margin-top:1rem;">
+        <div class="rs-chips-row" style="margin-top:0">
+          <span style="font-size:0.75rem;font-weight:700;color:var(--text2);margin-right:0.3rem">Proposal Starters:</span>
+          <button class="rs-chip" onclick="setProposalTopic('Sparse Attention vs Full Attention', 'Mitigating quadratic computation in sequence lengths > 32k')">Sparse Attention</button>
+          <button class="rs-chip" onclick="setProposalTopic('Self-Supervised Medical Segmentation', 'High-accuracy lesion detection with under 50 labeled scans')">Medical SSL</button>
+          <button class="rs-chip" onclick="setProposalTopic('Low-Bit Post-Training Quantization', '4-bit weight compression without degradation in reasoning')">4-Bit Quantization</button>
+          <button class="rs-chip" onclick="setProposalTopic('Continual Learning without Catastrophic Forgetting', 'Task incremental training on non-stationary data streams')">Continual Learning</button>
+        </div>
+        <button class="rs-btn rs-btn-primary" id="genPropBtn" onclick="generateThesisProposal()">Draft Academic Proposal</button>
+      </div>
+    </div>
+
+    <div id="proposalOutputArea">
+      <div style="text-align:center;padding:3.5rem 1.5rem;background:var(--bg3);border:1px solid var(--border);border-radius:12px;color:var(--text2)">
+        <p style="font-size:1.05rem;font-weight:700;color:var(--text);margin-bottom:0.35rem">Formulate a structured academic research proposal</p>
+        <p style="font-size:0.85rem">Generates formal hypotheses (H0 and H1), experimental variables, dataset benchmarks, ablation test protocols, and PyTorch scaffolding.</p>
+      </div>
+    </div>
+  </div>
+
 </div>
 
+<!-- ══════════════════════════════════════════════════════════════
+     JavaScript Engine for Research Hub
+     ══════════════════════════════════════════════════════════════ -->
 <script>
-  let currentPaper = null;
+let currentPaperData = null;
 
-  function setTopic(t) {
-    document.getElementById('researchInput').value = t;
-    doResearch();
+// Tab switcher
+function switchResearchTab(tabKey, pillEl) {
+  document.querySelectorAll('.rs-nav-pill').forEach(p => p.classList.remove('active'));
+  pillEl.classList.add('active');
+
+  document.querySelectorAll('.rs-view').forEach(v => v.style.display = 'none');
+  const targetView = document.getElementById('tab-' + tabKey);
+  if (targetView) targetView.style.display = 'block';
+
+  if (tabKey === 'arxiv_feed' && document.getElementById('arxivResultsArea').children.length === 0) {
+    loadArxivLandmarks();
+  }
+}
+
+// ── TAB 1: ACADEMIC PAPER GENERATOR ─────────────────────────────────────────
+
+function setPaperTopic(topic) {
+  document.getElementById('paperTopicInput').value = topic;
+  generateAcademicPaper();
+}
+
+async function generateAcademicPaper() {
+  const topic = document.getElementById('paperTopicInput').value.trim();
+  if (!topic) {
+    alert('Please enter a research topic or ML concept.');
+    return;
   }
 
-  async function doResearch() {
-    const concept = document.getElementById('researchInput').value.trim();
-    if (!concept) { alert('Please enter an ML concept.'); return; }
+  const paperType = document.getElementById('paperTypeSelect').value;
+  const level = document.getElementById('paperLevelSelect').value;
+  const btn = document.getElementById('genPaperBtn');
+  const outArea = document.getElementById('paperOutputArea');
 
-    const btn = document.getElementById('researchBtn');
-    const btxt = document.getElementById('rBtnTxt');
-    btn.disabled = true;
-    btxt.innerHTML = '<span style="display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:.4rem"></span>Generating…';
+  btn.disabled = true;
+  btn.innerText = 'Synthesizing IEEE Paper...';
 
-    document.getElementById('paperArea').innerHTML =
-      '<div class="rp-loading"><div class="spinner"></div>' +
-      '<p>Generating research paper for: <strong>' + escH(concept) + '</strong><br>' +
-      '<small style="color:var(--text2)">This may take 20–30 seconds…</small></p></div>';
+  outArea.innerHTML = `
+    <div class="loading-indicator">
+      <h3>Synthesizing Academic Research Paper</h3>
+      <p style="font-size:0.88rem;color:var(--accent);font-weight:600">Formulating theory, methodology, empirical benchmarks, and IEEE citations for: "${escapeHtml(topic)}"</p>
+      <p style="font-size:0.8rem;color:var(--text2);margin-top:0.4rem">This will take 10&ndash;20 seconds...</p>
+    </div>
+  `;
 
-    // Update dynamic search links
-    updateSourceLinks(concept);
+  try {
+    const res = await fetch('/api/research_paper', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ concept: topic, paper_type: paperType, level: level })
+    });
+    const result = await res.json();
 
-    try {
-      const res = await fetch('/api/research_paper', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ concept })
-      });
-      const data = await res.json();
-      if (data.success) {
-        currentPaper = data.data;
-        renderPaper(data.data, concept);
-      } else {
-        document.getElementById('paperArea').innerHTML =
-          '<div class="error-card"><div style="font-size:2rem">⚠️</div><h3>Generation Failed</h3><p>' + escH(data.error) + '</p>' +
-          '<button onclick="doResearch()" class="btn btn-ghost" style="margin-top:1rem">↺ Try Again</button></div>';
-      }
-    } catch (e) {
-      document.getElementById('paperArea').innerHTML =
-        '<div class="error-card"><div style="font-size:2rem">⚠️</div><h3>Network Error</h3><p>' + escH(e.message) + '</p></div>';
+    if (result.success && result.data) {
+      currentPaperData = result.data;
+      renderPaperDocument(result.data);
+    } else {
+      outArea.innerHTML = `
+        <div style="padding:1.5rem;background:rgba(239,68,68,0.1);border:1px solid var(--danger);border-radius:8px;color:var(--danger)">
+          <strong>Synthesis Failed:</strong> ${escapeHtml(result.error || 'Failed to synthesize research paper.')}
+        </div>
+      `;
     }
-
+  } catch (err) {
+    outArea.innerHTML = `
+      <div style="padding:1.5rem;background:rgba(239,68,68,0.1);border:1px solid var(--danger);border-radius:8px;color:var(--danger)">
+        Network connection error while communicating with Research Laboratory service.
+      </div>
+    `;
+  } finally {
     btn.disabled = false;
-    btxt.textContent = 'Generate Paper';
+    btn.innerText = 'Generate IEEE Paper';
   }
+}
 
-  function updateSourceLinks(topic) {
-    const enc = encodeURIComponent(topic);
-    document.getElementById('topicLinks').innerHTML = [
-      ['ResearchGate', 'https://www.researchgate.net/search?q=' + enc],
-      ['arXiv', 'https://arxiv.org/search/?searchtype=all&query=' + enc],
-      ['Google Scholar', 'https://scholar.google.com/scholar?q=' + enc],
-      ['IEEE Xplore', 'https://ieeexplore.ieee.org/search/searchresult.jsp?queryText=' + enc],
-    ].map(function (s) {
-      return '<a href="' + s[1] + '" target="_blank" style="display:block;padding:.32rem .6rem;border-radius:6px;border:1px solid var(--border);background:var(--bg2);color:var(--accent);font-size:.76rem;margin-bottom:.3rem;font-weight:600;text-decoration:none">' + s[0] + ' →</a>';
-    }).join('');
-    document.getElementById('dynamicSourceLink').style.display = 'block';
-  }
+function renderPaperDocument(d) {
+  const outArea = document.getElementById('paperOutputArea');
+  const year = new Date().getFullYear();
 
-  function renderPaper(d, concept) {
-    const sections = [
-      { key: 'abstract', label: 'Abstract' },
-      { key: 'introduction', label: 'I. Introduction' },
-      { key: 'methodology', label: 'II. Methodology' },
-      { key: 'results', label: 'III. Results' },
-      { key: 'conclusion', label: 'IV. Conclusion' },
-      { key: 'references', label: 'References' },
-    ];
+  const kwBadges = (d.keywords || []).map(k => `
+    <span style="font-size:0.72rem;background:rgba(16,185,129,0.1);color:var(--accent);padding:0.15rem 0.5rem;border-radius:4px;border:1px solid rgba(16,185,129,0.25);font-weight:600">${escapeHtml(k)}</span>
+  `).join('');
 
-    const navHtml = sections.map(function (s, i) {
-      return '<button class="sec-nav-btn' + (i === 0 ? ' active' : '') + '" onclick="switchSec(this,\'sec-' + s.key + '\')">' + s.label + '</button>';
-    }).join('');
+  const takeawaysList = (d.key_takeaways || []).map(t => `<li>${escapeHtml(t)}</li>`).join('');
 
-    function fmtBody(text) {
-      if (!text) return '<p style="color:var(--text2);font-style:italic">No content generated.</p>';
-      return text.split(/\\n\\n|\n\n/).map(function (p) {
-        return '<p>' + escH(p.trim()) + '</p>';
-      }).join('');
-    }
+  const refList = (d.references || []).map((r, i) => `
+    <div style="display:flex;gap:0.75rem;margin-bottom:0.75rem;font-size:0.83rem">
+      <span style="font-family:monospace;font-weight:700;color:var(--accent)">[${i+1}]</span>
+      <span style="color:var(--text2)">${escapeHtml(r)}</span>
+    </div>
+  `).join('');
 
-    const kwHtml = (d.keywords || []).map(function (k) {
-      return '<span class="paper-kw">' + escH(k) + '</span>';
-    }).join('');
+  outArea.innerHTML = `
+    <div class="paper-doc">
+      <!-- Head -->
+      <div class="paper-head">
+        <div class="paper-journal-tag">LearnSphere Academic Laboratory &bull; IEEE Transactions Standard &bull; ${year}</div>
+        <div class="paper-title-text">${escapeHtml(d.title)}</div>
+        <div class="paper-meta-line">
+          <span><strong>Authors:</strong> LearnSphere Academic Lab &bull; Student Research Program</span>
+          <span><strong>Venue:</strong> IEEE Transactions on Artificial Intelligence (${year})</span>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:0.35rem;margin-top:0.75rem">
+          ${kwBadges}
+        </div>
 
-    const refHtml = (d.references && d.references.length)
-      ? '<ul class="ref-list">' + d.references.map(function (r, i) {
-        return '<li class="ref-item"><span class="ref-num">[' + (i + 1) + ']</span><span>' + escH(r) + '</span></li>';
-      }).join('') + '</ul>'
-      : '<p style="color:var(--text2);font-style:italic">No references generated.</p>';
+        <div class="paper-takeaways">
+          <h4>Key Academic Takeaways</h4>
+          <ul>${takeawaysList}</ul>
+        </div>
+      </div>
 
-    const sectionsHtml = sections.map(function (s, i) {
-      return '<div id="sec-' + s.key + '" class="paper-section' + (i === 0 ? ' active' : '') + '">'
-        + '<span class="sec-label">' + s.label + '</span>'
-        + (s.key !== 'references'
-          ? fmtBody(d[s.key])
-          : refHtml)
-        + '</div>';
-    }).join('');
+      <!-- Action Bar -->
+      <div class="paper-actions-bar">
+        <button class="rs-btn rs-btn-primary" onclick="downloadIeeePDF()">Download IEEE PDF</button>
+        <button class="rs-btn rs-btn-secondary" onclick="copyBibtexCitation()">Copy BibTeX</button>
+        <button class="rs-btn rs-btn-secondary" onclick="copyFullPaperText()">Copy Text</button>
+        <button class="rs-btn rs-btn-secondary" onclick="downloadIeeePDF()">Print</button>
+      </div>
 
-    document.getElementById('paperArea').innerHTML =
-      '<div class="paper-card">'
+      <!-- Navigation Tabs -->
+      <div class="paper-sections-nav">
+        <button class="sec-tab-btn active" onclick="switchPaperSection(this, 'psec-abstract')">Abstract</button>
+        <button class="sec-tab-btn" onclick="switchPaperSection(this, 'psec-intro')">I. Introduction</button>
+        <button class="sec-tab-btn" onclick="switchPaperSection(this, 'psec-math')">II. Theoretical Math</button>
+        <button class="sec-tab-btn" onclick="switchPaperSection(this, 'psec-method')">III. Methodology</button>
+        <button class="sec-tab-btn" onclick="switchPaperSection(this, 'psec-results')">IV. Results</button>
+        <button class="sec-tab-btn" onclick="switchPaperSection(this, 'psec-conclusion')">V. Conclusion</button>
+        <button class="sec-tab-btn" onclick="switchPaperSection(this, 'psec-refs')">References</button>
+        <button class="sec-tab-btn" onclick="switchPaperSection(this, 'psec-bibtex')">BibTeX</button>
+      </div>
 
-      // Header
-      + '<div class="paper-head">'
-      + '<div class="paper-journal">LearnSphere Research Lab · IEEE Format · ' + new Date().getFullYear() + '</div>'
-      + '<div class="paper-title">' + escH(d.title || concept) + '</div>'
-      + '<div class="paper-meta-row">'
-      + '<span class="paper-author">AI-Generated Survey Paper</span>'
-      + '<span class="paper-year">' + new Date().getFullYear() + '</span>'
-      + '</div>'
-      + (kwHtml ? '<div class="paper-keywords">' + kwHtml + '</div>' : '')
-      + '</div>'
+      <!-- Section Panes -->
+      <div id="psec-abstract" class="paper-content-pane active">
+        <h3 style="font-size:0.95rem;font-weight:800;text-transform:uppercase;color:var(--text);margin-bottom:0.75rem">Abstract</h3>
+        <p style="font-style:italic;line-height:1.75;color:var(--text2)">${escapeHtml(d.abstract || 'No abstract available.')}</p>
+      </div>
 
-      // Actions
-      + '<div class="paper-actions">'
-      + '<button class="pa-btn primary" onclick="downloadPDF()">⬇ Download PDF</button>'
-      + '<button class="pa-btn" onclick="copyText()">📋 Copy Text</button>'
-      + '<button class="pa-btn" onclick="printPaper()">🖨 Print</button>'
-      + '</div>'
+      <div id="psec-intro" class="paper-content-pane">
+        <h3 style="font-size:0.95rem;font-weight:800;text-transform:uppercase;color:var(--text);margin-bottom:0.75rem">I. Introduction &amp; Motivation</h3>
+        <p>${formatParagraphs(d.introduction)}</p>
+      </div>
 
-      // Body
-      + '<div class="paper-body">'
-      + '<div class="section-nav">' + navHtml + '</div>'
-      + sectionsHtml
-      + '</div></div>';
-  }
+      <div id="psec-math" class="paper-content-pane">
+        <h3 style="font-size:0.95rem;font-weight:800;text-transform:uppercase;color:var(--text);margin-bottom:0.75rem">II. Theoretical Formulation &amp; Mathematics</h3>
+        <div class="math-formula-box">
+          L(w) = E_{(x,y)~D} [ l(f_w(x), y) ] + lambda * Omega(w)
+        </div>
+        <p>${formatParagraphs(d.theory_math)}</p>
+      </div>
 
-  function switchSec(btn, secId) {
-    document.querySelectorAll('.sec-nav-btn').forEach(function (b) { b.classList.remove('active'); });
-    document.querySelectorAll('.paper-section').forEach(function (s) { s.classList.remove('active'); });
-    btn.classList.add('active');
-    const el = document.getElementById(secId);
-    if (el) el.classList.add('active');
-  }
+      <div id="psec-method" class="paper-content-pane">
+        <h3 style="font-size:0.95rem;font-weight:800;text-transform:uppercase;color:var(--text);margin-bottom:0.75rem">III. System Architecture &amp; Methodology</h3>
+        <p>${formatParagraphs(d.methodology)}</p>
+      </div>
 
-  // ── PDF Generation ─────────────────────────────────────────────────────────
-  // Opens a new tab with a COMPLETELY SELF-CONTAINED IEEE paper document.
-  // Uses body onload="window.print()" — most reliable cross-browser approach.
-  // Nothing from LearnSphere's CSS/JS is included — only the paper content.
-  function downloadPDF() {
-    if (!currentPaper) { alert('Please generate a paper first.'); return; }
-    var d = currentPaper;
-    var year = new Date().getFullYear();
+      <div id="psec-results" class="paper-content-pane">
+        <h3 style="font-size:0.95rem;font-weight:800;text-transform:uppercase;color:var(--text);margin-bottom:0.75rem">IV. Empirical Evaluation &amp; Benchmarks</h3>
+        <p>${formatParagraphs(d.results)}</p>
+      </div>
 
-    // Escape HTML entities safely
-    function e(s) {
-      if (s == null) return '';
-      return String(s)
-        .replace(/&/g, '&amp;').replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-    }
+      <div id="psec-conclusion" class="paper-content-pane">
+        <h3 style="font-size:0.95rem;font-weight:800;text-transform:uppercase;color:var(--text);margin-bottom:0.75rem">V. Conclusion &amp; Open Directions</h3>
+        <p>${formatParagraphs(d.conclusion)}</p>
+      </div>
 
-    // Build one section block with paragraphs
-    function sec(heading, body) {
-      if (!body || !body.trim()) return '';
-      var ps = body.split(/\n\n|\n/).filter(function (p) { return p.trim(); })
-        .map(function (p) { return '<p>' + e(p.trim()) + '</p>'; }).join('');
-      return '<div class="s"><h2>' + heading + '</h2>' + ps + '</div>';
-    }
+      <div id="psec-refs" class="paper-content-pane">
+        <h3 style="font-size:0.95rem;font-weight:800;text-transform:uppercase;color:var(--text);margin-bottom:1rem">References &amp; Bibliography</h3>
+        <div>${refList}</div>
+      </div>
 
-    var refs = (d.references && d.references.length)
-      ? '<div class="s"><h2>References</h2><ol class="rl">'
-      + d.references.map(function (r) { return '<li>' + e(r) + '</li>'; }).join('')
-      + '</ol></div>'
-      : '';
+      <div id="psec-bibtex" class="paper-content-pane">
+        <h3 style="font-size:0.95rem;font-weight:800;text-transform:uppercase;color:var(--text);margin-bottom:0.75rem">BibTeX Citation</h3>
+        <div class="code-preview-box">
+          <button style="position:absolute;top:0.75rem;right:0.75rem" class="rs-btn rs-btn-secondary" onclick="copyBibtexCitation()">Copy</button>
+          <pre><code>${escapeHtml(d.bibtex || '')}</code></pre>
+        </div>
+      </div>
+    </div>
+  `;
+}
 
-    var kws = (d.keywords && d.keywords.length)
-      ? '<p class="kw"><strong>Keywords:</strong> ' + e(d.keywords.join(', ')) + '</p>'
-      : '';
+function switchPaperSection(btnEl, sectionId) {
+  document.querySelectorAll('.sec-tab-btn').forEach(b => b.classList.remove('active'));
+  btnEl.classList.add('active');
 
-    // Build the complete paper HTML — body onload triggers print dialog
-    var parts = [
-      '<!DOCTYPE html>',
-      '<html lang="en">',
-      '<head>',
-      '<meta charset="UTF-8">',
-      '<meta name="viewport" content="width=device-width,initial-scale=1">',
-      '<title>' + e(d.title || 'Research Paper') + '</title>',
-      '<style>',
-      '*{margin:0;padding:0;box-sizing:border-box}',
-      'body{font-family:"Times New Roman",Times,serif;font-size:10pt;color:#000;background:#fff;line-height:1.5}',
-      '.page{width:210mm;min-height:297mm;margin:0 auto;padding:20mm 18mm}',
-      '.hd{text-align:center;border-bottom:2pt solid #000;padding-bottom:12pt;margin-bottom:14pt}',
-      '.jn{font-size:7pt;text-transform:uppercase;letter-spacing:1.5px;color:#666;margin-bottom:6pt}',
-      '.ti{font-size:16pt;font-weight:bold;line-height:1.25;margin-bottom:7pt}',
-      '.me{font-size:9pt;color:#444}',
-      '.kw{font-size:8.5pt;color:#333;font-style:italic;padding:5pt 0;border-top:.5pt solid #ccc;border-bottom:.5pt solid #ccc;margin:8pt 0 10pt}',
-      '.ab{background:#f9f9f9;border-left:2.5pt solid #555;padding:7pt 10pt;margin-bottom:10pt}',
-      '.ab h2{font-size:9.5pt;font-weight:bold;text-transform:uppercase;margin-bottom:4pt}',
-      '.ab p{font-size:9.5pt;text-align:justify;font-style:italic}',
-      '.body{column-count:2;column-gap:12mm;column-rule:.5pt solid #ccc}',
-      '.s{margin-bottom:10pt;break-inside:avoid-column}',
-      '.s h2{font-size:9.5pt;font-weight:bold;text-transform:uppercase;border-bottom:.75pt solid #000;padding-bottom:2pt;margin-bottom:5pt;margin-top:10pt}',
-      '.s p{text-align:justify;margin-bottom:5pt;font-size:10pt;hyphens:auto}',
-      '.rl{padding-left:14pt;font-size:8.5pt;line-height:1.4}',
-      '.rl li{margin-bottom:3pt;text-align:justify}',
-      '.ft{column-span:all;text-align:center;font-size:7pt;color:#888;border-top:.5pt solid #ccc;margin-top:16pt;padding-top:4pt}',
-      '.btns{position:fixed;top:10px;right:10px;display:flex;gap:8px;z-index:9999}',
-      '.btns button{padding:8px 16px;border:none;border-radius:5px;cursor:pointer;font-size:13px;font-family:Arial;font-weight:600}',
-      '.pb{background:#1a56db;color:#fff}',
-      '.cb{background:#666;color:#fff}',
-      '@media print{.btns{display:none!important} body{-webkit-print-color-adjust:exact} .page{margin:0;padding:15mm;width:100%}}',
-      '</style>',
-      '</head>',
-      // body onload is the most reliable way to trigger print in blob: URLs
-      '<body onload="setTimeout(function(){window.print();},500)">',
-      '<div class="btns">',
-      '  <button class="pb" onclick="window.print()">🖨 Save as PDF</button>',
-      '  <button class="cb" onclick="window.close()">✕ Close</button>',
-      '</div>',
-      '<div class="page">',
-      '  <div class="hd">',
-      '    <div class="jn">LearnSphere Research Lab — IEEE Format — ' + year + '</div>',
-      '    <div class="ti">' + e(d.title || 'Research Paper') + '</div>',
-      '    <div class="me">AI-Generated Survey Paper &nbsp;|&nbsp; ' + year + ' &nbsp;|&nbsp; LearnSphere Academic Module</div>',
-      '  </div>',
-      kws,
-      '  <div class="body">',
-      d.abstract
-        ? '    <div class="ab" style="column-span:all"><h2>Abstract</h2><p>' + e(d.abstract) + '</p></div>'
-        : '',
-      sec('I. Introduction', d.introduction),
-      sec('II. Methodology', d.methodology),
-      sec('III. Results', d.results),
-      sec('IV. Conclusion', d.conclusion),
-      refs,
-      '    <div class="ft">Generated by LearnSphere Research Lab &bull; ' + year + ' &bull; For educational purposes only</div>',
-      '  </div>',
-      '</div>',
-      '</body>',
-      '</html>'
-    ];
-    var html = parts.join('\n');
+  document.querySelectorAll('.paper-content-pane').forEach(p => p.classList.remove('active'));
+  const target = document.getElementById(sectionId);
+  if (target) target.classList.add('active');
+}
 
-    // Create blob URL and open in new tab
-    var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-    var url = URL.createObjectURL(blob);
-    var tab = window.open(url, '_blank');
+function formatParagraphs(txt) {
+  if (!txt) return '<p style="color:var(--text2);font-style:italic">No content provided.</p>';
+  return txt.split(/\n\n|\n/).filter(p => p.trim()).map(p => `<p style="margin-bottom:0.85rem">${escapeHtml(p.trim())}</p>`).join('');
+}
 
-    if (!tab) {
-      // Popup blocked — download as .html file instead
-      var a = document.createElement('a');
-      a.href = url;
-      a.download = (d.title || 'research_paper').replace(/[^\w\s-]/g, '').trim().replace(/\s+/g, '_').slice(0, 50) + '_IEEE.html';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(function () { URL.revokeObjectURL(url); }, 5000);
-      alert(
-        'Popup was blocked by your browser.\n\n' +
-        'The paper has been downloaded as an HTML file.\n' +
-        'Open it in your browser, then press Ctrl+P → Save as PDF.'
-      );
-      return;
-    }
-    // Revoke blob URL after the new tab finishes loading
-    setTimeout(function () { URL.revokeObjectURL(url); }, 10000);
-  }
+function copyBibtexCitation() {
+  if (!currentPaperData || !currentPaperData.bibtex) return;
+  navigator.clipboard.writeText(currentPaperData.bibtex).then(() => {
+    alert('BibTeX citation copied to clipboard!');
+  });
+}
 
+function copyFullPaperText() {
+  if (!currentPaperData) return;
+  const d = currentPaperData;
+  let text = `${d.title}\n${'='.repeat(d.title.length)}\n\n`;
+  text += `ABSTRACT:\n${d.abstract}\n\n`;
+  text += `I. INTRODUCTION:\n${d.introduction}\n\n`;
+  text += `II. THEORETICAL FORMULATION:\n${d.theory_math}\n\n`;
+  text += `III. METHODOLOGY:\n${d.methodology}\n\n`;
+  text += `IV. RESULTS:\n${d.results}\n\n`;
+  text += `V. CONCLUSION:\n${d.conclusion}\n\n`;
+  text += `REFERENCES:\n${(d.references || []).join('\n')}\n`;
 
-  function copyText() {
-    if (!currentPaper) return;
-    const d = currentPaper;
-    const secs = ['abstract', 'introduction', 'methodology', 'results', 'conclusion'];
-    let txt = (d.title || 'Research Paper') + '\n';
-    txt += '='.repeat(70) + '\n\n';
-    if (d.keywords && d.keywords.length) txt += 'Keywords: ' + d.keywords.join(', ') + '\n\n';
-    secs.forEach(function (k) {
-      if (d[k]) { txt += k.toUpperCase() + '\n' + '-'.repeat(40) + '\n' + d[k] + '\n\n'; }
-    });
-    if (d.references && d.references.length) {
-      txt += 'REFERENCES\n' + '-'.repeat(40) + '\n';
-      d.references.forEach(function (r, i) { txt += '[' + (i + 1) + '] ' + r + '\n'; });
-    }
-    navigator.clipboard.writeText(txt).then(function () {
-      var btn = document.querySelector('.pa-btn:nth-child(2)');
-      if (btn) { var orig = btn.textContent; btn.textContent = '✅ Copied!'; setTimeout(function () { btn.textContent = orig; }, 2000); }
-    });
-  }
+  navigator.clipboard.writeText(text).then(() => {
+    alert('Full paper text copied to clipboard!');
+  });
+}
 
-  function printPaper() {
-    // reuse downloadPDF which opens a clean popup and auto-prints
-    downloadPDF();
-  }
+function downloadIeeePDF() {
+  if (!currentPaperData) return;
+  const d = currentPaperData;
+  const year = new Date().getFullYear();
 
-  function escH(s) {
-    if (s == null) return '';
+  function escapeE(s) {
+    if (!s) return '';
     return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
+
+  function makeSec(heading, content) {
+    if (!content) return '';
+    const ps = content.split(/\n\n|\n/).filter(p => p.trim()).map(p => `<p>${escapeE(p.trim())}</p>`).join('');
+    return `<div class="s"><h2>${heading}</h2>${ps}</div>`;
+  }
+
+  const refsHtml = (d.references || []).map(r => `<li>${escapeE(r)}</li>`).join('');
+
+  const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>${escapeE(d.title || 'Research Paper')}</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: "Times New Roman", Times, serif; font-size: 10pt; color: #000; background: #FFF; line-height: 1.45; }
+.page { width: 210mm; min-height: 297mm; margin: 0 auto; padding: 20mm 18mm; }
+.hd { text-align: center; border-bottom: 2pt solid #000; padding-bottom: 12pt; margin-bottom: 14pt; }
+.jn { font-size: 7.5pt; text-transform: uppercase; letter-spacing: 1.5px; color: #555; margin-bottom: 6pt; }
+.ti { font-size: 16pt; font-weight: bold; line-height: 1.25; margin-bottom: 7pt; }
+.me { font-size: 9pt; color: #333; margin-bottom: 8pt; }
+.kw { font-size: 8.5pt; color: #333; font-style: italic; padding: 5pt 0; border-top: 0.5pt solid #ccc; border-bottom: 0.5pt solid #ccc; margin: 8pt 0 10pt; }
+.ab { background: #F8F9FA; border-left: 2.5pt solid #333; padding: 8pt 10pt; margin-bottom: 12pt; }
+.ab h2 { font-size: 9.5pt; font-weight: bold; text-transform: uppercase; margin-bottom: 4pt; }
+.ab p { font-size: 9.5pt; text-align: justify; font-style: italic; }
+.body { column-count: 2; column-gap: 12mm; column-rule: 0.5pt solid #DDD; }
+.s { margin-bottom: 11pt; break-inside: avoid-column; }
+.s h2 { font-size: 9.5pt; font-weight: bold; text-transform: uppercase; border-bottom: 0.75pt solid #000; padding-bottom: 2pt; margin-bottom: 5pt; margin-top: 8pt; }
+.s p { text-align: justify; margin-bottom: 6pt; font-size: 9.5pt; text-indent: 12pt; }
+.rl { padding-left: 14pt; font-size: 8.5pt; line-height: 1.4; }
+.rl li { margin-bottom: 3.5pt; text-align: justify; }
+.ft { column-span: all; text-align: center; font-size: 7.5pt; color: #777; border-top: 0.5pt solid #ccc; margin-top: 18pt; padding-top: 5pt; }
+.btns { position: fixed; top: 12px; right: 12px; display: flex; gap: 8px; z-index: 9999; }
+.btns button { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: bold; font-family: Arial, sans-serif; }
+.pb { background: #059669; color: #FFF; }
+.cb { background: #4B5563; color: #FFF; }
+@media print {
+  .btns { display: none !important; }
+  body { -webkit-print-color-adjust: exact; }
+  .page { margin: 0; padding: 15mm; width: 100%; }
+}
+</style>
+</head>
+<body onload="setTimeout(function(){ window.print(); }, 400)">
+<div class="btns">
+  <button class="pb" onclick="window.print()">Save as PDF</button>
+  <button class="cb" onclick="window.close()">Close</button>
+</div>
+<div class="page">
+  <div class="hd">
+    <div class="jn">LearnSphere Academic Laboratory &bull; IEEE Standard Publication &bull; ${year}</div>
+    <div class="ti">${escapeE(d.title || 'Research Paper')}</div>
+    <div class="me">LearnSphere Academic Research Lab &nbsp;|&nbsp; Student Peer-Review Program &nbsp;|&nbsp; Volume 14</div>
+  </div>
+  <p class="kw"><strong>Keywords:</strong> ${escapeE((d.keywords || []).join(', '))}</p>
+  <div class="body">
+    <div class="ab" style="column-span: all">
+      <h2>Abstract</h2>
+      <p>${escapeE(d.abstract || '')}</p>
+    </div>
+    ${makeSec('I. Introduction', d.introduction)}
+    ${makeSec('II. Theoretical Formulation', d.theory_math)}
+    ${makeSec('III. Methodology & Architecture', d.methodology)}
+    ${makeSec('IV. Results & Benchmark Evaluation', d.results)}
+    ${makeSec('V. Conclusion & Future Directions', d.conclusion)}
+    <div class="s">
+      <h2>References</h2>
+      <ol class="rl">${refsHtml}</ol>
+    </div>
+    <div class="ft">Published by LearnSphere Research Laboratory &bull; IEEE Academic Standard &bull; ${year}</div>
+  </div>
+</div>
+</body>
+</html>
+  `;
+
+  const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const win = window.open(url, '_blank');
+  if (!win) {
+    alert('Popup was blocked. Please allow popups to save or print the IEEE paper.');
+  }
+}
+
+// ── TAB 2: ARXIV EXPLORER ───────────────────────────────────────────────────
+
+function filterArxiv(topic) {
+  document.getElementById('arxivSearchInput').value = (topic === 'all' ? '' : topic);
+  searchArxivFeed();
+}
+
+async function loadArxivLandmarks() {
+  await fetchArxivPapers('');
+}
+
+async function searchArxivFeed() {
+  const q = document.getElementById('arxivSearchInput').value.trim();
+  await fetchArxivPapers(q);
+}
+
+async function fetchArxivPapers(query) {
+  const btn = document.getElementById('arxivSearchBtn');
+  const resArea = document.getElementById('arxivResultsArea');
+
+  btn.disabled = true;
+  btn.innerText = 'Searching...';
+  resArea.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:2.5rem 1rem;color:var(--text2)">Loading peer-reviewed preprints from arXiv...</div>';
+
+  try {
+    const res = await fetch('/api/research/arxiv_search', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: query, limit: 9 })
+    });
+    const result = await res.json();
+
+    if (result.success && result.papers && result.papers.length > 0) {
+      renderArxivPapers(result.papers);
+    } else {
+      resArea.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:2.5rem 1rem;color:var(--text2)">No papers found matching this query. Try a broader ML topic like "transformer" or "diffusion".</div>';
+    }
+  } catch (err) {
+    resArea.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:2.5rem 1rem;color:var(--danger)">Error querying arXiv. Please try again.</div>';
+  } finally {
+    btn.disabled = false;
+    btn.innerText = 'Search arXiv';
+  }
+}
+
+function renderArxivPapers(papers) {
+  const resArea = document.getElementById('arxivResultsArea');
+  resArea.innerHTML = papers.map((p, idx) => `
+    <div class="arxiv-card">
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.4rem">
+          <span style="font-size:0.72rem;font-weight:700;color:var(--accent);font-family:monospace">arXiv:${escapeHtml(p.arxiv_id || '')}</span>
+          <span style="font-size:0.72rem;color:var(--text2)">${escapeHtml(p.published || '')}</span>
+        </div>
+        <h3><a href="${escapeHtml(p.link || p.pdf_url)}" target="_blank" rel="noopener">${escapeHtml(p.title)}</a></h3>
+        <div class="arxiv-meta">${escapeHtml(p.authors || 'Authors withheld')}</div>
+        <div class="arxiv-summary">${escapeHtml(p.summary || '')}</div>
+      </div>
+      <div class="arxiv-btn-row">
+        <a href="${escapeHtml(p.pdf_url || p.link)}" target="_blank" rel="noopener" class="rs-btn rs-btn-secondary" style="flex:1;font-size:0.78rem;padding:0.45rem 0.65rem;text-decoration:none">View PDF</a>
+        <button class="rs-btn rs-btn-primary" style="flex:1;font-size:0.78rem;padding:0.45rem 0.65rem" onclick="explainArxivPaper(${idx})">Explain for Students</button>
+      </div>
+    </div>
+  `).join('');
+
+  // Store globally for explanation handler
+  window.lastLoadedPapers = papers;
+}
+
+async function explainArxivPaper(idx) {
+  const paper = (window.lastLoadedPapers || [])[idx];
+  if (!paper) return;
+
+  const expArea = document.getElementById('arxivExplainerArea');
+  expArea.style.display = 'block';
+  expArea.innerHTML = `
+    <div style="background:var(--bg3);border:1px solid var(--accent);border-radius:10px;padding:1.5rem">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem">
+        <h3 style="font-size:1.1rem;font-weight:800;color:var(--text)">AI Student Breakdown: ${escapeHtml(paper.title)}</h3>
+        <button class="rs-btn rs-btn-secondary" style="padding:0.25rem 0.65rem;font-size:0.75rem" onclick="document.getElementById('arxivExplainerArea').style.display='none'">Close</button>
+      </div>
+      <p style="font-size:0.85rem;color:var(--text2)">Analyzing architecture novelty and synthesizing plain-English breakdown...</p>
+    </div>
+  `;
+  expArea.scrollIntoView({ behavior: 'smooth' });
+
+  try {
+    const res = await fetch('/api/research/explain_paper', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: paper.title, abstract: paper.summary, arxiv_id: paper.arxiv_id })
+    });
+    const result = await res.json();
+
+    if (result.success && result.data) {
+      const d = result.data;
+      const strengthsList = (d.strengths || []).map(s => `<li>${escapeHtml(s)}</li>`).join('');
+      const limitsList = (d.limitations || []).map(l => `<li>${escapeHtml(l)}</li>`).join('');
+
+      expArea.innerHTML = `
+        <div style="background:var(--bg3);border:1px solid var(--accent);border-radius:10px;padding:1.5rem">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+            <h3 style="font-size:1.15rem;font-weight:800;color:var(--text)">Student Breakdown: ${escapeHtml(paper.title)}</h3>
+            <button class="rs-btn rs-btn-secondary" style="padding:0.25rem 0.65rem;font-size:0.75rem" onclick="document.getElementById('arxivExplainerArea').style.display='none'">Close</button>
+          </div>
+
+          <div style="margin-bottom:1rem">
+            <h4 style="font-size:0.8rem;font-weight:800;text-transform:uppercase;color:var(--accent);margin-bottom:0.35rem">The Core Intuition</h4>
+            <p style="font-size:0.88rem;color:var(--text);line-height:1.6">${escapeHtml(d.core_intuition || '')}</p>
+          </div>
+
+          <div style="margin-bottom:1rem">
+            <h4 style="font-size:0.8rem;font-weight:800;text-transform:uppercase;color:var(--accent);margin-bottom:0.35rem">Key Architectural Breakthrough</h4>
+            <p style="font-size:0.88rem;color:var(--text);line-height:1.6">${escapeHtml(d.architectural_breakthrough || '')}</p>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+            <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:0.85rem">
+              <h5 style="font-size:0.78rem;font-weight:800;color:var(--accent);margin-bottom:0.4rem">Strengths &amp; Advantages</h5>
+              <ul style="padding-left:1.1rem;font-size:0.82rem;color:var(--text2);margin:0;line-height:1.5">${strengthsList}</ul>
+            </div>
+            <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:0.85rem">
+              <h5 style="font-size:0.78rem;font-weight:800;color:var(--text);margin-bottom:0.4rem">Practical Limitations</h5>
+              <ul style="padding-left:1.1rem;font-size:0.82rem;color:var(--text2);margin:0;line-height:1.5">${limitsList}</ul>
+            </div>
+          </div>
+
+          <div style="background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.25);border-radius:8px;padding:0.85rem">
+            <h5 style="font-size:0.78rem;font-weight:800;color:var(--accent);margin-bottom:0.25rem">Hands-on Student Experiment Idea</h5>
+            <p style="font-size:0.84rem;color:var(--text);margin:0">${escapeHtml(d.experiment_idea || '')}</p>
+          </div>
+        </div>
+      `;
+    }
+  } catch (err) {
+    expArea.innerHTML = '<div style="color:var(--danger)">Error explaining paper. Please try again.</div>';
+  }
+}
+
+// ── TAB 3: COMPARATIVE MATRIX ───────────────────────────────────────────────
+
+function setComparison(a, b) {
+  document.getElementById('compConceptA').value = a;
+  document.getElementById('compConceptB').value = b;
+  generateComparativeMatrix();
+}
+
+async function generateComparativeMatrix() {
+  const conceptA = document.getElementById('compConceptA').value.trim();
+  const conceptB = document.getElementById('compConceptB').value.trim();
+  if (!conceptA || !conceptB) {
+    alert('Please enter two concepts or architectures to compare.');
+    return;
+  }
+
+  const btn = document.getElementById('genCompBtn');
+  const outArea = document.getElementById('matrixOutputArea');
+
+  btn.disabled = true;
+  btn.innerText = 'Comparing...';
+
+  outArea.innerHTML = `
+    <div class="loading-indicator">
+      <h3>Synthesizing Comparison Matrix</h3>
+      <p style="font-size:0.85rem;color:var(--text2)">Evaluating algorithmic bounds, complexity scaling, and deployment trade-offs...</p>
+    </div>
+  `;
+
+  try {
+    const res = await fetch('/api/research/compare', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ concept_a: conceptA, concept_b: conceptB })
+    });
+    const result = await res.json();
+
+    if (result.success && result.data) {
+      renderComparativeMatrix(result.data);
+    } else {
+      outArea.innerHTML = `<div style="color:var(--danger);padding:1rem">${escapeHtml(result.error || 'Failed to compare.')}</div>`;
+    }
+  } catch (err) {
+    outArea.innerHTML = '<div style="color:var(--danger);padding:1rem">Network error generating comparison.</div>';
+  } finally {
+    btn.disabled = false;
+    btn.innerText = 'Synthesize Matrix';
+  }
+}
+
+function renderComparativeMatrix(d) {
+  const outArea = document.getElementById('matrixOutputArea');
+
+  const rowsHtml = (d.dimensions || []).map(row => `
+    <tr>
+      <td class="comp-factor-name">${escapeHtml(row.factor)}</td>
+      <td>${escapeHtml(row.a)}</td>
+      <td>${escapeHtml(row.b)}</td>
+      <td><span class="comp-adv-badge">${escapeHtml(row.advantage || '')}</span></td>
+    </tr>
+  `).join('');
+
+  outArea.innerHTML = `
+    <div class="rs-card" style="padding:1.75rem">
+      <h2 style="font-size:1.3rem;font-weight:800;color:var(--text);margin-bottom:0.5rem">
+        ${escapeHtml(d.concept_a)} vs ${escapeHtml(d.concept_b)}
+      </h2>
+      <p style="font-size:0.88rem;color:var(--text2);line-height:1.6;margin-bottom:1.25rem">
+        ${escapeHtml(d.summary || '')}
+      </p>
+
+      <div style="overflow-x:auto">
+        <table class="comp-table">
+          <thead>
+            <tr>
+              <th style="width:24%">Dimension / Attribute</th>
+              <th style="width:34%">${escapeHtml(d.concept_a)}</th>
+              <th style="width:34%">${escapeHtml(d.concept_b)}</th>
+              <th style="width:16%">Advantage</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rowsHtml}
+          </tbody>
+        </table>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-top:1.5rem">
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:1.25rem">
+          <h4 style="font-size:0.82rem;font-weight:800;text-transform:uppercase;color:var(--accent);margin-bottom:0.4rem">
+            When to choose ${escapeHtml(d.concept_a)}
+          </h4>
+          <p style="font-size:0.85rem;color:var(--text2);line-height:1.6;margin:0">
+            ${escapeHtml(d.when_to_use_a || '')}
+          </p>
+        </div>
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:1.25rem">
+          <h4 style="font-size:0.82rem;font-weight:800;text-transform:uppercase;color:var(--accent);margin-bottom:0.4rem">
+            When to choose ${escapeHtml(d.concept_b)}
+          </h4>
+          <p style="font-size:0.85rem;color:var(--text2);line-height:1.6;margin:0">
+            ${escapeHtml(d.when_to_use_b || '')}
+          </p>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ── TAB 4: RESEARCH PROPOSAL ────────────────────────────────────────────────
+
+function setProposalTopic(topic, goal) {
+  document.getElementById('propTopicInput').value = topic;
+  document.getElementById('propGoalInput').value = goal;
+  generateThesisProposal();
+}
+
+async function generateThesisProposal() {
+  const topic = document.getElementById('propTopicInput').value.trim();
+  const goal = document.getElementById('propGoalInput').value.trim();
+  if (!topic) {
+    alert('Please enter a research topic.');
+    return;
+  }
+
+  const btn = document.getElementById('genPropBtn');
+  const outArea = document.getElementById('proposalOutputArea');
+
+  btn.disabled = true;
+  btn.innerText = 'Drafting Proposal...';
+
+  outArea.innerHTML = `
+    <div class="loading-indicator">
+      <h3>Formulating Academic Proposal</h3>
+      <p style="font-size:0.85rem;color:var(--text2)">Designing formal hypotheses, ablation schedule, and starter PyTorch code...</p>
+    </div>
+  `;
+
+  try {
+    const res = await fetch('/api/research/proposal', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ topic: topic, objective: goal })
+    });
+    const result = await res.json();
+
+    if (result.success && result.data) {
+      renderProposalDocument(result.data);
+    } else {
+      outArea.innerHTML = `<div style="color:var(--danger);padding:1rem">${escapeHtml(result.error || 'Failed to draft proposal.')}</div>`;
+    }
+  } catch (err) {
+    outArea.innerHTML = '<div style="color:var(--danger);padding:1rem">Network error drafting proposal.</div>';
+  } finally {
+    btn.disabled = false;
+    btn.innerText = 'Draft Academic Proposal';
+  }
+}
+
+function renderProposalDocument(d) {
+  const outArea = document.getElementById('proposalOutputArea');
+
+  const indVars = (d.independent_vars || []).map(v => `<li>${escapeHtml(v)}</li>`).join('');
+  const depVars = (d.dependent_vars || []).map(v => `<li>${escapeHtml(v)}</li>`).join('');
+  const ablations = (d.ablation_plan || []).map(a => `<li style="margin-bottom:0.4rem">${escapeHtml(a)}</li>`).join('');
+  const datasets = (d.datasets || []).join(', ');
+  const baselines = (d.baselines || []).join(', ');
+  const metrics = (d.metrics || []).join(', ');
+
+  outArea.innerHTML = `
+    <div class="rs-card" style="padding:1.75rem">
+      <div style="border-bottom:1px solid var(--border);padding-bottom:1.25rem;margin-bottom:1.5rem">
+        <span style="font-size:0.72rem;font-weight:800;color:var(--accent);text-transform:uppercase;letter-spacing:0.06em">Master Thesis / Research Proposal</span>
+        <h2 style="font-size:1.35rem;font-weight:800;color:var(--text);margin-top:0.35rem">${escapeHtml(d.title || 'Research Proposal')}</h2>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.25rem">
+        <div class="prop-section-box">
+          <h3 style="color:var(--text2)">Null Hypothesis (H0)</h3>
+          <p style="font-size:0.86rem;color:var(--text);line-height:1.6;font-style:italic">${escapeHtml(d.h0 || 'No significant difference observed.')}</p>
+        </div>
+        <div class="prop-section-box">
+          <h3 style="color:var(--accent)">Alternative Hypothesis (H1)</h3>
+          <p style="font-size:0.86rem;color:var(--text);line-height:1.6;font-weight:600">${escapeHtml(d.h1 || 'Significant performance gains observed.')}</p>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.25rem">
+        <div class="prop-section-box">
+          <h3>Independent Variables</h3>
+          <ul style="padding-left:1.15rem;font-size:0.84rem;color:var(--text2);margin:0;line-height:1.6">${indVars}</ul>
+        </div>
+        <div class="prop-section-box">
+          <h3>Dependent Metrics</h3>
+          <ul style="padding-left:1.15rem;font-size:0.84rem;color:var(--text2);margin:0;line-height:1.6">${depVars}</ul>
+        </div>
+      </div>
+
+      <div class="prop-section-box" style="margin-bottom:1.25rem">
+        <h3>Benchmarks &amp; Comparative Baselines</h3>
+        <p style="font-size:0.85rem;color:var(--text);margin-bottom:0.4rem"><strong>Datasets:</strong> ${escapeHtml(datasets || 'Standard benchmarks')}</p>
+        <p style="font-size:0.85rem;color:var(--text);margin-bottom:0.4rem"><strong>Baselines:</strong> ${escapeHtml(baselines || 'Standard baseline architectures')}</p>
+        <p style="font-size:0.85rem;color:var(--text);margin:0"><strong>Evaluation Metrics:</strong> ${escapeHtml(metrics || 'Accuracy, Latency, Loss')}</p>
+      </div>
+
+      <div class="prop-section-box" style="margin-bottom:1.25rem">
+        <h3>Ablation Study Schedule</h3>
+        <ol style="padding-left:1.25rem;font-size:0.85rem;color:var(--text2);margin:0;line-height:1.6">${ablations}</ol>
+      </div>
+
+      <div class="prop-section-box" style="margin-bottom:0">
+        <h3>Starter PyTorch Experiment Scaffold</h3>
+        <div class="code-preview-box">
+          <button style="position:absolute;top:0.75rem;right:0.75rem" class="rs-btn rs-btn-secondary" onclick="copyStarterCode()">Copy Code</button>
+          <pre><code id="starterCodeBlock">${escapeHtml(d.starter_code || '# Scaffolding code')}</code></pre>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function copyStarterCode() {
+  const code = document.getElementById('starterCodeBlock');
+  if (!code) return;
+  navigator.clipboard.writeText(code.innerText).then(() => {
+    alert('PyTorch experiment code copied to clipboard!');
+  });
+}
+
+function escapeHtml(s) {
+  if (s == null) return '';
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
 </script>
+
 {% endblock %}

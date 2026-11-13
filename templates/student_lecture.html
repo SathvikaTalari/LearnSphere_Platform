@@ -1,6 +1,46 @@
 {% extends "base.html" %}
-{% block title %}Lecture — LearnSphere{% endblock %}
+{% block title %}Lecture &mdash; LearnSphere{% endblock %}
 {% block content %}
+<style>
+.lec-block {
+    margin-bottom: 2rem;
+}
+.lec-block-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.65rem 1rem;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 10px 10px 0 0;
+}
+.lec-block-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text);
+}
+.lec-block-meta {
+    font-size: 0.75rem;
+    color: var(--text2);
+    font-weight: 600;
+}
+.diagram-wrap {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 10px 10px;
+    padding: 1.25rem 1rem;
+    overflow-x: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.diagram-wrap svg {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+</style>
 <div class="lecture-layout">
     <!-- Sidebar -->
     <div class="lec-sidebar" id="lecSidebar">
@@ -18,11 +58,11 @@
     <!-- AI Panel -->
     <div class="ai-panel" id="aiPanel">
         <div class="ai-panel-header">
-            <span>🤖 AI Tutor</span>
+            <span>AI Tutor</span>
             <button onclick="toggleAI()" class="ai-toggle">×</button>
         </div>
         <div class="ai-chat-body" id="aiChatBody">
-            <div class="chat-msg ai">👋 I'm your AI tutor for this lecture! Ask me anything about the content, or click "AI Explain" to get a personalized explanation.</div>
+            <div class="chat-msg ai">I'm your AI tutor for this lecture! Ask me anything about the content, or click "AI Explain" to get a personalized explanation.</div>
         </div>
         <div class="ai-chat-input">
             <input type="text" id="aiInput" placeholder="Ask about this lecture..." onkeydown="if(event.key==='Enter')sendAI()">
@@ -31,7 +71,7 @@
     </div>
 </div>
 
-<button class="ai-fab" onclick="toggleAI()" id="aiFab">🤖</button>
+<button class="ai-fab" onclick="toggleAI()" id="aiFab">Tutor</button>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 <script>
@@ -73,29 +113,50 @@ function renderLecture(data) {
                 <div class="lec-breadcrumb">Lecture ${data.all_lectures?.findIndex(x=>x.id===lectureId)+1||''} of ${data.all_lectures?.length||''}</div>
                 <h1 class="lec-title">${l.title}</h1>
                 <div class="lec-meta">
-                    <span>⏱ ${l.duration_mins} min</span>
-                    <span class="lec-type-badge">${l.lecture_type==='video'?'🎥 Video':'📄 Reading'}</span>
-                    ${data.completed?'<span class="done-badge">✅ Completed</span>':''}
+                    <span>${l.duration_mins} min</span>
+                    <span class="lec-type-badge">${l.lecture_type==='video'?'Video':'Reading'}</span>
+                    ${data.completed?'<span class="done-badge">Completed</span>':''}
                 </div>
                 <div class="lec-actions">
-                    <button onclick="aiExplain()" class="btn-sm btn-ai">🤖 AI Explain</button>
-                    <button onclick="speakContent()" class="btn-sm btn-ghost" id="speakBtn">🔊 Listen</button>
-                    <button onclick="showNotes()" class="btn-sm btn-ghost">📝 Notes</button>
-                    ${!data.completed?`<button onclick="markDone()" class="btn-sm btn-success" id="doneBtn">✅ Mark Complete</button>`:''}
+                    <button onclick="aiExplain()" class="btn-sm btn-ai">AI Explain</button>
+                    <button onclick="speakContent()" class="btn-sm btn-ghost" id="speakBtn">Listen</button>
+                    <button onclick="showNotes()" class="btn-sm btn-ghost">Notes</button>
+                    ${!data.completed?`<button onclick="markDone()" class="btn-sm btn-success" id="doneBtn">Mark Complete</button>`:''}
                 </div>
             </div>
 
             <!-- Content -->
             <div class="lec-body">
-                ${l.video_url ? `<div class="video-wrap"><iframe src="${makeEmbedUrl(l.video_url)}" frameborder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowfullscreen></iframe></div>` : ''}
+                ${l.video_url ? `
+                <div class="lec-block">
+                    <div class="lec-block-head">
+                        <span class="lec-block-title">Video Masterclass</span>
+                        <span class="lec-block-meta">${l.duration_mins || 15} min</span>
+                    </div>
+                    <div class="video-wrap" style="margin-bottom:0;border:1px solid var(--border);border-top:none;border-radius:0 0 10px 10px">
+                        <iframe src="${makeEmbedUrl(l.video_url)}" frameborder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowfullscreen></iframe>
+                    </div>
+                </div>` : ''}
+
+                ${l.diagram_svg ? `
+                <div class="lec-block">
+                    <div class="lec-block-head">
+                        <span class="lec-block-title">Architecture &amp; Concept Workflow Diagram</span>
+                        <span class="lec-block-meta" style="color:var(--accent)">System Model</span>
+                    </div>
+                    <div class="diagram-wrap">
+                        ${l.diagram_svg}
+                    </div>
+                </div>` : ''}
+
                 <div class="lec-text">${content}</div>
 
                 ${l.code_example ? `
                 <div class="code-section">
                     <div class="code-sec-header">
-                        <span>💻 Code Example</span>
+                        <span>Interactive Code Lab</span>
                         <button onclick="copyCode(this)" class="copy-btn">Copy</button>
                     </div>
                     <pre><code class="language-python">${escHtml(l.code_example)}</code></pre>
@@ -104,16 +165,16 @@ function renderLecture(data) {
 
             <!-- Notes -->
             <div class="notes-panel" id="notesPanel" style="display:none">
-                <h4>📝 My Notes</h4>
+                <h4>My Notes</h4>
                 <textarea id="notesText" class="notes-textarea" placeholder="Write your notes here...">${data.note||''}</textarea>
                 <button onclick="saveNotes()" class="btn btn-primary btn-sm-full">Save Notes</button>
-                <span id="notesSaved" style="color:#10B981;font-size:0.8rem;display:none">✓ Saved</span>
+                <span id="notesSaved" style="color:#10B981;font-size:0.8rem;display:none">Saved</span>
             </div>
 
             <!-- Navigation -->
             <div class="lec-nav">
                 ${data.prev_id ? `<a href="/student/lecture/${data.prev_id}" class="btn btn-ghost">← Previous</a>` : '<span></span>'}
-                ${data.next_id ? `<a href="/student/lecture/${data.next_id}" class="btn btn-primary">Next Lecture →</a>` : '<div style="color:#10B981;font-weight:700">🎉 Course Complete!</div>'}
+                ${data.next_id ? `<a href="/student/lecture/${data.next_id}" class="btn btn-primary">Next Lecture →</a>` : '<div style="color:#10B981;font-weight:700">Course Complete!</div>'}
             </div>
         </div>`;
 
@@ -185,13 +246,13 @@ function toggleAI(open) {
 function speakContent() {
     const btn = document.getElementById('speakBtn');
     if (window.speechSynthesis.speaking) {
-        window.speechSynthesis.cancel(); btn.textContent = '🔊 Listen'; return;
+        window.speechSynthesis.cancel(); btn.textContent = 'Listen'; return;
     }
     const text = currentData.lecture.content?.replace(/[#*`\-]/g,'').slice(0,2000) || '';
     const utter = new SpeechSynthesisUtterance(text);
     utter.rate = 0.9;
-    utter.onend = () => btn.textContent = '🔊 Listen';
-    btn.textContent = '⏹ Stop';
+    utter.onend = () => btn.textContent = 'Listen';
+    btn.textContent = 'Stop';
     window.speechSynthesis.speak(utter);
 }
 
@@ -213,10 +274,30 @@ async function saveNotes() {
 async function markDone() {
     const btn = document.getElementById('doneBtn');
     btn.textContent = 'Saving...'; btn.disabled = true;
-    await fetch(`/api/complete_lecture/${lectureId}`, {method:'POST'});
-    btn.textContent = '✅ Completed'; btn.style.background='#10B981'; btn.style.color='#000';
-    if (currentData?.next_id) {
-        setTimeout(() => window.location = `/student/lecture/${currentData.next_id}`, 1000);
+    try {
+        const res = await fetch(`/api/complete_lecture/${lectureId}`, {method:'POST'}).then(r=>r.json());
+        btn.textContent = 'Completed \u2713'; btn.style.background='#10B981'; btn.style.color='#fff';
+        if (res && res.course_completed) {
+            btn.textContent = 'Course Completed!';
+            setTimeout(() => {
+                if (currentData && currentData.lecture) {
+                    window.location = `/student/course/${currentData.lecture.course_id}`;
+                } else {
+                    window.location = '/student/dashboard';
+                }
+            }, 1000);
+        } else if (currentData?.next_id) {
+            setTimeout(() => window.location = `/student/lecture/${currentData.next_id}`, 800);
+        } else {
+            setTimeout(() => {
+                if (currentData && currentData.lecture) {
+                    window.location = `/student/course/${currentData.lecture.course_id}`;
+                }
+            }, 1000);
+        }
+    } catch(err) {
+        btn.disabled = false;
+        btn.textContent = 'Mark Complete';
     }
 }
 
