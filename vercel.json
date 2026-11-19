@@ -1,12 +1,12 @@
 {
   "functions": {
     "api/index.py": {
-      "includeFiles": "templates/**,static/**"
+      "includeFiles": "templates/**,static/**,public/**"
     }
   },
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/((?!static|favicon.ico|favicon.svg).*)",
       "destination": "/api/index"
     }
   ]

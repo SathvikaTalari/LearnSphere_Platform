@@ -12,30 +12,31 @@ from app import app
 class VercelPathFixMiddleware:
     """
     Vercel CLI 65+ rewrites incoming requests to the destination path (/api/index).
-    This middleware restores the original requested path from Vercel's HTTP_X_MATCHED_PATH
-    or other forwarded headers, and cleanly resolves any /api/index prefix, ensuring
-    Flask routes (/, /login, /dashboard, /static/...) match accurately.
+    This middleware restores the true requested path from Vercel's HTTP_X_MATCHED_PATH
+    or forwarded headers, and cleanly strips any /api/index prefix, ensuring
+    Flask routes (/, /login, /student/dashboard, /api/...) match accurately.
     """
     def __init__(self, wsgi_app):
         self.wsgi_app = wsgi_app
 
     def __call__(self, environ, start_response):
-        # 1. Check HTTP_X_MATCHED_PATH (Vercel standard for rewritten URLs)
-        matched_path = environ.get('HTTP_X_MATCHED_PATH')
-        if not matched_path:
-            matched_path = environ.get('HTTP_X_FORWARDED_URI') or environ.get('HTTP_X_NOW_ROUTE_MATCHES')
+        raw_path = (
+            environ.get('HTTP_X_MATCHED_PATH') or
+            environ.get('HTTP_X_FORWARDED_URI') or
+            environ.get('HTTP_X_NOW_ROUTE_MATCHES') or
+            environ.get('PATH_INFO', '')
+        )
 
-        if matched_path:
-            parsed = urlparse(matched_path)
-            environ['PATH_INFO'] = parsed.path
-            if parsed.query and not environ.get('QUERY_STRING'):
-                environ['QUERY_STRING'] = parsed.query
-        else:
-            path_info = environ.get('PATH_INFO', '')
-            if path_info in ('/api/index', '/api/index/'):
-                environ['PATH_INFO'] = '/'
-            elif path_info.startswith('/api/index/'):
-                environ['PATH_INFO'] = path_info[len('/api/index'):]
+        parsed = urlparse(raw_path)
+        clean_path = parsed.path or '/'
+        if clean_path in ('/api/index', '/api/index/'):
+            clean_path = '/'
+        elif clean_path.startswith('/api/index/'):
+            clean_path = clean_path[len('/api/index'):] or '/'
+
+        environ['PATH_INFO'] = clean_path
+        if parsed.query and not environ.get('QUERY_STRING'):
+            environ['QUERY_STRING'] = parsed.query
 
         return self.wsgi_app(environ, start_response)
 

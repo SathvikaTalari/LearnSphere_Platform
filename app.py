@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, session, redirect, url_for, make_response
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for, make_response, send_from_directory
 from groq import Groq
 import json, os, sqlite3, hashlib, uuid, random
 from datetime import datetime, timedelta
@@ -17,12 +17,23 @@ except ImportError:
     pass
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+_STATIC_DIR = os.path.join(BASE_DIR, 'public', 'static') if os.path.isdir(os.path.join(BASE_DIR, 'public', 'static')) else os.path.join(BASE_DIR, 'static')
 app = Flask(
     __name__,
     template_folder=os.path.join(BASE_DIR, 'templates'),
-    static_folder=os.path.join(BASE_DIR, 'static'),
+    static_folder=_STATIC_DIR,
     static_url_path='/static'
 )
+
+@app.route('/static/<path:filename>')
+def serve_static(filename):
+    for s_dir in [
+        os.path.join(BASE_DIR, 'public', 'static'),
+        os.path.join(BASE_DIR, 'static')
+    ]:
+        if os.path.exists(os.path.join(s_dir, filename)):
+            return send_from_directory(s_dir, filename)
+    return ('File not found', 404)
 app.secret_key = os.environ.get('SECRET_KEY', 'learnsphere_secret_2024_xyz_dev_only')
 
 # ─── GROQ API SETUP (Free & Fast) ─────────────────────────────────────────
