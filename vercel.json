@@ -7,7 +7,7 @@
   "rewrites": [
     {
       "source": "/((?!static|favicon.ico|favicon.svg).*)",
-      "destination": "/api/index"
+      "destination": "/api/index?__path__=/$1"
     }
   ]
 }
