@@ -15,8 +15,42 @@ try:
 except ImportError:
     HAS_PG = False
 
-# Default SQLite path (use DB_PATH env var if provided)
-DB_PATH = os.environ.get('DB_PATH', os.path.join(os.path.dirname(__file__), 'learnsphere.db'))
+def get_sqlite_path():
+    """
+    Determine the SQLite database path, ensuring writable directory on serverless platforms.
+    On Vercel / AWS Lambda, the app root is strictly read-only, so SQLite must live in /tmp.
+    """
+    env_db = os.environ.get('DB_PATH')
+    if env_db:
+        # Check if directory of env_db is writable
+        db_dir = os.path.dirname(os.path.abspath(env_db)) or '.'
+        if os.path.exists(db_dir) and os.access(db_dir, os.W_OK):
+            return env_db
+
+    is_serverless = bool(
+        os.environ.get('VERCEL') or
+        os.environ.get('VERCEL_ENV') or
+        os.environ.get('AWS_LAMBDA_FUNCTION_NAME')
+    )
+
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+
+    # Test if base_dir is writable
+    if not is_serverless:
+        try:
+            test_path = os.path.join(base_dir, '.write_test')
+            with open(test_path, 'w') as f:
+                f.write('1')
+            os.remove(test_path)
+            return os.path.join(base_dir, 'learnsphere.db')
+        except (OSError, IOError, PermissionError):
+            is_serverless = True
+
+    # Serverless writable fallback
+    tmp_dir = '/tmp' if os.path.exists('/tmp') else os.environ.get('TEMP', os.environ.get('TMP', base_dir))
+    return os.path.join(tmp_dir, 'learnsphere.db')
+
+DB_PATH = get_sqlite_path()
 
 class PgRow(dict):
     """
@@ -184,14 +218,26 @@ def connect_postgres(url):
     ssl_context.check_hostname = False
     ssl_context.verify_mode = ssl.CERT_NONE
 
-    raw_conn = pg8000.dbapi.connect(
-        user=user,
-        password=password,
-        host=host,
-        port=port,
-        database=database,
-        ssl_context=ssl_context
-    )
+    try:
+        raw_conn = pg8000.dbapi.connect(
+            user=user,
+            password=password,
+            host=host,
+            port=port,
+            database=database,
+            ssl_context=ssl_context,
+            timeout=10
+        )
+    except Exception:
+        # Fallback without SSL context
+        raw_conn = pg8000.dbapi.connect(
+            user=user,
+            password=password,
+            host=host,
+            port=port,
+            database=database,
+            timeout=10
+        )
     raw_conn.autocommit = False
     return PgConnection(raw_conn)
 
@@ -200,7 +246,7 @@ def get_db():
     """
     Returns active database connection:
     - If DATABASE_URL / POSTGRES_URL / SUPABASE_DB_URL is set, connects to PostgreSQL.
-    - Otherwise, falls back to local SQLite (learnsphere.db).
+    - Otherwise, falls back to local SQLite with serverless /tmp safety.
     """
     url = (
         os.environ.get('DATABASE_URL') or 
@@ -210,10 +256,21 @@ def get_db():
     ).strip()
 
     if url and HAS_PG:
-        return connect_postgres(url)
+        try:
+            return connect_postgres(url)
+        except Exception as e:
+            print(f"[DB Warning] PostgreSQL connection failed: {e}. Falling back to SQLite.")
 
     # SQLite fallback
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    return conn
+    db_file = get_sqlite_path()
+    try:
+        conn = sqlite3.connect(db_file, timeout=20.0)
+        conn.row_factory = sqlite3.Row
+        return conn
+    except Exception as e:
+        print(f"[DB Error] SQLite connect failed at {db_file}: {e}. Retrying with /tmp/learnsphere.db fallback.")
+        tmp_fallback = os.path.join('/tmp', 'learnsphere.db') if os.path.exists('/tmp') else 'learnsphere.db'
+        conn = sqlite3.connect(tmp_fallback, timeout=20.0)
+        conn.row_factory = sqlite3.Row
+        return conn
 

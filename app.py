@@ -16,7 +16,13 @@ try:
 except ImportError:
     pass
 
-app = Flask(__name__)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+app = Flask(
+    __name__,
+    template_folder=os.path.join(BASE_DIR, 'templates'),
+    static_folder=os.path.join(BASE_DIR, 'static'),
+    static_url_path='/static'
+)
 app.secret_key = os.environ.get('SECRET_KEY', 'learnsphere_secret_2024_xyz_dev_only')
 
 # ─── GROQ API SETUP (Free & Fast) ─────────────────────────────────────────
@@ -2236,10 +2242,12 @@ def login_page():
 
 @app.route('/api/auth/login', methods=['POST'])
 def login():
-    data = request.json
+    data = request.json or {}
     conn = get_db()
-    user = conn.execute("SELECT * FROM users WHERE email=? AND password=?",
-                        (data['email'], hash_password(data['password']))).fetchone()
+    login_id = (data.get('email') or data.get('username') or '').strip()
+    pw = data.get('password', '')
+    user = conn.execute("SELECT * FROM users WHERE (email=? OR username=?) AND password=?",
+                        (login_id, login_id, hash_password(pw))).fetchone()
     conn.close()
     if user:
         session['user_id']=user['id']; session['username']=user['username']
@@ -5071,7 +5079,10 @@ def book_interview(interview_id):
     conn.close()
     return jsonify({'success': True})
 
-init_db()  # ← runs on every startup, Gunicorn or otherwise
+try:
+    init_db()  # ← runs on startup, initializes DB safely
+except Exception as _init_err:
+    print(f"[LearnSphere Startup] Notice during init_db: {_init_err}")
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
