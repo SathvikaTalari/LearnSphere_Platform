@@ -3,6 +3,7 @@ from groq import Groq
 import json, os, sqlite3, hashlib, uuid, random
 from datetime import datetime, timedelta
 from functools import wraps
+from urllib.parse import parse_qs, urlencode, urlparse
 
 try:
     from dotenv import load_dotenv
@@ -24,6 +25,41 @@ app = Flask(
     static_folder=_STATIC_DIR,
     static_url_path='/static'
 )
+
+class VercelPathFixMiddleware:
+    """
+    Restores the real URL path when running behind Vercel serverless rewrites.
+    Works whether Vercel runs app.py directly or through api/index.py.
+    """
+    def __init__(self, wsgi_app):
+        self.wsgi_app = wsgi_app
+
+    def __call__(self, environ, start_response):
+        qs = environ.get('QUERY_STRING', '')
+        if '__path__' in qs:
+            params = parse_qs(qs, keep_blank_values=True)
+            if '__path__' in params:
+                raw_target = params.pop('__path__')[0]
+                clean = '/' + raw_target.lstrip('/')
+                environ['PATH_INFO'] = clean
+                environ['QUERY_STRING'] = urlencode(params, doseq=True)
+                return self.wsgi_app(environ, start_response)
+
+        matched = environ.get('HTTP_X_MATCHED_PATH') or environ.get('HTTP_X_FORWARDED_URI') or ''
+        if matched and not matched.startswith('/api/index'):
+            parsed = urlparse(matched)
+            environ['PATH_INFO'] = '/' + parsed.path.lstrip('/')
+            return self.wsgi_app(environ, start_response)
+
+        path_info = environ.get('PATH_INFO', '')
+        if path_info in ('/api/index', '/api/index/'):
+            environ['PATH_INFO'] = '/'
+        elif path_info.startswith('/api/index/'):
+            environ['PATH_INFO'] = '/' + path_info[len('/api/index'):].lstrip('/')
+
+        return self.wsgi_app(environ, start_response)
+
+app.wsgi_app = VercelPathFixMiddleware(app.wsgi_app)
 
 @app.route('/static/<path:filename>')
 def serve_static(filename):
@@ -2240,7 +2276,6 @@ def educator_required(f):
 
 # ─── ROUTES ──────────────────────────────────────────────────────────────────
 @app.route('/')
-@app.route('/api/index')
 def index():
     if 'user_id' in session:
         return redirect(url_for('student_dashboard') if session.get('role')=='student' else url_for('educator_dashboard'))
