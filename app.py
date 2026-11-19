@@ -2229,6 +2229,7 @@ def educator_required(f):
 
 # ─── ROUTES ──────────────────────────────────────────────────────────────────
 @app.route('/')
+@app.route('/api/index')
 def index():
     if 'user_id' in session:
         return redirect(url_for('student_dashboard') if session.get('role')=='student' else url_for('educator_dashboard'))
